@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import { useLocalization } from '@fluent/react';
 import { Typography } from '@/components/commons/Typography';
+import { CheckboxInternal } from '@/components/commons/Checkbox';
 import { SquaresIcon } from '@/components/commons/icon/SquaresIcon';
 import {
   SettingsPageLayout,
@@ -65,6 +66,21 @@ export function SpecialThemesSettings() {
               </span>
             </button>
           ))}
+        </div>
+        <div className="pt-4">
+          <CheckboxInternal
+            variant="toggle"
+            outlined
+            name="pawEars"
+            label={l10n.getString('settings-special-themes-ears-label')}
+            checked={config?.pawEars !== false}
+            onChange={(e) =>
+              setConfig({ pawEars: (e.target as HTMLInputElement).checked })
+            }
+          />
+          <Typography color="secondary">
+            {l10n.getString('settings-special-themes-ears-description')}
+          </Typography>
         </div>
       </SettingsPagePaneLayout>
     </SettingsPageLayout>

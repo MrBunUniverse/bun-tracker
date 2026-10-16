@@ -72,7 +72,8 @@ const EARS = {
 export function PawEars({ cell, on }: { cell: number; on: 'logo' | 'badge' }) {
   const { config } = useConfig();
   const ears = EARS[config?.theme as keyof typeof EARS];
-  if (!ears) return null;
+  // Special themes page: "Ears on the logo" turns them off.
+  if (!ears || config?.pawEars === false) return null;
   const w = ears.sprite[0].length;
   const h = ears.sprite.length;
   const ear = (mirror: boolean) => {

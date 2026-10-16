@@ -54,6 +54,7 @@ export interface Config {
   theme: string;
   textSize: number;
   animations: boolean;
+  pawEars: boolean;
   fonts: string[];
   useTray: boolean | null;
   mirrorView: boolean;
@@ -91,6 +92,7 @@ export const defaultConfig: Config = {
   theme: 'claude',
   textSize: 12,
   animations: true,
+  pawEars: true,
   fonts: [
     '-apple-system',
     'BlinkMacSystemFont',
