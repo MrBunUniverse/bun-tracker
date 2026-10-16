@@ -74,6 +74,11 @@ export interface ConfigContext {
   saveConfig: () => Promise<void>;
 }
 
+// PawPad special themes. They share Bun's layout and pixel look; each has its own palette in index.scss.
+export const PAW_THEMES = ['bun', 'fox', 'dog'];
+export const isPawTheme = (theme?: string) =>
+  theme !== undefined && PAW_THEMES.includes(theme);
+
 export const defaultConfig: Config = {
   uuid: uuidv4(),
   lang: 'en',

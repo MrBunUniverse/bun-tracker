@@ -13,7 +13,7 @@ import {
   QuestVideoStartOptions,
 } from 'electron/preload/interface';
 import { useQuestCaptureSettings } from '@/hooks/quest-capture';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 
 const CODEC_OPTIONS = [
   { value: 'opus', label: 'Opus (Low Latency • Standard)' },
@@ -107,7 +107,7 @@ export function RemotePage() {
 
   // Bun: the game audio and the headset mic share one tab, so only one of them shows at a time.
   const { config } = useConfig();
-  const bun = config?.theme === 'bun';
+  const bun = isPawTheme(config?.theme);
   const [audioTab, setAudioTab] = useState<'game' | 'mic'>('game');
 
   // Audio Stream Config (persisted to localStorage)

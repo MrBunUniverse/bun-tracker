@@ -1,6 +1,6 @@
 import { ReactElement, useEffect, useRef } from 'react';
 import classNames from 'classnames';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 
 // Redraws an icon on a small pixel grid, so it reads as PawPad-style pixel art.
 // Only in the Bun theme. Other themes get the original icon back, unchanged.
@@ -17,7 +17,7 @@ export function PixelIcon({
   className?: string;
 }) {
   const { config } = useConfig();
-  const pixel = config?.theme === 'bun';
+  const pixel = isPawTheme(config?.theme);
   const holderRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

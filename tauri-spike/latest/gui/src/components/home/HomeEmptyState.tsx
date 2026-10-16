@@ -14,9 +14,10 @@ import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
 import { demoModeAtom, toggleDemoModeAtom } from '@/store/demo-trackers';
 import { useTracker } from '@/hooks/tracker';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
+import { PawEars } from '@/components/commons/PawEars';
 import { PixelIcon } from '@/components/commons/PixelIcon';
 import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 import { CardIMUVisualizer } from '@/components/widgets/IMUVisualizerWidget';
 import {
   TrackerDataT,
@@ -39,7 +40,7 @@ export function ClaudeTrackerWindowCard({
   const velocity = useVelocity();
   const isDemo = useAtomValue(demoModeAtom);
   const { config } = useConfig();
-  const bun = config?.theme === 'bun';
+  const bun = isPawTheme(config?.theme);
 
   const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
   const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
@@ -554,7 +555,7 @@ const SETUP_LINKS = [
 /** Shown while no tracker is connected: what to do next, in order. */
 function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   const { config } = useConfig();
-  const bun = config?.theme === 'bun';
+  const bun = isPawTheme(config?.theme);
   const animate = config?.animations !== false;
   const logoRef = useRef<HTMLSpanElement>(null);
   return (
@@ -578,6 +579,8 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
             bun && animate && 'tracker-logo-hop'
           )}
         >
+          {/* Fox and Dog: pixel ears on the logo, so they hop with it. */}
+          <PawEars cell={34 / 28} on="badge" />
           {/* Bun: the logo is redrawn as pixel art, like the sidebar logo. */}
           <PixelIcon size={34} grid={28}>
             <SlimeVRIcon width={26} height={15} className="home-accent" />

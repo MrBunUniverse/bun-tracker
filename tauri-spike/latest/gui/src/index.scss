@@ -510,31 +510,117 @@ body {
   --window-icon-stroke: 185, 166, 136;
 }
 
+/* Fox: PawPad's red fox coat. Umber like the dark ear tips (#2e211c), cream from the chest (#f7e6cc), and orange fur (#d9651e). Shares Bun's layout rules. */
+:root[data-theme='fox'] {
+  --background-10: 247, 230, 204; /* text */
+  --background-20: 214, 192, 163; /* secondary text */
+  --background-30: 178, 156, 130; /* muted text */
+  --background-40: 72, 55, 46; /* hairline */
+  --background-50: 92, 70, 58; /* component borders */
+  --background-60: 48, 37, 31; /* raised card */
+  --background-70: 40, 31, 26; /* panel */
+  --background-80: 31, 24, 20; /* canvas */
+  --background-90: 22, 17, 14;
+
+  --accent-background-10: 242, 153, 90; /* light */
+  --accent-background-20: 178, 78, 22; /* low (button fill) */
+  --accent-background-30: 217, 101, 30; /* coat */
+  --accent-background-40: 178, 78, 22;
+  --accent-background-50: 240, 138, 72; /* text on dark */
+
+  --motion: 217, 101, 30;
+  --success: 127, 191, 138;
+  --warning: 232, 184, 74;
+  --critical: 217, 100, 90;
+  --special: 247, 230, 204;
+  --default-color: 247, 230, 204;
+
+  --material-canvas: rgb(31, 24, 20);
+  --material-primary: rgb(40, 31, 26);
+  --material-secondary: rgb(48, 37, 31);
+  --material-tertiary: rgba(247, 230, 204, 0.05);
+  --material-tertiary-hover: rgba(247, 230, 204, 0.09);
+  --material-tertiary-active: rgba(247, 230, 204, 0.14);
+  --material-border-subtle: rgba(247, 230, 204, 0.08);
+  --material-border-primary: rgba(247, 230, 204, 0.12);
+  --material-border-strong: rgba(247, 230, 204, 0.2);
+  --specular-rim: inset 0 1px 0 0 rgba(247, 230, 204, 0.06);
+  --specular-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25);
+  --glass-elevation: 0 8px 32px -4px rgba(0, 0, 0, 0.36);
+  --glass-pill-bg: rgba(247, 230, 204, 0.05);
+  --slider-active: rgb(var(--accent-background-30));
+  --slider-track: rgba(247, 230, 204, 0.1);
+  --window-icon-stroke: 178, 156, 130;
+}
+
+/* Dog: PawPad's golden coat. Warm brown like the floppy ears (#b8791f darkened), cream text, golden fur (#d9a24a), and the pink paw (#f2a39a). Shares Bun's layout rules. */
+:root[data-theme='dog'] {
+  --background-10: 245, 233, 211; /* text */
+  --background-20: 214, 196, 163; /* secondary text */
+  --background-30: 180, 162, 128; /* muted text */
+  --background-40: 82, 64, 40; /* hairline */
+  --background-50: 102, 81, 52; /* component borders */
+  --background-60: 55, 43, 28; /* raised card */
+  --background-70: 46, 36, 23; /* panel */
+  --background-80: 36, 28, 18; /* canvas */
+  --background-90: 26, 20, 13;
+
+  --accent-background-10: 240, 201, 120; /* light */
+  --accent-background-20: 150, 100, 26; /* low (button fill) */
+  --accent-background-30: 217, 162, 74; /* coat */
+  --accent-background-40: 150, 100, 26;
+  --accent-background-50: 232, 182, 92; /* text on dark */
+
+  --motion: 217, 162, 74;
+  --success: 127, 191, 138;
+  --warning: 232, 184, 74;
+  --critical: 217, 100, 90;
+  --special: 242, 163, 154;
+  --default-color: 245, 233, 211;
+
+  --material-canvas: rgb(36, 28, 18);
+  --material-primary: rgb(46, 36, 23);
+  --material-secondary: rgb(55, 43, 28);
+  --material-tertiary: rgba(245, 233, 211, 0.05);
+  --material-tertiary-hover: rgba(245, 233, 211, 0.09);
+  --material-tertiary-active: rgba(245, 233, 211, 0.14);
+  --material-border-subtle: rgba(245, 233, 211, 0.08);
+  --material-border-primary: rgba(245, 233, 211, 0.12);
+  --material-border-strong: rgba(245, 233, 211, 0.2);
+  --specular-rim: inset 0 1px 0 0 rgba(245, 233, 211, 0.06);
+  --specular-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25);
+  --glass-elevation: 0 8px 32px -4px rgba(0, 0, 0, 0.36);
+  --glass-pill-bg: rgba(245, 233, 211, 0.05);
+  --slider-active: rgb(var(--accent-background-30));
+  --slider-track: rgba(245, 233, 211, 0.1);
+  --window-icon-stroke: 180, 162, 128;
+}
+
 /* Pixel look: one cream dot grid behind every page, with the same contrast as the welcome screen. Only the Welcome screen animates (RippleDots). 3px corners and a coral light toggle. Circles keep rounded-full. */
-:root[data-theme='bun'] body {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) body {
   background-image: radial-gradient(
-    rgba(239, 230, 214, 0.1) 1px,
+    rgba(var(--background-10), 0.1) 1px,
     transparent 1.5px
   );
   background-size: 12px 12px;
 }
 
 /* The page stays see-through so the body dot grid shows. Panels are solid, so the dots stop at their edges. Backdrop blur would smear the dots, so it goes too. */
-:root[data-theme='bun'] .text-standard.bg-background-80 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-standard.bg-background-80 {
   background-color: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-:root[data-theme='bun'] .glass-panel,
-:root[data-theme='bun'] #home-tracker-view-panel,
-:root[data-theme='bun'] .home-tracker-surface {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .glass-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #home-tracker-view-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-surface {
   background-color: rgb(var(--background-70));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 /* Remote: the cards match the Home tracker cards, a raised surface with a hairline border and a soft shadow. */
-:root[data-theme='bun'] .remote-card {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card {
   background-color: rgb(var(--background-60));
   border: 1px solid rgba(var(--background-10), 0.08) !important;
   box-shadow:
@@ -543,7 +629,7 @@ body {
 }
 
 /* The page header is plain text over a hairline, not a boxed card. */
-:root[data-theme='bun'] .remote-header {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-header {
   background-color: transparent;
   border: 0 !important;
   border-bottom: 1px solid rgba(var(--background-10), 0.06) !important;
@@ -552,13 +638,13 @@ body {
 }
 
 /* The decorative wave in each title bar goes. */
-:root[data-theme='bun'] .remote-card__banner > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card__banner > svg {
   display: none;
 }
 
 /* Stream cards: a slim header with the icon on the left and the file name on the right,
    then the settings as one list with hairline separators. */
-:root[data-theme='bun'] .remote-stream .remote-card__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .remote-card__banner {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -568,12 +654,12 @@ body {
   border-bottom: 1px solid rgba(var(--background-10), 0.06);
 }
 
-:root[data-theme='bun'] .remote-stream .remote-card__banner > div:nth-child(2) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .remote-card__banner > div:nth-child(2) {
   order: -1;
   flex-grow: 0;
 }
 
-:root[data-theme='bun'] .remote-stream [class*='rounded-[10px]']:not(button) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream [class*='rounded-[10px]']:not(button) {
   background-color: transparent;
   border: 0;
   border-bottom: 1px solid rgba(var(--background-10), 0.06);
@@ -582,14 +668,14 @@ body {
 }
 
 /* The empty headset state is plain text, not a dashed box. */
-:root[data-theme='bun'] .remote-card [class*='border-dashed'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card [class*='border-dashed'] {
   background-color: transparent;
   border: 0;
   border-radius: 0 !important;
 }
 
 /* Bun: the tracker logo sits alone on the ripple, with no flat circle around it. */
-:root[data-theme='bun'] .tracker-empty-logo {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo {
   border: 0;
   background-color: transparent;
 }
@@ -618,28 +704,28 @@ body {
     transform: translateY(0) scale(1);
   }
 }
-:root[data-theme='bun'] .tracker-empty-logo.tracker-logo-hop {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo.tracker-logo-hop {
   transform-origin: 50% 100%;
   animation: tracker-logo-hop 4200ms ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  :root[data-theme='bun'] .tracker-empty-logo.tracker-logo-hop {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo.tracker-logo-hop {
     animation: none;
   }
 }
 
 /* Bun: the onboarding steps draw the static dot grid instead of the technical gridlines. */
-:root[data-theme='bun'] .animate-grid-drift {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .animate-grid-drift {
   display: none;
 }
 
 /* Sidebar: bigger targets, rounded items, and a clear active item. Bun only. */
-:root[data-theme='bun'] .sidenav__item {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav__item {
   height: 44px;
   border-radius: 12px !important;
   font-size: 15px;
 }
-:root[data-theme='bun'] .sidenav__item[aria-current='page'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav__item[aria-current='page'] {
   background-color: rgba(var(--accent-background-20), 0.18);
   color: rgb(var(--accent-background-10));
   font-weight: 600;
@@ -648,56 +734,56 @@ body {
 /* Settings: easier to read and to use. Bun only, and nothing is removed.
    Text is at least 14px, headings are sans-serif, secondary text is brighter,
    and every card, row and control has more room. */
-:root[data-theme='bun'] .settings-layout {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout {
   font-size: 16px;
   line-height: 1.55;
   letter-spacing: 0;
 }
-:root[data-theme='bun'] .settings-layout [class*='text-ui-2xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-2xs'] {
   font-size: 14px;
 }
-:root[data-theme='bun'] .settings-layout [class*='text-ui-xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-xs'] {
   font-size: 15px;
 }
-:root[data-theme='bun'] .settings-layout [class*='text-ui-sm'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-sm'] {
   font-size: 16px;
 }
-:root[data-theme='bun'] .settings-layout [class*='text-ui-md'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-md'] {
   font-size: 18px;
 }
-:root[data-theme='bun'] .settings-layout .text-standard,
-:root[data-theme='bun'] .settings-layout .text-description {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-standard,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-description {
   font-size: 16px;
 }
-:root[data-theme='bun'] .settings-layout .text-standard-bold {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-standard-bold {
   font-size: 16px;
   font-weight: 600;
 }
-:root[data-theme='bun'] .settings-layout .font-serif,
-:root[data-theme='bun'] .settings-layout .text-section-title,
-:root[data-theme='bun'] .settings-layout .text-main-title {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .font-serif,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-section-title,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-main-title {
   font-family: inherit;
   font-weight: 600;
   letter-spacing: 0;
 }
-:root[data-theme='bun'] .settings-layout .text-background-30 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-background-30 {
   color: rgb(var(--background-20));
 }
 
 /* Settings sidebar: larger links with rounded pills and a filled active item. */
-:root[data-theme='bun'] .settings-layout a.group {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group {
   height: auto;
   min-height: 38px;
   padding: 7px 10px !important;
   border-radius: 12px !important;
   font-size: 15px;
 }
-:root[data-theme='bun'] .settings-layout a.group[aria-current='page'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group[aria-current='page'] {
   background-color: rgba(var(--accent-background-20), 0.18);
   color: rgb(var(--accent-background-10));
   font-weight: 600;
 }
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   > div:nth-child(2)
   [class*='uppercase'] {
@@ -707,7 +793,7 @@ body {
   padding-left: 10px;
   margin-top: 16px;
 }
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   > div:nth-child(2)
   [class*='uppercase']::before {
@@ -721,10 +807,10 @@ body {
 }
 
 /* Settings panels: soft, rounded cards with room around each title and row. */
-:root[data-theme='bun'] .settings-layout > div:nth-child(3) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout > div:nth-child(3) {
   padding: 24px;
 }
-:root[data-theme='bun'] .settings-layout .settings-pane {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane {
   border-radius: 18px !important;
   border: 1px solid rgba(var(--background-10), 0.1) !important;
   background-color: rgb(var(--background-70));
@@ -733,13 +819,13 @@ body {
     0 2px 10px rgba(0, 0, 0, 0.2);
   margin-bottom: 22px;
 }
-:root[data-theme='bun'] .settings-layout .settings-pane > div:first-child {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane > div:first-child {
   min-height: 72px;
   padding: 14px 18px;
   gap: 14px;
   border-radius: 18px !important;
 }
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   .settings-pane
   > div:first-child
@@ -748,24 +834,24 @@ body {
   font-size: 18px !important;
   font-weight: 600 !important;
 }
-:root[data-theme='bun'] .settings-layout .settings-pane__icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane__icon {
   width: 40px;
   height: 40px;
   border-radius: 12px !important;
   background-color: rgba(var(--accent-background-20), 0.16);
   border: 1px solid rgba(var(--accent-background-20), 0.35);
 }
-:root[data-theme='bun'] .settings-layout .settings-pane__icon > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane__icon > svg {
   width: 22px !important;
   height: 22px !important;
 }
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   .settings-pane
   > div:not(:first-child) {
   padding: 4px 18px 10px;
 }
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   .settings-pane
   > div:not(:first-child)
@@ -777,98 +863,98 @@ body {
 }
 
 /* The tab chooser has its own dotted canvas (DotRain), so the body dots don't show through it. Bun only. */
-:root[data-theme='bun'] .settings-sidebar-frame {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar-frame {
   background-color: rgb(var(--background-70));
   border-radius: 16px;
 }
-:root[data-theme='bun'] .settings-sidebar {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar {
   background-color: transparent;
 }
 
 /* Settings density: a roomier sidebar, rows and cards. Bun only. */
-:root[data-theme='bun'] .settings-sidebar .flex-col.gap-0\.5 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar .flex-col.gap-0\.5 {
   gap: 2px;
 }
 /* Only the page you are on gets the fill. The router marks every link on the same route as current, so the rest are reset here. */
-:root[data-theme='bun'] .settings-layout a.group[aria-current='page']:not([class*='bg-accent-background-20/10']) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group[aria-current='page']:not([class*='bg-accent-background-20/10']) {
   background-color: transparent;
   color: rgb(var(--background-30));
   font-weight: 400;
 }
 /* Descriptions stop at about 62 characters per line and breathe a little more. */
-:root[data-theme='bun'] .settings-layout .settings-pane p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane p {
   max-width: 62ch;
   line-height: 1.6;
 }
 /* Toggle rows in the outlined grids get more height, and the two columns get more space between them. */
-:root[data-theme='bun'] .settings-layout .settings-pane label[class*='min-h-[44px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane label[class*='min-h-[44px]'] {
   min-height: 60px;
 }
-:root[data-theme='bun'] .settings-layout .settings-pane .gap-x-8 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane .gap-x-8 {
   column-gap: 40px;
 }
 
 /* Disabled settings stay readable: their text uses the muted colour, not the near-invisible one. */
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   [class*='text-background-40']:not(svg) {
   color: rgb(var(--background-30));
 }
-:root[data-theme='bun'] .settings-layout label[class*='opacity-50'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout label[class*='opacity-50'] {
   opacity: 0.85;
 }
 
 /* Switches: the off track is easier to see. The round white knobs stay white. */
-:root[data-theme='bun'] .settings-layout [class*='bg-background-10/[0.14]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='bg-background-10/[0.14]'] {
   background-color: rgba(var(--background-10), 0.3);
 }
 
 /* Light boxes from the older pages are dark here, so their text stays readable. Round knobs stay white. */
-:root[data-theme='bun']
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   [class*='bg-white']:not([class*='rounded-full']) {
   background-color: rgb(var(--background-60));
 }
 
 /* Console and other mono text: at least 14px. */
-:root[data-theme='bun'] .settings-layout [class*='font-mono'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='font-mono'] {
   font-size: max(14px, 0.9em);
 }
 
 /* Inputs and dropdowns: taller, rounder, and easier to hit. */
-:root[data-theme='bun'] .settings-layout input,
-:root[data-theme='bun'] .settings-layout select {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout input,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout select {
   min-height: 46px;
   font-size: 16px;
   border-radius: 12px !important;
 }
-:root[data-theme='bun'] .settings-layout [class*='min-h-[42px]'],
-:root[data-theme='bun'] .settings-layout [class*='min-h-[40px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[42px]'],
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[40px]'] {
   min-height: 46px;
 }
 
 /* Keyboard focus: a clear cream ring on every control in the settings and the sidebar. */
-:root[data-theme='bun'] .settings-layout :focus-visible,
-:root[data-theme='bun'] .sidenav :focus-visible {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout :focus-visible,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav :focus-visible {
   outline: 2px solid rgb(var(--background-10));
   outline-offset: 2px;
 }
 
 /* Big titles (SirJameSlimeVR wordmark, page titles) use PawPad's monospace. Body text stays sans for readability. */
-:root[data-theme='bun'] .font-serif,
-:root[data-theme='bun'] .text-main-title {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .font-serif,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-main-title {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   letter-spacing: 0.01em;
 }
 
 /* The sidebar name is wider in monospace, so it gets a little less size and tracking to fit the rail. */
-:root[data-theme='bun'] .truncate.font-serif {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .truncate.font-serif {
   font-size: 0.85em;
   letter-spacing: -0.03em;
 }
 
 /* Secondary buttons: the same stepped pixel corners, in the cocoa border colour. */
-:root[data-theme='bun'] .app-button-secondary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-secondary {
   --e: rgb(var(--background-50));
   border-radius: 0 !important;
   box-shadow:
@@ -879,8 +965,8 @@ body {
 }
 
 /* Tertiary buttons and the Toolbar's icon buttons get the same stepped corners. */
-:root[data-theme='bun'] .app-button-tertiary,
-:root[data-theme='bun'] .toolbar-reset-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-tertiary,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .toolbar-reset-button {
   --e: rgb(var(--background-50));
   border-radius: 0 !important;
   box-shadow:
@@ -891,7 +977,7 @@ body {
 }
 
 /* The Exit Demo button gets stepped pixel corners in the coral border colour. */
-:root[data-theme='bun'] .demo-exit-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .demo-exit-button {
   --e: rgb(var(--accent-background-20));
   border-radius: 0 !important;
   box-shadow:
@@ -901,14 +987,14 @@ body {
     2px 0 0 0 var(--e);
 }
 
-/* Pixel icons (PixelIcon) share one glow: a tight coral halo plus a soft outer one. */
+/* Pixel icons (PixelIcon, PawEars) share one glow in the theme's accent: a tight halo plus a soft outer one. */
 .pixel-icon {
-  filter: drop-shadow(0 0 2px rgba(224, 144, 126, 0.7))
-    drop-shadow(0 0 8px rgba(224, 144, 126, 0.35));
+  filter: drop-shadow(0 0 2px rgba(var(--accent-background-30), 0.7))
+    drop-shadow(0 0 8px rgba(var(--accent-background-30), 0.35));
 }
 
 /* Primary buttons get stepped pixel corners, the same trick as PawPad's status pill. */
-:root[data-theme='bun'] .app-button-primary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-primary {
   --e: rgb(var(--accent-background-30));
   /* Dark label on the lighter coral: about 7.5:1, where cream on the old fill was 3.1:1. */
   background-color: rgb(var(--accent-background-30));
@@ -921,12 +1007,12 @@ body {
     2px 0 0 0 var(--e);
 }
 
-:root[data-theme='bun'] [class*='rounded-']:not([class*='rounded-full']) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [class*='rounded-']:not([class*='rounded-full']) {
   border-radius: 3px !important;
 }
 
 /* Setup: the ESC key is a pixel keycap, and the skip warning is a card like the settings panes. Bun only. */
-:root[data-theme='bun'] .skip-setup-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button {
   --e: rgb(var(--background-50));
   display: flex;
   align-items: center;
@@ -942,13 +1028,13 @@ body {
     -2px 0 0 0 var(--e),
     2px 0 0 0 var(--e);
 }
-:root[data-theme='bun'] .skip-setup-button:hover {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:hover {
   --e: rgb(var(--accent-background-20));
 }
-:root[data-theme='bun'] .skip-setup-button svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button svg {
   display: none;
 }
-:root[data-theme='bun'] .skip-setup-button p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button p {
   margin: 0;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -956,11 +1042,11 @@ body {
   letter-spacing: 0.08em;
   color: rgb(var(--background-10));
 }
-:root[data-theme='bun'] .skip-setup-button:hover p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:hover p {
   color: rgb(var(--accent-background-10));
 }
 
-:root[data-theme='bun'] .setup-warning-surface {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-surface {
   border: 1px solid rgba(var(--background-10), 0.1) !important;
   border-radius: 18px !important;
   background-color: rgb(var(--background-70));
@@ -968,81 +1054,81 @@ body {
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 12px 32px rgba(0, 0, 0, 0.45);
 }
-:root[data-theme='bun'] .setup-warning-modal {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal {
   background-color: transparent;
 }
-:root[data-theme='bun'] .setup-warning-modal__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal__banner {
   height: auto !important;
   padding: 22px 22px 18px;
   background-color: transparent;
   border-bottom: 1px solid rgba(var(--background-10), 0.08);
 }
 /* The icon sits in a coral tile, like the settings icons. The breathing glow is a soft blur, so it goes. */
-:root[data-theme='bun'] .setup-warning-modal .animate-warning-breathe {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe {
   width: 56px;
   height: 56px;
   border-radius: 14px !important;
   background-color: rgba(var(--accent-background-20), 0.16);
   border: 1px solid rgba(var(--accent-background-20), 0.35);
 }
-:root[data-theme='bun'] .setup-warning-modal .animate-warning-breathe::before {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe::before {
   display: none;
 }
-:root[data-theme='bun'] .setup-warning-modal .animate-warning-breathe > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe > svg {
   width: 26px;
   height: 26px;
 }
-:root[data-theme='bun'] .setup-warning-modal h3 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal h3 {
   font-size: 18px;
   font-weight: 600;
 }
-:root[data-theme='bun'] .setup-warning-modal p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal p {
   font-size: 15px;
   line-height: 1.6;
   color: rgb(var(--background-20));
 }
-:root[data-theme='bun'] .setup-warning-modal button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal button {
   min-height: 44px;
   font-size: 15px;
 }
 /* The global 3px corner rule would win on these buttons, so the stepped corners are set again here. */
-:root[data-theme='bun'] .setup-warning-modal .app-button-primary,
-:root[data-theme='bun'] .setup-warning-modal .app-button-secondary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .app-button-primary,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .app-button-secondary {
   border-radius: 0 !important;
 }
-:root[data-theme='bun'] .setup-warning-modal :focus-visible,
-:root[data-theme='bun'] .skip-setup-button:focus-visible {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal :focus-visible,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:focus-visible {
   outline: 2px solid rgb(var(--background-10));
   outline-offset: 2px;
 }
 
 /* Quest controls: the expanded panel uses two columns and scrolls inside a cap, so the trackers below stay on screen. Bun only. */
 @media (min-width: 800px) {
-  :root[data-theme='bun'] #quest-telemetry-controls .collapsible-tab-content > .grid {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #quest-telemetry-controls .collapsible-tab-content > .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 28px;
   }
 }
-:root[data-theme='bun'] #quest-telemetry-controls > .overflow-hidden {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #quest-telemetry-controls > .overflow-hidden {
   max-height: 46vh;
   overflow-y: auto;
 }
 
 /* Tracker card, step 1: the three dots and the battery tag go (the footer has the battery), the 3D switch stays
    on the left of the hero, and the name can run to two lines. Bun only. */
-:root[data-theme='bun'] .home-tracker-card__dots,
-:root[data-theme='bun'] .home-tracker-card__tag {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__dots,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__tag {
   display: none;
 }
-:root[data-theme='bun'] .home-tracker-card__banner > div:first-child {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__banner > div:first-child {
   justify-content: flex-start;
 }
 /* The card hero is shorter and tighter, so the whole card is more compact. */
-:root[data-theme='bun'] .home-tracker-card__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__banner {
   height: 108px !important;
   padding: 8px !important;
 }
-:root[data-theme='bun'] .home-tracker-card__name {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__name {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1051,98 +1137,98 @@ body {
   min-height: 2.6em;
 }
 /* Every card in a row is the same height, whatever its state or name length. */
-:root[data-theme='bun'] .home-tracker-card {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card {
   height: 100%;
 }
 
 /* Remote page redesign: on wider windows the headsets sit on the left and the audio tab on the right.
    The header, the setup banner and the mirror studio span the full width. Bun only. */
 @media (min-width: 1000px) {
-  :root[data-theme='bun'] .remote-page > div {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
     display: grid !important;
     grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.6fr);
     align-items: start;
   }
-  :root[data-theme='bun'] .remote-page > div > * {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > * {
     grid-column: 1 / -1;
   }
-  :root[data-theme='bun'] .remote-page > div > .remote-card.group:not(.remote-stream) {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > .remote-card.group:not(.remote-stream) {
     grid-column: 1;
   }
-  :root[data-theme='bun'] .remote-page > div > [role='tablist'],
-  :root[data-theme='bun'] .remote-page > div > [data-audio-tab] {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > [role='tablist'],
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > [data-audio-tab] {
     grid-column: 2;
   }
 }
 
 /* Audio tab: one card at a time, at full width. The other card stays mounted, so its stream keeps running. Bun only. */
-:root[data-theme='bun'] [data-audio-tab] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab] {
   grid-template-columns: minmax(0, 1fr);
 }
-:root[data-theme='bun'] [data-audio-tab='game'] > :nth-child(2),
-:root[data-theme='bun'] [data-audio-tab='mic'] > :nth-child(1) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab='game'] > :nth-child(2),
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab='mic'] > :nth-child(1) {
   display: none;
 }
 
 /* Audio cards: codec, bitrate and latency buffer sit in one row inside each card. Header and live level take the full width. Bun only. */
-:root[data-theme='bun'] .remote-stream .gap-2\.5 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
 }
-:root[data-theme='bun'] .remote-stream .gap-2\.5 > * {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > * {
   grid-column: 1 / -1;
 }
-:root[data-theme='bun'] .remote-stream .gap-2\.5 > [class*='rounded-[10px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > [class*='rounded-[10px]'] {
   grid-column: auto;
 }
-:root[data-theme='bun'] .remote-stream .gap-2\.5 select {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 select {
   width: 100%;
   min-width: 0;
   text-overflow: ellipsis;
 }
 
 /* Remote page: muted text (subtitles, pills, labels) is brighter, so it reads on the dark cards. Bun only. */
-:root[data-theme='bun'] .remote-page [class*='text-background-30'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page [class*='text-background-30'] {
   color: rgb(var(--background-20));
 }
-:root[data-theme='bun'] .remote-page [class*='text-background-40'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page [class*='text-background-40'] {
   color: rgb(var(--background-30));
 }
-:root[data-theme='bun'] .remote-page button[class*='text-background-30'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page button[class*='text-background-30'] {
   color: rgb(var(--background-10));
 }
 
 /* Remote page, compact: the whole page is scaled to about 84% and its spacing is tighter, so it fits one screen. Bun only. */
-:root[data-theme='bun'] .remote-page > div {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
   zoom: 0.74;
   gap: 0.5rem !important;
   padding: 0.5rem !important;
 }
 
 /* Quest Mirror Studio: the same raised card as the rest of the Remote page, with the same tiles and type sizes. Bun only. */
-:root[data-theme='bun'] section.remote-card {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card {
   background-color: rgb(var(--background-60)) !important;
   border: 1px solid rgba(var(--background-10), 0.08) !important;
   box-shadow:
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 1px 2px rgba(0, 0, 0, 0.25);
 }
-:root[data-theme='bun'] .remote-page section.remote-card > div > div:nth-child(2) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page section.remote-card > div > div:nth-child(2) {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.375rem;
 }
-:root[data-theme='bun'] section.remote-card [class*='bg-background-10/[0.03]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='bg-background-10/[0.03]'] {
   border: 1px solid rgba(var(--background-10), 0.06);
 }
-:root[data-theme='bun'] section.remote-card [class*='text-ui-xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='text-ui-xs'] {
   font-size: 15px;
 }
-:root[data-theme='bun'] section.remote-card [class*='text-ui-2xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='text-ui-2xs'] {
   font-size: 13px;
 }
 /* Disabled start buttons read as disabled: a flat cocoa fill with muted text, not a faded coral. */
-:root[data-theme='bun'] .app-button-primary:disabled {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-primary:disabled {
   --e: rgb(var(--background-50));
   background-color: rgba(var(--background-10), 0.08);
   color: rgb(var(--background-30));
@@ -1151,30 +1237,30 @@ body {
 
 /* Table view: rows are the same raised cards as the Home and Remote cards, in the Bun palette.
    Colours come from the theme, not the table's own dark greys and orange. The moving glow is left as it is. Bun only. */
-:root[data-theme='bun'] .tracker-list {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list {
   --list-surface: rgb(var(--background-60));
   --list-icon-surface: rgba(var(--accent-background-20), 0.14);
   --list-border: rgba(var(--background-10), 0.08);
   --list-hover-border: rgba(var(--background-10), 0.2);
 }
-:root[data-theme='bun'] .tracker-list .tracker-list-row {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row {
   border-radius: 3px;
 }
-:root[data-theme='bun'] .tracker-list .tracker-list-row:not(.tracker-list-row-moving) .tracker-list-icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row:not(.tracker-list-row-moving) .tracker-list-icon {
   color: rgb(var(--accent-background-30));
   fill: rgb(var(--accent-background-30));
 }
-:root[data-theme='bun'] .tracker-list .tracker-list-icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-icon {
   border-radius: 3px;
 }
-:root[data-theme='bun'] .tracker-list .tracker-list-row {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row {
   min-height: 72px;
 }
-:root[data-theme='bun'] .tracker-list-cell {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-cell {
   font-size: 15px;
 }
 /* Names wrap to two lines instead of cutting off, like the cards. */
-:root[data-theme='bun'] .tracker-list-name span.font-serif {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-name span.font-serif {
   font-size: 16px;
   font-weight: 600;
   white-space: normal;
@@ -1185,13 +1271,13 @@ body {
   line-height: 1.3;
 }
 /* Long column names ("Rotation X/Y/Z") wrap inside their own column, so they don't run into the next one. */
-:root[data-theme='bun'] .tracker-list-header > div > * {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div > * {
   white-space: normal;
   line-height: 1.3;
 }
 /* Column names are small, uppercase monospace, like the settings section labels. */
-:root[data-theme='bun'] .tracker-list-header > div,
-:root[data-theme='bun'] .tracker-list-header > div * {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div * {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 500;

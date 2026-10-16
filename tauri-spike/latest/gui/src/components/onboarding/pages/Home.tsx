@@ -3,7 +3,8 @@ import { useOnboarding } from '@/hooks/onboarding';
 import { Button } from '@/components/commons/Button';
 import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
 import { PixelIcon } from '@/components/commons/PixelIcon';
-import { useConfig } from '@/hooks/config';
+import { PawEars } from '@/components/commons/PawEars';
+import { isPawTheme, useConfig } from '@/hooks/config';
 import { LangSelector } from '@/components/commons/LangSelector';
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -14,7 +15,7 @@ export function HomePage() {
   const { l10n } = useLocalization();
   const { applyProgress, onboardingStarted } = useOnboarding();
   const { config } = useConfig();
-  const bun = config?.theme === 'bun';
+  const bun = isPawTheme(config?.theme);
 
   const fullTitle = l10n.getString('onboarding-home') || 'Welcome to SlimeVR';
 
@@ -130,7 +131,8 @@ export function HomePage() {
 
       {/* Hero Content Card */}
       <div className="relative z-10 flex flex-col items-center max-w-[560px] mx-auto p-8 sm:p-10 rounded-[24px] bg-background-70/70 dark:bg-background-10/[0.02] border border-background-50/50 dark:border-background-10/[0.08] backdrop-blur-xl shadow-xl">
-        <div className="mb-4 animate-slime-breathe flex items-center justify-center">
+        <div className="relative mb-4 animate-slime-breathe flex items-center justify-center">
+          <PawEars cell={64 / 36} on="logo" />
           {/* Bun: the stylised pixel logo, a little bigger than the vector one. */}
           {bun ? (
             <PixelIcon size={64} grid={36}>

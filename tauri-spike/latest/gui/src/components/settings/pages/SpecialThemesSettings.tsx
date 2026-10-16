@@ -9,7 +9,7 @@ import {
 import { defaultConfig, useConfig } from '@/hooks/config';
 
 // Each special theme is a `:root[data-theme='…']` block in index.scss.
-// Bun is the first one, from PawPad's default bunny palette. Fox, dog, and the other PawPad looks come later.
+// Bun, Fox and Dog come from PawPad's bunny, red fox and golden dog. They share one layout (isPawTheme).
 export function SpecialThemesSettings() {
   const { l10n } = useLocalization();
   const { config, setConfig } = useConfig();
@@ -20,6 +20,16 @@ export function SpecialThemesSettings() {
       theme: 'bun',
       title: l10n.getString('settings-special-themes-bun-title'),
       description: l10n.getString('settings-special-themes-bun-description'),
+    },
+    {
+      theme: 'fox',
+      title: l10n.getString('settings-special-themes-fox-title'),
+      description: l10n.getString('settings-special-themes-fox-description'),
+    },
+    {
+      theme: 'dog',
+      title: l10n.getString('settings-special-themes-dog-title'),
+      description: l10n.getString('settings-special-themes-dog-description'),
     },
     {
       theme: defaultConfig.theme,

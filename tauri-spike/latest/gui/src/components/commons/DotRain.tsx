@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 
 // A dotted canvas for the settings tab chooser, in the Bun theme. It draws its own dot grid, the same look as body's,
 // and drops fall through it, one dot at a time, lighting each dot they pass. A new drop comes every few seconds.
@@ -34,7 +34,7 @@ export function DotRain({
 }) {
   const { config } = useConfig();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const shown = config?.theme === 'bun';
+  const shown = isPawTheme(config?.theme);
   const animate = config?.animations !== false;
 
   useEffect(() => {

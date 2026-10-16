@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useRef } from 'react';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 
 // Dot ripples in the Bun theme. Drops spread as rings across the dot grid and fade.
 // Brightness is quantised into a few steps, so it keeps the pixel look.
@@ -48,7 +48,7 @@ export function RippleDots({
   const { config } = useConfig();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animate = config?.animations !== false;
-  const shown = config?.theme === 'bun' && (dots || animate);
+  const shown = isPawTheme(config?.theme) && (dots || animate);
 
   useEffect(() => {
     const canvas = canvasRef.current;

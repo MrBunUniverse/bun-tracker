@@ -1,10 +1,10 @@
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 import { Tooltip } from '@/components/commons/Tooltip';
 
 export function ThemeModeToggle() {
   const { config, setConfig } = useConfig();
-  // Special themes (Bun) have their own look. Night and light would drop them back to the default theme.
-  if (config?.theme === 'bun') return null;
+  // Special themes (Bun, Fox, Dog) have their own look. Night and light would drop them back to the default theme.
+  if (isPawTheme(config?.theme)) return null;
   const isNight = config?.theme === 'dark';
   const label = isNight ? 'Switch to light mode' : 'Switch to night mode';
 

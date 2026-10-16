@@ -73,6 +73,12 @@ const BUN_PALETTE: IMUPalette = {
   smallModelScale: 7.2,
   smallCameraZ: 4.9,
 };
+// Fox and Dog: Bun's preview in their own coat colours.
+const PAW_PALETTES: Record<string, IMUPalette> = {
+  bun: BUN_PALETTE,
+  fox: { ...BUN_PALETTE, model: 0xd9651e, ground: 0xd6c0a3, accel: 0xf2995a, mag: 0xd6c0a3, axes: 0xf7e6cc },
+  dog: { ...BUN_PALETTE, model: 0xd9a24a, ground: 0xd6c4a3, accel: 0xf2a39a, mag: 0xd6c4a3, axes: 0xf5e9d3 },
+};
 const MODEL_SCALE = 6.5;
 const CANVAS_HEIGHT = 200;
 const MAX_RENDER_PIXEL_RATIO = 1.25;
@@ -289,7 +295,7 @@ export function IMUVisualizerCanvas({
   const [error, setError] = useState<Error | null>(null);
 
   const { config } = useConfig();
-  const palette = config?.theme === 'bun' ? BUN_PALETTE : DEFAULT_PALETTE;
+  const palette = PAW_PALETTES[config?.theme ?? ''] ?? DEFAULT_PALETTE;
 
   latestDataRef.current = { quat, vec, mag };
 

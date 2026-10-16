@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import './TrackersTable.scss';
 import { IPv4 } from 'ip-num';
 import { ReactNode, useMemo } from 'react';
-import { useConfig } from '@/hooks/config';
+import { isPawTheme, useConfig } from '@/hooks/config';
 import { useTracker } from '@/hooks/tracker';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
 import { Typography } from '@/components/commons/Typography';
@@ -344,7 +344,7 @@ export function TrackersTable({
 
   const gridTemplateColumns = useMemo(() => {
     // Bun: tighter columns, so the table fits a normal window without scrolling.
-    const bun = config?.theme === 'bun';
+    const bun = isPawTheme(config?.theme);
     const cols = [
       bun ? 'minmax(11rem, 1.5fr)' : 'minmax(15rem, 1.5fr)', // Name
       bun ? '5rem' : '9rem', // Type
