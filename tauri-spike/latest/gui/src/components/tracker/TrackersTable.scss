@@ -1,0 +1,64 @@
+.tracker-list {
+  --list-surface: #1b1915;
+  --list-icon-surface: #14120f;
+  --list-border: rgb(255 255 255 / 8%);
+  --list-hover-border: rgb(255 255 255 / 20%);
+
+  .tracker-list-row {
+    min-height: 64px;
+    border-radius: 12px;
+    background: var(--list-surface);
+    box-shadow: inset 0 0 0 1px var(--list-border);
+    cursor: pointer;
+    transition: box-shadow 200ms ease;
+
+    &:hover {
+      box-shadow: inset 0 0 0 1px var(--list-hover-border);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #d97757;
+      outline-offset: 2px;
+    }
+
+    &.tracker-list-row-moving {
+      box-shadow:
+        inset 0 0 0 2px rgb(var(--motion)),
+        0 0 14px rgba(var(--motion), 0.45);
+
+      .tracker-list-icon {
+        color: rgb(var(--motion));
+        fill: rgb(var(--motion));
+      }
+    }
+  }
+
+  .tracker-list-icon {
+    width: 48px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--list-icon-surface);
+    color: #d97757;
+    fill: #d97757;
+  }
+
+  .tracker-list-name .glass-pill {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .tracker-list-cell {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tracker-list-row {
+      transition: none;
+    }
+  }
+}
