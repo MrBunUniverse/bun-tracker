@@ -312,6 +312,13 @@ export function ClaudeTrackerWindowCard({
               {tag}
             </span>
           </div>
+          {/* Bun: the status sits in the preview's corner, so the name below gets the full width. */}
+          {bun && (
+            <TrackerStatusBadge
+              isDisconnected={isDisconnected}
+              isMoving={isMoving}
+            />
+          )}
         </div>
 
         {/* Main Graphic / 3D Realtime IMU Render Area */}
@@ -363,8 +370,6 @@ export function ClaudeTrackerWindowCard({
       {bun ? (
         <TrackerCardStats
           name={trackerName}
-          isDisconnected={isDisconnected}
-          isMoving={isMoving}
           batteryPct={batteryPct}
           batteryVoltage={batteryVoltage}
           ping={ping}
@@ -419,22 +424,12 @@ export function ClaudeTrackerWindowCard({
 }
 
 /** Bun: the card footer. The name gets room for two lines, the status is a pill, and each reading has a label. */
-function TrackerCardStats({
-  name,
+function TrackerStatusBadge({
   isDisconnected,
   isMoving,
-  batteryPct,
-  batteryVoltage,
-  ping,
-  rssi,
 }: {
-  name: string;
   isDisconnected: boolean;
   isMoving: boolean;
-  batteryPct?: number | null;
-  batteryVoltage?: number | null;
-  ping?: number | null;
-  rssi?: number | null;
 }) {
   const status = isDisconnected ? 'Offline' : isMoving ? 'Moving' : 'Connected';
   const statusTone = isDisconnected
@@ -442,6 +437,32 @@ function TrackerCardStats({
     : isMoving
       ? 'text-motion'
       : 'text-status-success';
+  return (
+    <span
+      className={classNames(
+        'ml-auto shrink-0 rounded-[3px] border border-background-10/[0.1] bg-background-80/70 px-1.5 py-px font-mono text-[11px] uppercase tracking-wide',
+        statusTone
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+
+/** Bun: the card body under the preview. One line for the name, then the stats as one-line rows. */
+function TrackerCardStats({
+  name,
+  batteryPct,
+  batteryVoltage,
+  ping,
+  rssi,
+}: {
+  name: string;
+  batteryPct?: number | null;
+  batteryVoltage?: number | null;
+  ping?: number | null;
+  rssi?: number | null;
+}) {
   const batteryTone =
     batteryPct == null
       ? undefined
@@ -460,31 +481,21 @@ function TrackerCardStats({
           : 'text-status-critical';
 
   return (
-    <div className="flex flex-grow flex-col gap-2 p-2.5 sm:p-3">
-      <div className="flex items-start justify-between gap-2">
-        <h3
-          className="home-tracker-card__name min-w-0 font-serif text-[15px] font-semibold leading-snug text-background-10 transition-colors group-hover:text-accent-background-20"
-          title={name}
-        >
-          {name}
-        </h3>
-        <span
-          className={classNames(
-            'shrink-0 rounded-[3px] border border-background-10/[0.1] bg-background-10/[0.04] px-1.5 py-px font-mono text-[12px] uppercase tracking-wide',
-            statusTone
-          )}
-        >
-          {status}
-        </span>
-      </div>
+    <div className="flex flex-grow flex-col gap-1.5 px-2.5 py-2">
+      <h3
+        className="home-tracker-card__name min-w-0 truncate font-serif text-[14px] font-semibold leading-snug text-background-10 transition-colors group-hover:text-accent-background-20"
+        title={name}
+      >
+        {name}
+      </h3>
       <dl className="grid grid-cols-2 gap-1">
         <TrackerStat
-          label="Battery"
+          label="Batt"
           value={batteryPct != null ? `${Math.round(batteryPct)}%` : '--'}
           tone={batteryTone}
         />
         <TrackerStat
-          label="Voltage"
+          label="Volt"
           value={
             batteryVoltage != null && batteryVoltage > 0
               ? `${batteryVoltage.toFixed(1)}V`
@@ -497,8 +508,9 @@ function TrackerCardStats({
           tone={pingTone}
         />
         <TrackerStat
-          label="Signal"
-          value={rssi != null ? `${rssi} dBm` : '--'}
+          label="RSSI"
+          value={rssi != null ? `${rssi}` : '--'}
+          title={rssi != null ? `Signal: ${rssi} dBm` : undefined}
         />
       </dl>
     </div>
@@ -509,19 +521,22 @@ function TrackerStat({
   label,
   value,
   tone,
+  title,
 }: {
   label: string;
   value: string;
   tone?: string;
+  title?: string;
 }) {
   return (
-    <div className="min-w-0 rounded-[3px] border border-background-10/[0.06] bg-background-10/[0.03] px-2 py-1">
-      <dt className="font-mono text-[12px] uppercase tracking-wide text-background-30">
+    <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-1 rounded-[3px] border border-background-10/[0.06] bg-background-10/[0.03] px-1 py-0.5"
+      title={title}>
+      <dt className="shrink-0 font-mono text-[10.5px] uppercase tracking-wide text-background-30">
         {label}
       </dt>
       <dd
         className={classNames(
-          'tnum truncate text-[15px] font-medium leading-snug text-background-10',
+          'tnum min-w-0 max-w-full truncate text-[13px] font-medium leading-snug text-background-10',
           tone
         )}
       >

@@ -1115,7 +1115,7 @@ body {
 }
 
 /* Tracker card, step 1: the three dots and the battery tag go (the footer has the battery), the 3D switch stays
-   on the left of the hero, and the name can run to two lines. Bun only. */
+   on the left of the hero, and the status sits in its right corner. Bun only. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__dots,
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__tag {
   display: none;
@@ -1127,14 +1127,6 @@ body {
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__banner {
   height: 108px !important;
   padding: 8px !important;
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card__name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  /* Room for two lines, so a one-line name and a two-line name leave the stats at the same height. */
-  min-height: 2.6em;
 }
 /* Every card in a row is the same height, whatever its state or name length. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card {
@@ -2957,6 +2949,18 @@ a,
   box-shadow:
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 0 16px -4px rgba(var(--motion), 0.3);
+}
+
+/* Bun, Fox and Dog: a stronger glow, on the moving cards and on the pixel icons and ears. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card.tracker-card-moving {
+  border-color: rgba(var(--motion), 0.75);
+  box-shadow:
+    inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
+    0 0 24px -2px rgba(var(--motion), 0.55);
+}
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .pixel-icon {
+  filter: drop-shadow(0 0 2px rgba(var(--accent-background-30), 0.95))
+    drop-shadow(0 0 12px rgba(var(--accent-background-30), 0.6));
 }
 
 /* Raised surfaces: a faint top highlight and soft shadow give depth without
