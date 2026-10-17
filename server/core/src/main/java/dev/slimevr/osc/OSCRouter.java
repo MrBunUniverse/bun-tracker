@@ -73,6 +73,8 @@ public class OSCRouter {
 			if (oscReceiver == null) {
 				try {
 					oscReceiver = new OSCPortIn(portIn);
+					// Bundles with future time tags would be queued on a scheduler and pile up
+					oscReceiver.getDispatcher().setAlwaysDispatchingImmediately(true);
 					if (lastPortIn != portIn || !wasListening) {
 						LogManager.info("[OSCRouter] Listening to port " + portIn);
 					}

@@ -288,6 +288,8 @@ class VRCOSCHandler(
 			// Instantiate the new OSC receiver
 			LogManager.info("[VRCOSCHandler] Listening to port $portIn")
 			val newOscReceiver = TrackedOSCPortIn(portIn)
+			// VRChat timestamps its bundles with the Quest's clock; scheduling them leaks memory and delays head pose under clock skew
+			newOscReceiver.dispatcher.isAlwaysDispatchingImmediately = true
 			oscReceiver = newOscReceiver
 			oscPortIn = portIn
 

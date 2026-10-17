@@ -128,6 +128,8 @@ class VMCHandler(
 			// Instantiates the OSC receiver
 			try {
 				oscReceiver = OSCPortIn(portIn)
+				// Bundles with future time tags would be queued on a scheduler and pile up
+				oscReceiver!!.dispatcher.isAlwaysDispatchingImmediately = true
 				if (lastPortIn != portIn || !wasListening) {
 					LogManager.info("[VMCHandler] Listening to port $portIn")
 				}
