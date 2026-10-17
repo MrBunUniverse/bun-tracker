@@ -54,18 +54,6 @@ export function ClaudeTrackerWindowCard({
     : `${tracker.info?.bodyPart ?? 'unknown'}`;
   const show3D = active3DKeys.includes(trackerKey);
 
-  // Sets the 3D view on or off, for the Bun 2D | 3D switch.
-  const set3D = (on: boolean, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActive3DKeys((prev) =>
-      on
-        ? prev.includes(trackerKey)
-          ? prev
-          : [...prev, trackerKey]
-        : prev.filter((k) => k !== trackerKey)
-    );
-  };
-
   const toggle3D = (e: React.MouseEvent) => {
     e.stopPropagation();
     setActive3DKeys((prev) =>
@@ -250,36 +238,14 @@ export function ClaudeTrackerWindowCard({
           </div>
           <div className="flex items-center gap-2">
             {bun ? (
-              <div
-                role="group"
-                aria-label="Preview mode"
-                className="flex items-center gap-0.5 rounded-[3px] border border-background-10/[0.1] bg-background-10/[0.04] p-0.5"
+              <button
+                type="button"
+                onClick={toggle3D}
+                title={show3D ? 'Show the body icon' : 'Show the live 3D view'}
+                className="rounded-[3px] border border-background-10/[0.1] bg-background-10/[0.04] px-1.5 py-px font-mono text-[11px] tracking-wide text-background-30 hover:border-accent-background-30 hover:text-accent-background-10 select-none cursor-pointer transition-colors"
               >
-                {(['2D', '3D'] as const).map((mode) => {
-                  const active = mode === '3D' ? show3D : !show3D;
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={(e) => set3D(mode === '3D', e)}
-                      title={
-                        mode === '3D'
-                          ? 'Show the live 3D view'
-                          : 'Show the body icon'
-                      }
-                      className={classNames(
-                        'rounded-[2px] px-2.5 py-1 font-mono text-[13px] tracking-wide select-none cursor-pointer transition-colors',
-                        active
-                          ? 'bg-accent-background-30 text-background-90'
-                          : 'text-background-30 hover:text-background-10'
-                      )}
-                    >
-                      {mode}
-                    </button>
-                  );
-                })}
-              </div>
+                {show3D ? '2D' : '3D'}
+              </button>
             ) : (
             <button
               type="button"
@@ -463,14 +429,6 @@ function TrackerCardStats({
   ping?: number | null;
   rssi?: number | null;
 }) {
-  const batteryTone =
-    batteryPct == null
-      ? undefined
-      : batteryPct <= 20
-        ? 'text-status-critical'
-        : batteryPct <= 40
-          ? 'text-status-warning'
-          : undefined;
   const pingTone =
     ping == null || ping <= 0
       ? undefined
@@ -488,12 +446,8 @@ function TrackerCardStats({
       >
         {name}
       </h3>
-      <dl className="grid grid-cols-2 gap-1">
-        <TrackerStat
-          label="Batt"
-          value={batteryPct != null ? `${Math.round(batteryPct)}%` : '--'}
-          tone={batteryTone}
-        />
+      <BatteryBar pct={batteryPct} />
+      <dl className="grid grid-cols-3 gap-1">
         <TrackerStat
           label="Volt"
           value={
@@ -513,6 +467,52 @@ function TrackerCardStats({
           title={rssi != null ? `Signal: ${rssi} dBm` : undefined}
         />
       </dl>
+    </div>
+  );
+}
+
+/** Bun: battery as a battery shape whose fill is the charge, with the % beside it. */
+function BatteryBar({ pct }: { pct?: number | null }) {
+  const known = pct != null;
+  const level = known ? Math.max(0, Math.min(100, Math.round(pct))) : 0;
+  const [fill, text] =
+    level <= 20
+      ? ['bg-status-critical', 'text-status-critical']
+      : level <= 40
+        ? ['bg-status-warning', 'text-status-warning']
+        : ['bg-status-success', 'text-background-10'];
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      title={known ? `Battery: ${level}%` : 'Battery unknown'}
+    >
+      <div className="flex min-w-0 flex-1 items-center">
+        <div
+          className={classNames(
+            'h-3 flex-1 rounded-[2px] border p-px',
+            known
+              ? 'border-background-10/[0.25]'
+              : 'border-dashed border-background-10/[0.2]'
+          )}
+        >
+          <div
+            className={classNames(
+              'h-full rounded-[1px] transition-[width] duration-500',
+              fill
+            )}
+            style={{ width: `${level}%` }}
+          />
+        </div>
+        <div className="h-1.5 w-[3px] shrink-0 rounded-r-[1px] bg-background-10/[0.25]" />
+      </div>
+      <span
+        className={classNames(
+          'tnum w-9 shrink-0 text-right text-[13px] font-medium leading-snug',
+          known ? text : 'text-background-30'
+        )}
+      >
+        {known ? `${level}%` : '—'}
+      </span>
     </div>
   );
 }
