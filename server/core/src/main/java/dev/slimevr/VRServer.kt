@@ -19,6 +19,7 @@ import dev.slimevr.posestreamer.BVHRecorder
 import dev.slimevr.protocol.ProtocolAPI
 import dev.slimevr.protocol.rpc.TransactionInfo
 import dev.slimevr.protocol.rpc.settings.RPCSettingsHandler
+import dev.slimevr.reset.AutoFullReset
 import dev.slimevr.reset.ResetHandler
 import dev.slimevr.reset.ResetTimerManager
 import dev.slimevr.reset.resetTimer
@@ -147,6 +148,8 @@ class VRServer @JvmOverloads constructor(
 		vrcConfigManager = VRChatConfigManager(this, vrcConfigHandlerProvider(this))
 		networkProfileChecker = networkProfileProvider(this)
 		trackingChecklistManager = TrackingChecklistManager(this)
+		val autoFullReset = AutoFullReset(this)
+		addOnTick { autoFullReset.tick() }
 		protocolAPI = ProtocolAPI(this)
 		val computedTrackers = humanPoseManager.computedTrackers
 

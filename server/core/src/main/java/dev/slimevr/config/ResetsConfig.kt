@@ -70,6 +70,9 @@ class ResetsConfig {
 	var fullResetDelay = 3.0f
 	var mountingResetDelay = 3.0f
 
+	// Do the first full reset by itself when the user stands still with the headset on
+	var autoFullReset = true
+
 	fun updateTrackersResetsSettings() {
 		for (t in VRServer.instance.allTrackers) {
 			t.resetsHandler.readResetConfig(this)
