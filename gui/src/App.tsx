@@ -1,10 +1,7 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, lazy, Suspense, useEffect, useState } from 'react';
 import { HashRouter as Router, Outlet, Route, Routes } from 'react-router-dom';
-import { Home } from './components/home/Home';
 import { MainLayout } from './components/MainLayout';
 import { AppContextProvider } from './components/providers/AppContext';
-import { GeneralSettings } from './components/settings/pages/GeneralSettings';
-import { Serial } from './components/settings/pages/Serial';
 import { SettingsLayout } from './components/settings/SettingsLayout';
 import {
   useProvideWebsocketApi,
@@ -13,53 +10,187 @@ import {
 
 import { OnboardingContextProvider } from './components/onboarding/OnboardingContextProvider';
 import { OnboardingLayout } from './components/onboarding/OnboardingLayout';
-import { AutomaticProportionsPage } from './components/onboarding/pages/body-proportions/AutomaticProportions';
-import { ManualProportionsPage } from './components/onboarding/pages/body-proportions/ManualProportions';
-import { ConnectTrackersPage } from './components/onboarding/pages/ConnectTracker';
-import { HomePage } from './components/onboarding/pages/Home';
-import { ErrorCollectingConsentPage } from './components/onboarding/pages/ErrorCollectingConsent';
-import { AutomaticMountingPage } from './components/onboarding/pages/mounting/AutomaticMounting';
-import { ManualMountingPage } from './components/onboarding/pages/mounting/ManualMounting';
-import { TrackersAssignPage } from './components/onboarding/pages/trackers-assign/TrackerAssignment';
-import { WifiCredsPage } from './components/onboarding/pages/WifiCreds';
-import { DonglePage } from './components/onboarding/pages/Dongle';
 import { ConfigContextProvider } from './components/providers/ConfigContext';
 import { SerialDetectionModal } from './components/SerialDetectionModal';
-import { VRCOSCSettings } from './components/settings/pages/VRCOSCSettings';
-import { TopBar } from './components/TopBar';
-import { TrackerSettingsPage } from './components/tracker/TrackerSettings';
-import { OSCRouterSettings } from './components/settings/pages/OSCRouterSettings';
-import { VMCSettings } from './components/settings/pages/VMCSettings';
-import { MountingChoose } from './components/onboarding/pages/mounting/MountingChoose';
 import { VersionUpdateModal } from './components/VersionUpdateModal';
 import semver from 'semver';
 import { useBreakpoint } from './hooks/breakpoint';
-import { VRModePage } from './components/vr-mode/VRModePage';
-import { InterfaceSettings } from './components/settings/pages/InterfaceSettings';
 import { error, log } from './utils/logging';
-import { FirmwareToolSettings } from './components/firmware-tool/FirmwareTool';
 import { AppLayout } from './AppLayout';
 import { Preload } from './components/Preload';
 import { UnknownDeviceModal } from './components/UnknownDeviceModal';
 import { useDiscordPresence } from './hooks/discord-presence';
 import { withSentryReactRouterV6Routing } from '@sentry/react';
-import { ScaledProportionsPage } from './components/onboarding/pages/body-proportions/ScaledProportions';
-import { AdvancedSettings } from './components/settings/pages/AdvancedSettings';
-import { FirmwareUpdate } from './components/firmware-update/FirmwareUpdate';
 import { ConnectionLost } from './components/onboarding/pages/ConnectionLost';
-import { VRCWarningsPage } from './components/vrc/VRCWarningsPage';
-import { StayAlignedSetup } from './components/onboarding/pages/stay-aligned/StayAlignedSetup';
 import { TrackingChecklistProvider } from './components/tracking-checklist/TrackingChecklistProvider';
-import { HomeScreenSettings } from './components/settings/pages/HomeScreenSettings';
-import { ChecklistPage } from './components/tracking-checklist/TrackingChecklist';
-import { QuizSlimeSetQuestion } from './components/onboarding/pages/quiz/SlimeSetQuestion';
-import { QuizUsageQuestion } from './components/onboarding/pages/quiz/UsageQuestion';
-import { QuizRuntimeQuestion } from './components/onboarding/pages/quiz/RuntimeQuestion';
-import { QuizMocapPosQuestion } from './components/onboarding/pages/quiz/MocapPreferencesQuestions';
 import { ElectronContextC, provideElectron } from './hooks/electron';
 import { AppLocalizationProvider } from './i18n/config';
 import { openUrl } from './hooks/crossplatform';
 import { UdevRulesModal } from './components/onboarding/UdevRulesModal';
+
+// Pages are lazy-loaded so the initial bundle only has what the connection screen needs.
+// Before this, the whole app (about 5.5 MB of JavaScript) loaded on every start.
+const Home = lazy(() =>
+  import('./components/home/Home').then((m) => ({ default: m.Home }))
+);
+const FirmwareUpdate = lazy(() =>
+  import('./components/firmware-update/FirmwareUpdate').then((m) => ({
+    default: m.FirmwareUpdate,
+  }))
+);
+const VRModePage = lazy(() =>
+  import('./components/vr-mode/VRModePage').then((m) => ({
+    default: m.VRModePage,
+  }))
+);
+const ChecklistPage = lazy(() =>
+  import('./components/tracking-checklist/TrackingChecklist').then((m) => ({
+    default: m.ChecklistPage,
+  }))
+);
+const TrackerSettingsPage = lazy(() =>
+  import('./components/tracker/TrackerSettings').then((m) => ({
+    default: m.TrackerSettingsPage,
+  }))
+);
+const VRCWarningsPage = lazy(() =>
+  import('./components/vrc/VRCWarningsPage').then((m) => ({
+    default: m.VRCWarningsPage,
+  }))
+);
+const TopBar = lazy(() =>
+  import('./components/TopBar').then((m) => ({ default: m.TopBar }))
+);
+const FirmwareToolSettings = lazy(() =>
+  import('./components/firmware-tool/FirmwareTool').then((m) => ({
+    default: m.FirmwareToolSettings,
+  }))
+);
+const GeneralSettings = lazy(() =>
+  import('./components/settings/pages/GeneralSettings').then((m) => ({
+    default: m.GeneralSettings,
+  }))
+);
+const Serial = lazy(() =>
+  import('./components/settings/pages/Serial').then((m) => ({
+    default: m.Serial,
+  }))
+);
+const OSCRouterSettings = lazy(() =>
+  import('./components/settings/pages/OSCRouterSettings').then((m) => ({
+    default: m.OSCRouterSettings,
+  }))
+);
+const VRCOSCSettings = lazy(() =>
+  import('./components/settings/pages/VRCOSCSettings').then((m) => ({
+    default: m.VRCOSCSettings,
+  }))
+);
+const VMCSettings = lazy(() =>
+  import('./components/settings/pages/VMCSettings').then((m) => ({
+    default: m.VMCSettings,
+  }))
+);
+const InterfaceSettings = lazy(() =>
+  import('./components/settings/pages/InterfaceSettings').then((m) => ({
+    default: m.InterfaceSettings,
+  }))
+);
+const HomeScreenSettings = lazy(() =>
+  import('./components/settings/pages/HomeScreenSettings').then((m) => ({
+    default: m.HomeScreenSettings,
+  }))
+);
+const AdvancedSettings = lazy(() =>
+  import('./components/settings/pages/AdvancedSettings').then((m) => ({
+    default: m.AdvancedSettings,
+  }))
+);
+const HomePage = lazy(() =>
+  import('./components/onboarding/pages/Home').then((m) => ({
+    default: m.HomePage,
+  }))
+);
+const ErrorCollectingConsentPage = lazy(() =>
+  import('./components/onboarding/pages/ErrorCollectingConsent').then((m) => ({
+    default: m.ErrorCollectingConsentPage,
+  }))
+);
+const WifiCredsPage = lazy(() =>
+  import('./components/onboarding/pages/WifiCreds').then((m) => ({
+    default: m.WifiCredsPage,
+  }))
+);
+const QuizSlimeSetQuestion = lazy(() =>
+  import('./components/onboarding/pages/quiz/SlimeSetQuestion').then((m) => ({
+    default: m.QuizSlimeSetQuestion,
+  }))
+);
+const QuizUsageQuestion = lazy(() =>
+  import('./components/onboarding/pages/quiz/UsageQuestion').then((m) => ({
+    default: m.QuizUsageQuestion,
+  }))
+);
+const QuizRuntimeQuestion = lazy(() =>
+  import('./components/onboarding/pages/quiz/RuntimeQuestion').then((m) => ({
+    default: m.QuizRuntimeQuestion,
+  }))
+);
+const QuizMocapPosQuestion = lazy(() =>
+  import('./components/onboarding/pages/quiz/MocapPreferencesQuestions').then(
+    (m) => ({ default: m.QuizMocapPosQuestion })
+  )
+);
+const DonglePage = lazy(() =>
+  import('./components/onboarding/pages/Dongle').then((m) => ({
+    default: m.DonglePage,
+  }))
+);
+const ConnectTrackersPage = lazy(() =>
+  import('./components/onboarding/pages/ConnectTracker').then((m) => ({
+    default: m.ConnectTrackersPage,
+  }))
+);
+const TrackersAssignPage = lazy(() =>
+  import('./components/onboarding/pages/trackers-assign/TrackerAssignment').then(
+    (m) => ({ default: m.TrackersAssignPage })
+  )
+);
+const MountingChoose = lazy(() =>
+  import('./components/onboarding/pages/mounting/MountingChoose').then((m) => ({
+    default: m.MountingChoose,
+  }))
+);
+const AutomaticMountingPage = lazy(() =>
+  import('./components/onboarding/pages/mounting/AutomaticMounting').then(
+    (m) => ({ default: m.AutomaticMountingPage })
+  )
+);
+const ManualMountingPage = lazy(() =>
+  import('./components/onboarding/pages/mounting/ManualMounting').then((m) => ({
+    default: m.ManualMountingPage,
+  }))
+);
+const AutomaticProportionsPage = lazy(() =>
+  import('./components/onboarding/pages/body-proportions/AutomaticProportions').then(
+    (m) => ({ default: m.AutomaticProportionsPage })
+  )
+);
+const ManualProportionsPage = lazy(() =>
+  import('./components/onboarding/pages/body-proportions/ManualProportions').then(
+    (m) => ({ default: m.ManualProportionsPage })
+  )
+);
+const ScaledProportionsPage = lazy(() =>
+  import('./components/onboarding/pages/body-proportions/ScaledProportions').then(
+    (m) => ({ default: m.ScaledProportionsPage })
+  )
+);
+const StayAlignedSetup = lazy(() =>
+  import('./components/onboarding/pages/stay-aligned/StayAlignedSetup').then(
+    (m) => ({ default: m.StayAlignedSetup })
+  )
+);
 
 export const GH_REPO = 'SlimeVR/SlimeVR-Server';
 export const VersionContext = createContext('');
@@ -78,116 +209,121 @@ function Layout() {
       <VersionUpdateModal />
       <UnknownDeviceModal />
       <UdevRulesModal />
-      <SentryRoutes>
-        <Route element={<AppLayout />}>
-          <Route
-            path="/"
-            element={
-              <MainLayout isMobile={isMobile} full>
-                <Home />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/firmware-update"
-            element={
-              <MainLayout isMobile={isMobile}>
-                <FirmwareUpdate />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/vr-mode"
-            element={
-              <MainLayout isMobile={isMobile} full>
-                <VRModePage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/checklist"
-            element={
-              <MainLayout isMobile={isMobile}>
-                <ChecklistPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/tracker/:trackernum/:deviceid"
-            element={
-              <MainLayout background={false} isMobile={isMobile}>
-                <TrackerSettingsPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/vrc-warnings"
-            element={
-              <MainLayout isMobile={isMobile}>
-                <VRCWarningsPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <SettingsLayout>
-                <Outlet />
-              </SettingsLayout>
-            }
-          >
-            <Route path="firmware-tool" element={<FirmwareToolSettings />} />
-            <Route path="trackers" element={<GeneralSettings />} />
-            <Route path="serial" element={<Serial />} />
-            <Route path="osc/router" element={<OSCRouterSettings />} />
-            <Route path="osc/vrchat" element={<VRCOSCSettings />} />
-            <Route path="osc/vmc" element={<VMCSettings />} />
-            <Route path="interface" element={<InterfaceSettings />} />
-            <Route path="interface/home" element={<HomeScreenSettings />} />
-            <Route path="advanced" element={<AdvancedSettings />} />
+      <Suspense fallback={null}>
+        <SentryRoutes>
+          <Route element={<AppLayout />}>
+            <Route
+              path="/"
+              element={
+                <MainLayout isMobile={isMobile} full>
+                  <Home />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/firmware-update"
+              element={
+                <MainLayout isMobile={isMobile}>
+                  <FirmwareUpdate />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/vr-mode"
+              element={
+                <MainLayout isMobile={isMobile} full>
+                  <VRModePage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/checklist"
+              element={
+                <MainLayout isMobile={isMobile}>
+                  <ChecklistPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/tracker/:trackernum/:deviceid"
+              element={
+                <MainLayout background={false} isMobile={isMobile}>
+                  <TrackerSettingsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/vrc-warnings"
+              element={
+                <MainLayout isMobile={isMobile}>
+                  <VRCWarningsPage />
+                </MainLayout>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <SettingsLayout>
+                  <Outlet />
+                </SettingsLayout>
+              }
+            >
+              <Route path="firmware-tool" element={<FirmwareToolSettings />} />
+              <Route path="trackers" element={<GeneralSettings />} />
+              <Route path="serial" element={<Serial />} />
+              <Route path="osc/router" element={<OSCRouterSettings />} />
+              <Route path="osc/vrchat" element={<VRCOSCSettings />} />
+              <Route path="osc/vmc" element={<VMCSettings />} />
+              <Route path="interface" element={<InterfaceSettings />} />
+              <Route path="interface/home" element={<HomeScreenSettings />} />
+              <Route path="advanced" element={<AdvancedSettings />} />
+            </Route>
+            <Route
+              path="/onboarding"
+              element={
+                <OnboardingLayout>
+                  <Outlet />
+                </OnboardingLayout>
+              }
+            >
+              <Route path="home" element={<HomePage />} />
+              <Route
+                path="error-collecting-consent"
+                element={<ErrorCollectingConsentPage />}
+              />
+              <Route path="wifi-creds" element={<WifiCredsPage />} />
+              <Route path="quiz/slime-set" element={<QuizSlimeSetQuestion />} />
+              <Route path="quiz/usage" element={<QuizUsageQuestion />} />
+              <Route path="quiz/runtime" element={<QuizRuntimeQuestion />} />
+              <Route path="quiz/mocap-pos" element={<QuizMocapPosQuestion />} />
+              <Route path="dongle" element={<DonglePage />} />
+              <Route path="firmware-tool" element={<FirmwareToolSettings />} />
+              <Route
+                path="connect-trackers"
+                element={<ConnectTrackersPage />}
+              />
+              <Route path="trackers-assign" element={<TrackersAssignPage />} />
+              <Route path="mounting/choose" element={<MountingChoose />} />
+              <Route path="mounting/auto" element={<AutomaticMountingPage />} />
+              <Route path="mounting/manual" element={<ManualMountingPage />} />
+              <Route
+                path="body-proportions/auto"
+                element={<AutomaticProportionsPage />}
+              />
+              <Route
+                path="body-proportions/manual"
+                element={<ManualProportionsPage />}
+              />
+              <Route
+                path="body-proportions/scaled"
+                element={<ScaledProportionsPage />}
+              />
+              <Route path="stay-aligned" element={<StayAlignedSetup />} />
+            </Route>
+            <Route path="*" element={<TopBar />} />
           </Route>
-          <Route
-            path="/onboarding"
-            element={
-              <OnboardingLayout>
-                <Outlet />
-              </OnboardingLayout>
-            }
-          >
-            <Route path="home" element={<HomePage />} />
-            <Route
-              path="error-collecting-consent"
-              element={<ErrorCollectingConsentPage />}
-            />
-            <Route path="wifi-creds" element={<WifiCredsPage />} />
-            <Route path="quiz/slime-set" element={<QuizSlimeSetQuestion />} />
-            <Route path="quiz/usage" element={<QuizUsageQuestion />} />
-            <Route path="quiz/runtime" element={<QuizRuntimeQuestion />} />
-            <Route path="quiz/mocap-pos" element={<QuizMocapPosQuestion />} />
-            <Route path="dongle" element={<DonglePage />} />
-            <Route path="firmware-tool" element={<FirmwareToolSettings />} />
-            <Route path="connect-trackers" element={<ConnectTrackersPage />} />
-            <Route path="trackers-assign" element={<TrackersAssignPage />} />
-            <Route path="mounting/choose" element={<MountingChoose />} />
-            <Route path="mounting/auto" element={<AutomaticMountingPage />} />
-            <Route path="mounting/manual" element={<ManualMountingPage />} />
-            <Route
-              path="body-proportions/auto"
-              element={<AutomaticProportionsPage />}
-            />
-            <Route
-              path="body-proportions/manual"
-              element={<ManualProportionsPage />}
-            />
-            <Route
-              path="body-proportions/scaled"
-              element={<ScaledProportionsPage />}
-            />
-            <Route path="stay-aligned" element={<StayAlignedSetup />} />
-          </Route>
-          <Route path="*" element={<TopBar />} />
-        </Route>
-      </SentryRoutes>
+        </SentryRoutes>
+      </Suspense>
     </>
   );
 }

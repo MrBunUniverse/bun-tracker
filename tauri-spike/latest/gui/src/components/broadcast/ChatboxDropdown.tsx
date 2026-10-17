@@ -24,7 +24,7 @@ import { demoModeAtom, DEMO_TRACKERS_SET } from '@/store/demo-trackers';
 import { useElectron } from '@/hooks/electron';
 import { openUrl } from '@/hooks/crossplatform';
 import { useOperatingMode } from '@/hooks/operating-mode';
-import { useFakeBpm, BpmPresetId } from '@/hooks/fake-bpm';
+import { useFakeBpm } from '@/hooks/fake-bpm';
 import {
   useSpeechDictation,
   SUPPORTED_LANGUAGES,
@@ -65,6 +65,96 @@ function MicGlyph() {
       <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
       <line x1="12" y1="19" x2="12" y2="22" />
     </svg>
+  );
+}
+
+const ZONE_STYLE = {
+  resting: { label: 'Resting', className: 'text-status-success' },
+  normal: { label: 'Normal', className: 'text-background-20' },
+  elevated: { label: 'Elevated', className: 'text-status-warning' },
+  cardio: { label: 'Cardio', className: 'text-status-critical' },
+} as const;
+
+/** The big number with a heart beating at that rate, and the last five minutes as a line. */
+function HeartReadout({
+  bpm,
+  zone,
+  label,
+  history,
+}: {
+  bpm: number | null;
+  zone: keyof typeof ZONE_STYLE;
+  label: string;
+  history: number[];
+}) {
+  const points = history.length > 1 ? history : null;
+  const lo = points ? Math.min(...points) - 3 : 0;
+  const hi = points ? Math.max(...points) + 3 : 1;
+  return (
+    <div className="chatbox-widget flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <svg
+            viewBox="0 0 24 24"
+            className={classNames(
+              'h-6 w-6 shrink-0 fill-status-critical',
+              bpm !== null ? 'animate-pulse' : 'opacity-30'
+            )}
+            style={bpm ? { animationDuration: `${60 / bpm}s` } : undefined}
+            aria-hidden="true"
+          >
+            <path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.3 1.8-2.1 3.3-3.3 5.4-3.3 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21z" />
+          </svg>
+          <span className="tnum text-3xl font-semibold leading-none text-background-10">
+            {bpm ?? '—'}
+          </span>
+          <span className="text-ui-2xs text-background-30">BPM</span>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 text-ui-2xs">
+          {bpm !== null && (
+            <span className={classNames('font-medium', ZONE_STYLE[zone].className)}>
+              {ZONE_STYLE[zone].label}
+            </span>
+          )}
+          <span className="text-background-30">{label}</span>
+        </div>
+      </div>
+      <svg
+        viewBox="0 0 100 24"
+        preserveAspectRatio="none"
+        className="h-8 w-full"
+        role="img"
+        aria-label={points ? `Last ${points.length * 5} seconds, ${points[0]} to ${points[points.length - 1]} BPM` : 'No history yet'}
+      >
+        {points ? (
+          <polyline
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            vectorEffect="non-scaling-stroke"
+            strokeLinejoin="round"
+            className="text-status-critical/70"
+            points={points
+              .map(
+                (v, i) =>
+                  `${(i / (points.length - 1)) * 100},${24 - ((v - lo) / (hi - lo)) * 24}`
+              )
+              .join(' ')}
+          />
+        ) : (
+          <line
+            x1="0"
+            y1="12"
+            x2="100"
+            y2="12"
+            stroke="currentColor"
+            strokeDasharray="2 3"
+            vectorEffect="non-scaling-stroke"
+            className="text-background-10/20"
+          />
+        )}
+      </svg>
+    </div>
   );
 }
 
@@ -461,7 +551,7 @@ export function ChatboxDropdown({
     };
   }, []);
 
-  // Single unified periodic broadcaster (adapts interval when BPM active for natural 2-3s cadence)
+  // Single unified periodic broadcaster
   useEffect(() => {
     if (!isBroadcastingActive) {
       lastBroadcastMsgRef.current = '';
@@ -477,15 +567,16 @@ export function ChatboxDropdown({
     };
 
     broadcast();
-    const intervalMs = fakeBpm.enabled ? 2800 : 5000;
-    const timer = setInterval(broadcast, intervalMs);
+    // Like a watch: a steady update every 5 s. VRChat rate-limits faster chat updates.
+    const timer = setInterval(broadcast, 5000);
     return () => clearInterval(timer);
-  }, [isBroadcastingActive, fakeBpm.enabled, sendChatboxCustomMessage]);
+  }, [isBroadcastingActive, sendChatboxCustomMessage]);
 
-  // Immediately send updated message when text, track, BPM, or play state changes
+  // Send at once only for changes people notice (new song, pause, pinned text). Heart rate,
+  // song progress and battery wait for the next 5 s update instead of spamming the chat.
   useEffect(() => {
     if (!isBroadcastingActive) return;
-    const msg = getCombinedBroadcastMessage();
+    const msg = broadcastMsgGetterRef.current();
     if (msg && msg !== lastBroadcastMsgRef.current) {
       sendChatboxCustomMessage(msg);
       lastBroadcastMsgRef.current = msg;
@@ -495,10 +586,6 @@ export function ChatboxDropdown({
     floorAnchor.chatboxCustomPinnedText,
     appleMusicInfo.track,
     appleMusicInfo.playing,
-    appleMusicInfo.formatted,
-    fakeBpm.formattedBpmText,
-    trackerSummaries,
-    getCombinedBroadcastMessage,
     sendChatboxCustomMessage,
   ]);
 
@@ -925,11 +1012,7 @@ export function ChatboxDropdown({
                     <SettingGroup title="Simulated heart rate">
                       <SettingRow
                         label="Show heart rate"
-                        description={
-                          fakeBpm.presetId === 'adaptive'
-                            ? 'Follows live tracker activity'
-                            : 'Natural fluctuation every 2–3s'
-                        }
+                        description="Follows how you move, sit, stand and lie down in game"
                       >
                         <Toggle
                           checked={fakeBpm.enabled}
@@ -939,54 +1022,60 @@ export function ChatboxDropdown({
                       </SettingRow>
                     </SettingGroup>
 
-                    <div className="chatbox-widget flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="tnum text-2xl font-semibold text-background-10">
-                          {fakeBpm.enabled
-                            ? fakeBpm.available
-                              ? fakeBpm.currentBpm
-                              : '—'
-                            : fakeBpm.preset.base}
-                        </span>
-                        <span className="text-ui-2xs text-background-30">
-                          BPM
-                        </span>
-                      </div>
-                      <span className="text-ui-2xs text-background-30">
-                        {fakeBpm.available ? fakeBpm.activityLabel : 'Paused'}
-                      </span>
-                    </div>
+                    <HeartReadout
+                      bpm={fakeBpm.enabled && fakeBpm.available ? fakeBpm.currentBpm : null}
+                      zone={fakeBpm.zone}
+                      label={
+                        !fakeBpm.enabled
+                          ? 'Off'
+                          : fakeBpm.available
+                            ? fakeBpm.activityLabel
+                            : 'Waiting for trackers'
+                      }
+                      history={fakeBpm.history}
+                    />
 
-                    <div className="chatbox-presets grid grid-cols-3 gap-1.5">
-                      {fakeBpm.allPresets.map((p) => {
-                        const isSelected = fakeBpm.presetId === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() =>
-                              fakeBpm.setPresetId(p.id as BpmPresetId)
-                            }
-                            aria-pressed={isSelected}
-                            title={p.description}
-                            className={classNames(
-                              'flex cursor-pointer select-none items-center justify-between gap-1.5 rounded-[8px] px-2.5 py-1.5 text-left text-ui-2xs transition-colors',
-                              p.id === 'adaptive' && 'col-span-3',
-                              isSelected
-                                ? 'bg-accent-background-20/20 text-background-10'
-                                : 'bg-background-10/[0.05] text-background-20 hover:bg-background-10/[0.09]'
-                            )}
-                          >
-                            <span className="truncate font-medium">
-                              {p.label}
-                            </span>
-                            <span className="tnum shrink-0 text-background-30">
-                              {p.min}–{p.max}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <SettingGroup title="Your heart">
+                      <SettingRow
+                        label="Resting heart rate"
+                        description="Your BPM when relaxed and seated"
+                      >
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={40}
+                          max={100}
+                          aria-label="Resting heart rate"
+                          value={fakeBpm.profile.restingBpm}
+                          onChange={(e) =>
+                            Number.isFinite(e.target.valueAsNumber) &&
+                            fakeBpm.setProfile({
+                              ...fakeBpm.profile,
+                              restingBpm: e.target.valueAsNumber,
+                            })
+                          }
+                          className={classNames(textInput, 'tnum w-16 text-right')}
+                        />
+                      </SettingRow>
+                      <SettingRow label="Age" description="Sets how high it can go">
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={10}
+                          max={90}
+                          aria-label="Age"
+                          value={fakeBpm.profile.age}
+                          onChange={(e) =>
+                            Number.isFinite(e.target.valueAsNumber) &&
+                            fakeBpm.setProfile({
+                              ...fakeBpm.profile,
+                              age: e.target.valueAsNumber,
+                            })
+                          }
+                          className={classNames(textInput, 'tnum w-16 text-right')}
+                        />
+                      </SettingRow>
+                    </SettingGroup>
                   </div>
                 )}
               </div>

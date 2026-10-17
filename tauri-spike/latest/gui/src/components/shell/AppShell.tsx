@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       );
       if (item) {
         event.preventDefault();
-        navigate(item.to);
+        navigate(item.to, { state: item.state });
       }
     };
     window.addEventListener('keydown', onKeyDown);

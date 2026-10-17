@@ -27,9 +27,12 @@ import { TrayOrExitModal } from './TrayOrExitModal';
 
 export function TopBar({
   progress,
+  hideStatus,
 }: {
   children?: ReactNode;
   progress?: number;
+  /** Hides the server status and Broadcast, e.g. on the welcome tab. */
+  hideStatus?: boolean;
 }) {
   const { l10n } = useLocalization();
   const electron = useElectron();
@@ -76,8 +79,12 @@ export function TopBar({
           style={{ WebkitAppRegion: 'drag' } as any}
           data-electron-drag-region
         >
-          <StatusCluster />
-          <ChatboxDropdown variant="top" />
+          {!hideStatus && (
+            <>
+              <StatusCluster />
+              <ChatboxDropdown variant="top" />
+            </>
+          )}
 
           <div
             className="h-full min-w-4 flex-1"

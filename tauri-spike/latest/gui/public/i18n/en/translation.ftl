@@ -565,7 +565,7 @@ settings-general-tracker_mechanics-yaw-reset-smooth-time = Yaw reset smooth time
 settings-general-dead-tracker-recovery = Dead tracker recovery
 settings-general-dead-tracker-recovery-description = Keeps your pose moving when a tracker loses power, then realigns it after you hold it still.
 settings-general-dead-tracker-recovery-enabled = Automatically compensate and recover trackers
-settings-general-dead-tracker-recovery-chatbox = Show recovery alerts in the VRChat chatbox
+settings-general-dead-tracker-recovery-chatbox = Reset reminders (VRChat chatbox and tracking checklist)
 settings-general-tracker_mechanics-drift_compensation = Drift compensation
 # This cares about multilines
 settings-general-tracker_mechanics-drift_compensation-description =
@@ -1064,7 +1064,7 @@ install-info_udev-rules_warning = Access rules via udev are required for serial 
 install-info_udev-rules_modal_button = Close
 install-info_udev-rules_modal-dont-show-again_checkbox = Don't show again
 ## Setup start
-onboarding-home = Welcome to SlimeVR
+onboarding-home = Welcome to SJ-SlimeVR
 onboarding-home-start = Let's get set up!
 
 

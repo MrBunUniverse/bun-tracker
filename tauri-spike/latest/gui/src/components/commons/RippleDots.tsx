@@ -4,6 +4,7 @@ import { isPawTheme, useConfig } from '@/hooks/config';
 // Dot ripples in the Bun theme. Drops spread as rings across the dot grid and fade.
 // Brightness is quantised into a few steps, so it keeps the pixel look.
 // Grid dots within two cells of a live wave light up faintly, so the grid shows around each ripple as it passes.
+// The rings get rougher the further they travel from their drop: each cell gets a random kick that grows with distance.
 // By default it sits over the dot grid that body draws (the welcome screen). `dots` draws its own dots, for a panel
 // that covers body. `originEl` starts every drop from that element, so the rings boom out of it.
 // Runs at 30 fps and stops once the ripples die out. Off when the animations setting is off, and static with reduced motion.
@@ -11,8 +12,14 @@ import { isPawTheme, useConfig } from '@/hooks/config';
 const CELL = 12; // matches the dot grid on body
 const DOT = 2;
 const FPS = 30;
-const DAMPING = 0.975;
+const DAMPING = 0.977;
 const IDLE = 0.002;
+// Turbulence: each cell's wave gets a random kick, zero at a drop and growing to TURB_MAX by TURB_FULL cells out.
+const TURB_MAX = 0.15;
+const TURB_NEAR = 2;
+const TURB_FULL = 30;
+// Frames a drop stays in play for turbulence. The waves die out well before this.
+const DROP_LIFE = 20 * FPS;
 const BASE = 'rgba(239, 230, 214, 0.1)';
 // Ripple brightness, low to high. The top step is the Bun coral.
 const RIPPLE = [
@@ -68,6 +75,8 @@ export function RippleDots({
     // Two height buffers: the current frame and the one before it.
     let cur = new Float32Array(0);
     let prev = new Float32Array(0);
+    // Drops still in play, with their age in frames. Turbulence grows with the distance to the nearest one.
+    let drops: { x: number; y: number; age: number }[] = [];
     let raf = 0;
     let last = 0;
     let running = false;
@@ -90,17 +99,31 @@ export function RippleDots({
       rows = Math.floor((h - offY) / CELL) + 1;
       cur = new Float32Array(cols * rows);
       prev = new Float32Array(cols * rows);
+      drops = [];
     };
 
     // One wave step. Interior cells only, so the edges stay flat.
     const step = () => {
+      for (const d of drops) d.age++;
+      drops = drops.filter((d) => d.age <= DROP_LIFE);
       for (let y = 1; y < rows - 1; y++) {
         for (let x = 1; x < cols - 1; x++) {
           const i = y * cols + x;
+          const avg =
+            (cur[i - 1] + cur[i + 1] + cur[i - cols] + cur[i + cols]) / 2;
+          // Farther from the nearest drop, the wider the random kick: the rings break up as they travel.
+          let t = 0;
+          if (drops.length) {
+            let d2 = Infinity;
+            for (const d of drops) {
+              d2 = Math.min(d2, (x - d.x) ** 2 + (y - d.y) ** 2);
+            }
+            const span = TURB_FULL - TURB_NEAR;
+            t = Math.min(1, Math.max(0, (Math.sqrt(d2) - TURB_NEAR) / span));
+          }
           prev[i] =
-            ((cur[i - 1] + cur[i + 1] + cur[i - cols] + cur[i + cols]) / 2 -
-              prev[i]) *
-            DAMPING;
+            (avg - prev[i]) * DAMPING +
+            TURB_MAX * t * (Math.random() * 2 - 1) * Math.abs(cur[i]);
         }
       }
       [cur, prev] = [prev, cur];
@@ -182,6 +205,7 @@ export function RippleDots({
         step();
         if (draw() < IDLE) {
           running = false;
+          drops = [];
           return;
         }
       }
@@ -216,6 +240,7 @@ export function RippleDots({
       }
       const [x, y] = dropCell();
       cur[y * cols + x] -= 0.6 + Math.random() * 0.4;
+      drops.push({ x, y, age: 0 });
       wake();
     };
 

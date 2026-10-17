@@ -1,7 +1,7 @@
 import { useLocalization } from '@fluent/react';
 import classNames from 'classnames';
 import { KeyboardEvent, useRef } from 'react';
-import { NavLink, useMatch } from 'react-router-dom';
+import { NavLink, matchPath, useLocation, useMatch } from 'react-router-dom';
 import { PixelIcon } from '@/components/commons/PixelIcon';
 import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
 import { useSidebar } from '@/hooks/sidebar';
@@ -17,12 +17,16 @@ function SideNavLink({
   collapsed: boolean;
 }) {
   const { l10n } = useLocalization();
-  const active = !!useMatch({ path: item.match || item.to, end: !item.match });
+  const { pathname } = useLocation();
+  const matched = !!useMatch({ path: item.match || item.to, end: !item.match });
+  const excluded = !!item.exclude && !!matchPath(item.exclude, pathname);
+  const active = matched && !excluded;
   const label = l10n.getString(item.labelId, null, item.fallback);
 
   return (
     <NavLink
       to={item.to}
+      state={item.state}
       aria-current={active ? 'page' : undefined}
       aria-label={collapsed ? label : undefined}
       title={collapsed ? label : undefined}

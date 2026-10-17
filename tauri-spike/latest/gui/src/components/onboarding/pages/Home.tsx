@@ -17,7 +17,8 @@ export function HomePage() {
   const { config } = useConfig();
   const bun = isPawTheme(config?.theme);
 
-  const fullTitle = l10n.getString('onboarding-home') || 'Welcome to SlimeVR';
+  const fullTitle =
+    l10n.getString('onboarding-home') || 'Welcome to SJ-SlimeVR';
 
   const [typedChars, setTypedChars] = useState(0);
   const [cursorVisible, setCursorVisible] = useState(true);
@@ -131,7 +132,7 @@ export function HomePage() {
 
       {/* Hero Content Card */}
       <div className="relative z-10 flex flex-col items-center max-w-[560px] mx-auto p-8 sm:p-10 rounded-[24px] bg-background-70/70 dark:bg-background-10/[0.02] border border-background-50/50 dark:border-background-10/[0.08] backdrop-blur-xl shadow-xl">
-        <div className="relative mb-4 animate-slime-breathe flex items-center justify-center">
+        <div className="relative mb-4 animate-slime-breathe welcome-logo-trail flex items-center justify-center">
           <PawEars cell={64 / 36} on="logo" />
           {/* Bun: the stylised pixel logo, a little bigger than the vector one. */}
           {bun ? (

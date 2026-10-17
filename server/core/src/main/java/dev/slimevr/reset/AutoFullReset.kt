@@ -11,7 +11,7 @@ import kotlin.math.min
 
 /**
  * Does the first full reset by itself: once trackers need a reset and the user stands
- * upright and still with the headset on, it resets them. Fires once per server run.
+ * upright and still with the headset on, it resets them. Only before the first full reset of a server run.
  */
 class AutoFullReset(private val server: VRServer) {
 	private val detector = StandStillDetector()
@@ -25,6 +25,13 @@ class AutoFullReset(private val server: VRServer) {
 			it.trackerPosition != null && !it.isInternal && it.isImu() && it.allowReset &&
 				it.status != TrackerStatus.DISCONNECTED
 		}
+		// Any full reset (ours or the user's) clears needReset; after that, a tracker reconnecting
+		// mid-game must not trigger a reset the user didn't ask for, so stop for this run.
+		if (imus.isNotEmpty() && imus.all { it.status == TrackerStatus.OK && !it.needReset }) {
+			fired = true
+			return
+		}
+
 		val ready = hmd != null && hmd.status == TrackerStatus.OK && imus.isNotEmpty() &&
 			imus.any { it.needReset } && imus.all { it.status == TrackerStatus.OK }
 		if (!ready) {

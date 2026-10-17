@@ -64,8 +64,15 @@ body {
 }
 
 .animate-slime-breathe {
-  animation: slime-breathe 5s ease-in-out infinite;
+  animation: slime-breathe 9s ease-in-out infinite;
   transform-origin: center center;
+}
+
+/* Welcome logo: stepped pixel copies trail down from the logo and fade out. */
+.welcome-logo-trail {
+  filter: drop-shadow(0 2px 0 rgba(var(--accent-background-30), 0.45))
+    drop-shadow(0 4px 0 rgba(var(--accent-background-30), 0.25))
+    drop-shadow(0 6px 0 rgba(var(--accent-background-30), 0.1));
 }
 
 @keyframes warning-breathe-glow {
