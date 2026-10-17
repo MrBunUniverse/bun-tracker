@@ -59,6 +59,7 @@
     setPresence: async () => {},
     getInstallDir: () => invoke('get_folder', { kind: 'exe' }),
     isSteam: async () => false,
+    restartServer: () => invoke('restart_server'),
     // Same result shape as Electron's GET_APPLE_MUSIC (gui/electron/main/index.ts).
     getAppleMusic: async () => {
       const out = await invoke('apple_music');

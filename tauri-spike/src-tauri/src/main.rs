@@ -109,6 +109,55 @@ async fn apple_music() -> String {
     .unwrap_or_default()
 }
 
+// ---- server restart (the top bar's red button) ----
+
+// The checkout the server is run from: the jar there is the only one that matches the user's
+// config (a jar built elsewhere rewrites vrconfig.yml without the fields it doesn't know).
+const SERVER_DIR: &str = "/Users/sirjame/Documents/Project/SJ SlimeVR Sever Claude";
+const SERVER_MATCH: &str = "slimevr.jar run";
+
+#[tauri::command]
+async fn restart_server(app: AppHandle) -> Result<(), String> {
+    let log = app.path().app_log_dir().map_err(|e| e.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        use std::os::unix::process::CommandExt;
+        use std::process::{Command, Stdio};
+        let jar = Path::new(SERVER_DIR).join("server/desktop/build/libs/slimevr.jar");
+        if !jar.is_file() {
+            return Err(format!("No server jar at {}", jar.display()));
+        }
+
+        // Stop the running server and wait for it to exit, so the new one can take its ports.
+        let _ = Command::new("pkill").args(["-f", SERVER_MATCH]).status();
+        for _ in 0..50 {
+            let running = Command::new("pgrep").args(["-f", SERVER_MATCH]).stdout(Stdio::null()).status();
+            if !matches!(running, Ok(s) if s.success()) {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+
+        fs::create_dir_all(&log).map_err(|e| e.to_string())?;
+        let out = fs::File::create(log.join("server.log")).map_err(|e| e.to_string())?;
+        let err = out.try_clone().map_err(|e| e.to_string())?;
+        Command::new("java")
+            .args(["-Xmx128M", "-jar"])
+            .arg(&jar)
+            .arg("run")
+            .current_dir(SERVER_DIR)
+            .stdin(Stdio::null())
+            .stdout(out)
+            .stderr(err)
+            // Own process group, so quitting the Spike (or Ctrl+C on tauri dev) leaves the server running.
+            .process_group(0)
+            .spawn()
+            .map(|_| ())
+            .map_err(|e| format!("Couldn't start the server: {e}"))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 // ---- storage (replaces Electron's settings and cache stores) ----
 
 fn store_path(app: &AppHandle, kind: &str) -> Result<PathBuf, String> {
@@ -584,6 +633,7 @@ fn main() {
             open_dialog,
             save_dialog,
             apple_music,
+            restart_server,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the SlimeVR Tauri spike")

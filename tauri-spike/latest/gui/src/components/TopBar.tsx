@@ -18,6 +18,7 @@ import { MinimiseIcon } from './commons/icon/MinimiseIcon';
 import { IconButton } from './commons/IconButton';
 import { ProgressBar } from './commons/ProgressBar';
 import { HardRebootButton } from './shell/HardRebootButton';
+import { ServerRestartButton } from './shell/ServerRestartButton';
 import { StatusCluster } from './shell/StatusCluster';
 import { ThemeModeToggle } from './shell/ThemeModeToggle';
 import { VersionTag } from './shell/VersionTag';
@@ -109,6 +110,7 @@ export function TopBar({
             <VersionTag />
             <ThemeModeToggle />
             <HardRebootButton />
+            <ServerRestartButton />
 
             {electron.isElectron && !isMac && (
               <div className="ml-1 flex items-center gap-1">

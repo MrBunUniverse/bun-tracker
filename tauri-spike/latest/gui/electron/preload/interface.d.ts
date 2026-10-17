@@ -164,6 +164,8 @@ export interface IElectronAPI {
   setPresence: (options: DiscordPresence) => void;
   getInstallDir: () => Promise<string>;
   isSteam: () => Promise<boolean>;
+  /** Spike only: stops the server and starts it again. */
+  restartServer?: () => Promise<void>;
   getAppleMusic?: () => Promise<{
     running: boolean;
     playing: boolean;
