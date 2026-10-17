@@ -28,8 +28,7 @@ export function QuestDiagnosticsCard() {
     adjustFloorHeight,
     setFloorHeight,
     setCorrectionStrength,
-    setFootPlantStrength,
-    setCrouchCompensation,
+    setFootPlant,
     setOscRate,
     setChatboxEnabled,
     setChatboxOnlyMode,
@@ -344,7 +343,7 @@ export function QuestDiagnosticsCard() {
 
               <SettingGroup
                 title="Advanced"
-                hint={`${Math.round(floorAnchor.correctionStrength * 100)}% correction · ${Math.round(floorAnchor.footPlantStrength * 100)}% foot lock`}
+                hint={`${Math.round(floorAnchor.correctionStrength * 100)}% correction · foot plant ${floorAnchor.footPlant ? 'on' : 'off'}`}
               >
                 <div className="pb-2.5 pt-1">
                   <SegmentedControl
@@ -375,26 +374,13 @@ export function QuestDiagnosticsCard() {
                       />
                     </SettingRow>
                     <SettingRow
-                      stacked
                       label="Foot plant lock"
-                      value={`${Math.round(floorAnchor.footPlantStrength * 100)}%`}
-                    >
-                      <Slider
-                        min={0}
-                        max={100}
-                        value={Math.round(floorAnchor.footPlantStrength * 100)}
-                        onChange={(v) => setFootPlantStrength(v / 100)}
-                        label="Foot Plant Lock"
-                      />
-                    </SettingRow>
-                    <SettingRow
-                      label="Crouch compensation"
-                      description="Preserve foot placement when crouching"
+                      description="Keeps planted feet from sliding"
                     >
                       <Toggle
-                        checked={floorAnchor.crouchCompensation}
-                        onChange={setCrouchCompensation}
-                        label="Toggle Crouch Compensation"
+                        checked={floorAnchor.footPlant}
+                        onChange={setFootPlant}
+                        label="Toggle Foot Plant Lock"
                       />
                     </SettingRow>
                   </>

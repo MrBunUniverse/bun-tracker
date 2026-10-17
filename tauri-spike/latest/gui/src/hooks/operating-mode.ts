@@ -1,6 +1,6 @@
 import { useAtom, useStore } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { useMemo, useCallback, useRef } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { useWebsocketAPI } from './websocket-api';
 import { bonesAtom } from '@/store/app-store';
 import {
@@ -31,10 +31,8 @@ export interface QuestStandaloneState {
   isAnchored: boolean;
   floorOffset: number; // in meters
   correctionStrength: number; // 0.0 to 1.0
-  footPlantStrength: number;
+  footPlant: boolean;
   skatingCorrectionStrength: number;
-  crouchCompensation: boolean;
-  crouchStrength: number;
   hmdVerticalOffset: number; // in meters
   oscRate: number; // 30, 50, 60, 90 Hz
   chatboxEnabled: boolean;
@@ -53,16 +51,16 @@ export const operatingModeAtom = atomWithStorage<OperatingMode>(
   'quest_standalone'
 );
 
+// Local storage only covers the moment before the server answers: useOperatingMode asks for the server's
+// settings on mount and overwrites floorClip, footPlant, correction strength, elevation, OSC rate and chatbox.
 export const questStandaloneStateAtom = atomWithStorage<QuestStandaloneState>(
   'slimevr_quest_standalone_state_v2',
   {
     isAnchored: true,
     floorOffset: 0.0,
-    correctionStrength: 0.5,
-    footPlantStrength: 0.5,
+    correctionStrength: 0.3, // LegTweaksConfig's default on the server
+    footPlant: true,
     skatingCorrectionStrength: 0.5,
-    crouchCompensation: true,
-    crouchStrength: 0.5,
     hmdVerticalOffset: 0.0,
     oscRate: 60,
     chatboxEnabled: true,
@@ -82,6 +80,27 @@ type ToggleChanges = {
   footPlant?: boolean;
   skatingCorrection?: boolean;
 };
+
+// Shared by every component using useOperatingMode. Each one hears every SettingsResponse, so a change
+// one of them is waiting on has to be visible to all of them, or the others refill the panel with the old value.
+const pending = {
+  // The server replaces every model toggle named in a request and treats the
+  // ones left out as off. To change one toggle, read the server's current set
+  // and send it back with only that toggle altered.
+  toggles: null as ToggleChanges | null,
+  // The server sets its floor height from every skeletonHeight message, so each
+  // one has to carry the server's current value, never a stale local one. Until
+  // the first SettingsResponse it is unknown, and skeletonHeight changes wait here.
+  serverFloor: null as number | null,
+  skeleton: null as SkeletonHeightT | null,
+  // When each value was last changed here. A response to a request sent just before that change still
+  // carries the old value; it must not refill the panel, nor the floor height that the chatbox HUD resends.
+  // ponytail: a time window, not request tracking; a server slower than this can still flick a value back.
+  changedAt: {} as Partial<Record<keyof QuestStandaloneState, number>>,
+};
+const RECENT_MS = 2000;
+const recent = (key: keyof QuestStandaloneState) =>
+  Date.now() - (pending.changedAt[key] ?? 0) < RECENT_MS;
 
 export function useOperatingMode() {
   const [mode, setMode] = useAtom(operatingModeAtom);
@@ -110,50 +129,126 @@ export function useOperatingMode() {
     sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
   };
 
-  // The server replaces every model toggle named in a request and treats the
-  // ones left out as off. To change one toggle, read the server's current set
-  // and send it back with only that toggle altered.
-  const pendingToggles = useRef<ToggleChanges | null>(null);
-  useRPCPacket(RpcMessage.SettingsResponse, (settings: SettingsResponseT) => {
-    const changes = pendingToggles.current;
-    if (!changes) return;
-    pendingToggles.current = null;
-    const toggles = settings.modelSettings?.toggles;
-    if (!toggles) return;
+  // `fresh` re-reads the server's floor height first. The chatbox HUD sends often and may run in more than
+  // one window, so its messages must not carry a floor height that another window has since changed.
+  const sendSkeletonHeight = useCallback(
+    (skeletonHeight: SkeletonHeightT, fresh = false) => {
+      if (skeletonHeight.floorHeight === null) {
+        if (fresh || pending.serverFloor === null) {
+          const queued = pending.skeleton ?? new SkeletonHeightT();
+          for (const [key, value] of Object.entries(skeletonHeight)) {
+            if (value !== null) Object.assign(queued, { [key]: value });
+          }
+          pending.skeleton = queued;
+          sendRPCPacket(RpcMessage.SettingsRequest, new SettingsRequestT());
+          return;
+        }
+        skeletonHeight.floorHeight = pending.serverFloor;
+      } else {
+        pending.serverFloor = skeletonHeight.floorHeight;
+      }
+      const modelSettings = new ModelSettingsT();
+      modelSettings.skeletonHeight = skeletonHeight;
+      const settingsRequest = new ChangeSettingsRequestT();
+      settingsRequest.modelSettings = modelSettings;
+      sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
+    },
+    [sendRPCPacket]
+  );
 
-    Object.assign(toggles, changes);
-    const modelSettings = new ModelSettingsT();
-    modelSettings.toggles = toggles;
-    const settingsRequest = new ChangeSettingsRequestT();
-    settingsRequest.modelSettings = modelSettings;
-    sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
+  useEffect(() => {
+    sendRPCPacket(RpcMessage.SettingsRequest, new SettingsRequestT());
+  }, []);
+
+  useRPCPacket(RpcMessage.SettingsResponse, (settings: SettingsResponseT) => {
+    const model = settings.modelSettings;
+    if (!model) return;
+    const toggles = model.toggles;
+    const skeleton = model.skeletonHeight;
+
+    const changes = pending.toggles;
+    pending.toggles = null;
+    if (changes && toggles) {
+      // Apply the change before reading the toggles back, so the panel doesn't flick to the old value.
+      Object.assign(toggles, changes);
+      const modelSettings = new ModelSettingsT();
+      modelSettings.toggles = toggles;
+      const settingsRequest = new ChangeSettingsRequestT();
+      settingsRequest.modelSettings = modelSettings;
+      sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
+    }
+
+    if (skeleton?.floorHeight != null && !recent('floorOffset')) {
+      pending.serverFloor = skeleton.floorHeight;
+    }
+    const queued = pending.skeleton;
+    pending.skeleton = null;
+    if (queued) {
+      sendSkeletonHeight(queued);
+      // Queued changes are newer than this response; write them in so every listener reads them.
+      if (skeleton) {
+        for (const [key, value] of Object.entries(queued)) {
+          if (value !== null) Object.assign(skeleton, { [key]: value });
+        }
+      }
+    }
+
+    setState((prev) => {
+      const isAnchored = toggles?.floorClip ?? prev.isAnchored;
+      return {
+        ...prev,
+        isAnchored,
+        anchorStatus: !isAnchored
+          ? 'FLOATING'
+          : prev.anchorStatus === 'FLOATING'
+            ? 'LOCKED'
+            : prev.anchorStatus,
+        footPlant: toggles?.footPlant ?? prev.footPlant,
+        correctionStrength: recent('correctionStrength')
+          ? prev.correctionStrength
+          : (model.legTweaks?.correctionStrength ?? prev.correctionStrength),
+        floorOffset: recent('floorOffset')
+          ? prev.floorOffset
+          : (skeleton?.floorHeight ?? prev.floorOffset),
+        oscRate: recent('oscRate') ? prev.oscRate : (skeleton?.oscRate ?? prev.oscRate),
+        chatboxEnabled: recent('chatboxEnabled')
+          ? prev.chatboxEnabled
+          : (skeleton?.chatboxEnabled ?? prev.chatboxEnabled),
+        chatboxOnlyMode: recent('chatboxOnlyMode')
+          ? prev.chatboxOnlyMode
+          : (skeleton?.chatboxOnly ?? prev.chatboxOnlyMode),
+      };
+    });
   });
 
   /** Sends only the settings named in `updates`; everything else is left alone. */
   const syncToServer = (updates: Partial<QuestStandaloneState>) => {
+    for (const key of Object.keys(updates) as (keyof QuestStandaloneState)[]) {
+      pending.changedAt[key] = Date.now();
+    }
     const toggleChanges: ToggleChanges = {};
     if (updates.isAnchored !== undefined) {
       toggleChanges.floorClip = updates.isAnchored;
     }
-    if (updates.footPlantStrength !== undefined) {
-      toggleChanges.footPlant = updates.footPlantStrength > 0.05;
+    if (updates.footPlant !== undefined) {
+      toggleChanges.footPlant = updates.footPlant;
     }
     if (updates.skatingCorrectionStrength !== undefined) {
       toggleChanges.skatingCorrection = updates.skatingCorrectionStrength > 0.05;
     }
     if (Object.keys(toggleChanges).length > 0) {
-      pendingToggles.current = { ...pendingToggles.current, ...toggleChanges };
+      pending.toggles = { ...pending.toggles, ...toggleChanges };
       sendRPCPacket(RpcMessage.SettingsRequest, new SettingsRequestT());
     }
-
-    const modelSettings = new ModelSettingsT();
-    let hasModelSettings = false;
 
     if (updates.correctionStrength !== undefined) {
       const legTweaks = new LegTweaksSettingsT();
       legTweaks.correctionStrength = updates.correctionStrength;
+      const modelSettings = new ModelSettingsT();
       modelSettings.legTweaks = legTweaks;
-      hasModelSettings = true;
+      const settingsRequest = new ChangeSettingsRequestT();
+      settingsRequest.modelSettings = modelSettings;
+      sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
     }
 
     if (
@@ -163,9 +258,12 @@ export function useOperatingMode() {
       updates.chatboxOnlyMode !== undefined
     ) {
       const skeletonHeight = new SkeletonHeightT();
-      // The server applies the floor height from every such message, so it
-      // always has to carry the current value.
-      skeletonHeight.floorHeight = updates.floorOffset ?? state.floorOffset;
+      if (updates.floorOffset !== undefined) {
+        // ponytail: the protocol drops a float equal to its default (0), and the server then never sees the
+        // reset to 0. A micrometre reads as 0 cm everywhere; send a real 0 once SkeletonHeight forces defaults.
+        skeletonHeight.floorHeight =
+          updates.floorOffset === 0 ? 1e-6 : updates.floorOffset;
+      }
       if (updates.oscRate !== undefined) skeletonHeight.oscRate = updates.oscRate;
       if (updates.chatboxEnabled !== undefined) {
         skeletonHeight.chatboxEnabled = updates.chatboxEnabled;
@@ -173,44 +271,25 @@ export function useOperatingMode() {
       if (updates.chatboxOnlyMode !== undefined) {
         skeletonHeight.chatboxOnly = updates.chatboxOnlyMode;
       }
-      modelSettings.skeletonHeight = skeletonHeight;
-      hasModelSettings = true;
+      sendSkeletonHeight(skeletonHeight);
     }
-
-    if (!hasModelSettings) return;
-    const settingsRequest = new ChangeSettingsRequestT();
-    settingsRequest.modelSettings = modelSettings;
-    sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
   };
 
+  // Memoised: ChatboxDropdown's effects depend on these, and a new function each render would resend in a loop.
   const triggerChatboxStatus = useCallback(() => {
-    const settingsRequest = new ChangeSettingsRequestT();
-    const modelSettings = new ModelSettingsT();
     const skeletonHeight = new SkeletonHeightT();
-    skeletonHeight.floorHeight = state.floorOffset;
-    skeletonHeight.oscRate = state.oscRate;
-    skeletonHeight.chatboxEnabled = state.chatboxEnabled;
     skeletonHeight.chatboxTrigger = true;
-    modelSettings.skeletonHeight = skeletonHeight;
-    settingsRequest.modelSettings = modelSettings;
-    sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
-  }, [sendRPCPacket, state.floorOffset, state.oscRate, state.chatboxEnabled]);
+    sendSkeletonHeight(skeletonHeight, true);
+  }, [sendSkeletonHeight]);
 
   const sendChatboxCustomMessage = useCallback(
     (message: string) => {
       if (!message || !message.trim()) return;
-      const settingsRequest = new ChangeSettingsRequestT();
-      const modelSettings = new ModelSettingsT();
       const skeletonHeight = new SkeletonHeightT();
-      skeletonHeight.floorHeight = state.floorOffset;
-      skeletonHeight.oscRate = state.oscRate;
-      skeletonHeight.chatboxEnabled = state.chatboxEnabled;
       skeletonHeight.chatboxMessage = message.trim();
-      modelSettings.skeletonHeight = skeletonHeight;
-      settingsRequest.modelSettings = modelSettings;
-      sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
+      sendSkeletonHeight(skeletonHeight, true);
     },
-    [sendRPCPacket, state.floorOffset, state.oscRate, state.chatboxEnabled]
+    [sendSkeletonHeight]
   );
 
   const toggleFloorAnchor = () => {
@@ -227,7 +306,8 @@ export function useOperatingMode() {
   };
 
   const setFloorHeight = (heightMeters: number) => {
-    const clamped = Math.max(-3.0, Math.min(3.0, heightMeters));
+    // Whole centimetres: the server stores a 32-bit float, and stepping from its value otherwise drifts to "-0 cm".
+    const clamped = Math.round(Math.max(-3.0, Math.min(3.0, heightMeters)) * 100) / 100;
     syncToServer({ floorOffset: clamped });
     setState((prev) => ({
       ...prev,
@@ -281,20 +361,15 @@ export function useOperatingMode() {
     setState((prev) => ({ ...prev, correctionStrength: clamped }));
   };
 
-  const setFootPlantStrength = (val: number) => {
-    const clamped = Math.max(0, Math.min(1, val));
-    syncToServer({ footPlantStrength: clamped });
-    setState((prev) => ({ ...prev, footPlantStrength: clamped }));
+  const setFootPlant = (val: boolean) => {
+    syncToServer({ footPlant: val });
+    setState((prev) => ({ ...prev, footPlant: val }));
   };
 
   const setSkatingCorrectionStrength = (val: number) => {
     const clamped = Math.max(0, Math.min(1, val));
     syncToServer({ skatingCorrectionStrength: clamped });
     setState((prev) => ({ ...prev, skatingCorrectionStrength: clamped }));
-  };
-
-  const setCrouchCompensation = (val: boolean) => {
-    setState((prev) => ({ ...prev, crouchCompensation: val }));
   };
 
   const setHmdVerticalOffset = (valMeters: number) => {
@@ -320,9 +395,8 @@ export function useOperatingMode() {
         activeProfile: 'STANDING',
         isAnchored: true,
         correctionStrength: 0.5,
-        footPlantStrength: 0.5,
+        footPlant: true,
         skatingCorrectionStrength: 0.5,
-        crouchCompensation: true,
         anchorStatus: 'LOCKED',
       };
     } else if (profile === 'CROUCHING') {
@@ -330,9 +404,8 @@ export function useOperatingMode() {
         activeProfile: 'CROUCHING',
         isAnchored: true,
         correctionStrength: 0.7,
-        footPlantStrength: 0.7,
+        footPlant: true,
         skatingCorrectionStrength: 0.3,
-        crouchCompensation: true,
         anchorStatus: 'LOCKED',
       };
     } else if (profile === 'SITTING') {
@@ -340,9 +413,8 @@ export function useOperatingMode() {
         activeProfile: 'SITTING',
         isAnchored: false,
         correctionStrength: 0.2,
-        footPlantStrength: 0.0,
+        footPlant: false,
         skatingCorrectionStrength: 0.0,
-        crouchCompensation: false,
         anchorStatus: 'FLOATING',
       };
     }
@@ -388,9 +460,8 @@ export function useOperatingMode() {
     adjustFloorHeight,
     setFloorHeight,
     setCorrectionStrength,
-    setFootPlantStrength,
+    setFootPlant,
     setSkatingCorrectionStrength,
-    setCrouchCompensation,
     setHmdVerticalOffset,
     setOscRate,
     setChatboxEnabled,
