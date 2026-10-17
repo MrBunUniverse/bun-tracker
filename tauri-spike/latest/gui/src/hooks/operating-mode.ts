@@ -1,6 +1,7 @@
 import { useAtom, useStore } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { useMemo, useCallback, useEffect } from 'react';
+import { Builder } from 'flatbuffers';
 import { useWebsocketAPI } from './websocket-api';
 import { bonesAtom } from '@/store/app-store';
 import {
@@ -15,6 +16,22 @@ import {
   VRCOSCSettingsT,
   OSCSettingsT,
 } from 'solarxr-protocol';
+
+/**
+ * The generated code skips a value equal to its default (false, 0), so turning a chatbox
+ * toggle off or setting the floor to 0 never reached the server. Every field here is optional
+ * and only written when set, so forcing defaults sends exactly what was set.
+ */
+class ForcedSkeletonHeightT extends SkeletonHeightT {
+  pack(builder: Builder) {
+    builder.forceDefaults(true);
+    try {
+      return super.pack(builder);
+    } finally {
+      builder.forceDefaults(false);
+    }
+  }
+}
 
 export type OperatingMode = 'quest_standalone' | 'pcvr';
 
@@ -129,13 +146,12 @@ export function useOperatingMode() {
   // elevation, read from the store so it's current even in a memoised callback.
   const sendSkeletonHeight = useCallback(
     (skeletonHeight: SkeletonHeightT) => {
-      const floor =
-        skeletonHeight.floorHeight ?? store.get(questStandaloneStateAtom).floorOffset;
-      // ponytail: the protocol drops a float equal to its default (0), and the server then never sees a
-      // reset to 0. A micrometre reads as 0 cm everywhere; send a real 0 once SkeletonHeight forces defaults.
-      skeletonHeight.floorHeight = floor === 0 ? 1e-6 : floor;
+      skeletonHeight.floorHeight ??= store.get(questStandaloneStateAtom).floorOffset;
       const modelSettings = new ModelSettingsT();
-      modelSettings.skeletonHeight = skeletonHeight;
+      modelSettings.skeletonHeight = Object.assign(
+        new ForcedSkeletonHeightT(),
+        skeletonHeight
+      );
       const settingsRequest = new ChangeSettingsRequestT();
       settingsRequest.modelSettings = modelSettings;
       sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
