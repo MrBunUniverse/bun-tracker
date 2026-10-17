@@ -59,6 +59,26 @@
     setPresence: async () => {},
     getInstallDir: () => invoke('get_folder', { kind: 'exe' }),
     isSteam: async () => false,
+    // Same result shape as Electron's GET_APPLE_MUSIC (gui/electron/main/index.ts).
+    getAppleMusic: async () => {
+      const out = await invoke('apple_music');
+      if (out === 'STOPPED') return { running: true, playing: false };
+      if (!out.includes('||')) return { running: false, playing: false };
+      const [pState, track, artist, album, posStr, durStr] = out.split('||');
+      const pos = parseInt(posStr, 10) || 0;
+      const dur = parseInt(durStr, 10) || 0;
+      const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      return {
+        running: true,
+        playing: pState.toLowerCase() === 'playing',
+        track: track || 'Unknown Track',
+        artist: artist || 'Unknown Artist',
+        album: album || '',
+        pos,
+        dur,
+        formatted: `${track} • ${artist} [${clock(pos)} / ${clock(dur)}]`,
+      };
+    },
   };
 
   // WKWebView ignores `-webkit-app-region: drag`, so the title bar is made draggable here.

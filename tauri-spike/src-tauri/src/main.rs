@@ -57,6 +57,58 @@ fn os_type() -> &'static str {
     }
 }
 
+// ---- Apple Music (replaces Electron's GET_APPLE_MUSIC; the shim parses the output) ----
+
+const MUSIC_SCRIPT: &str = r#"if application "Music" is running then
+tell application "Music"
+set pState to (player state as string)
+if pState is not "stopped" then
+set trk to name of current track
+set art to artist of current track
+set alb to album of current track
+set pos to (player position as integer)
+set dur to (duration of current track as integer)
+return pState & "||" & trk & "||" & art & "||" & alb & "||" & pos & "||" & dur
+else
+return "STOPPED"
+end if
+end tell
+else
+return "NOT_RUNNING"
+end if"#;
+
+#[tauri::command]
+async fn apple_music() -> String {
+    tauri::async_runtime::spawn_blocking(|| {
+        use std::io::Read;
+        use std::process::{Command, Stdio};
+        let Ok(mut child) = Command::new("osascript")
+            .args(["-e", MUSIC_SCRIPT])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+        else {
+            return String::new();
+        };
+        // Bound the call to 3s, like Electron, so a hung Music/osascript can't pile up.
+        for _ in 0..30 {
+            if let Ok(Some(_)) = child.try_wait() {
+                let mut out = String::new();
+                if let Some(mut s) = child.stdout.take() {
+                    let _ = s.read_to_string(&mut out);
+                }
+                return out.trim().to_string();
+            }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        let _ = child.kill();
+        let _ = child.wait();
+        String::new()
+    })
+    .await
+    .unwrap_or_default()
+}
+
 // ---- storage (replaces Electron's settings and cache stores) ----
 
 fn store_path(app: &AppHandle, kind: &str) -> Result<PathBuf, String> {
@@ -531,6 +583,7 @@ fn main() {
             i18n_override,
             open_dialog,
             save_dialog,
+            apple_music,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the SlimeVR Tauri spike")
