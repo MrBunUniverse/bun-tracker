@@ -52,7 +52,8 @@ export const operatingModeAtom = atomWithStorage<OperatingMode>(
 );
 
 // Local storage only covers the moment before the server answers: useOperatingMode asks for the server's
-// settings on mount and overwrites floorClip, footPlant, correction strength, elevation, OSC rate and chatbox.
+// settings on mount and overwrites floorClip, footPlant, correction strength, OSC rate and chatbox.
+// Elevation (floorOffset) stays local: SettingsResponse's floorHeight is the skeleton floor, not the Quest elevation.
 export const questStandaloneStateAtom = atomWithStorage<QuestStandaloneState>(
   'slimevr_quest_standalone_state_v2',
   {
@@ -88,13 +89,8 @@ const pending = {
   // ones left out as off. To change one toggle, read the server's current set
   // and send it back with only that toggle altered.
   toggles: null as ToggleChanges | null,
-  // The server sets its floor height from every skeletonHeight message, so each
-  // one has to carry the server's current value, never a stale local one. Until
-  // the first SettingsResponse it is unknown, and skeletonHeight changes wait here.
-  serverFloor: null as number | null,
-  skeleton: null as SkeletonHeightT | null,
   // When each value was last changed here. A response to a request sent just before that change still
-  // carries the old value; it must not refill the panel, nor the floor height that the chatbox HUD resends.
+  // carries the old value, and must not refill the panel with it.
   // ponytail: a time window, not request tracking; a server slower than this can still flick a value back.
   changedAt: {} as Partial<Record<keyof QuestStandaloneState, number>>,
 };
@@ -129,31 +125,22 @@ export function useOperatingMode() {
     sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
   };
 
-  // `fresh` re-reads the server's floor height first. The chatbox HUD sends often and may run in more than
-  // one window, so its messages must not carry a floor height that another window has since changed.
+  // The server sets the Quest elevation from every skeletonHeight message, so each one carries the local
+  // elevation, read from the store so it's current even in a memoised callback.
   const sendSkeletonHeight = useCallback(
-    (skeletonHeight: SkeletonHeightT, fresh = false) => {
-      if (skeletonHeight.floorHeight === null) {
-        if (fresh || pending.serverFloor === null) {
-          const queued = pending.skeleton ?? new SkeletonHeightT();
-          for (const [key, value] of Object.entries(skeletonHeight)) {
-            if (value !== null) Object.assign(queued, { [key]: value });
-          }
-          pending.skeleton = queued;
-          sendRPCPacket(RpcMessage.SettingsRequest, new SettingsRequestT());
-          return;
-        }
-        skeletonHeight.floorHeight = pending.serverFloor;
-      } else {
-        pending.serverFloor = skeletonHeight.floorHeight;
-      }
+    (skeletonHeight: SkeletonHeightT) => {
+      const floor =
+        skeletonHeight.floorHeight ?? store.get(questStandaloneStateAtom).floorOffset;
+      // ponytail: the protocol drops a float equal to its default (0), and the server then never sees a
+      // reset to 0. A micrometre reads as 0 cm everywhere; send a real 0 once SkeletonHeight forces defaults.
+      skeletonHeight.floorHeight = floor === 0 ? 1e-6 : floor;
       const modelSettings = new ModelSettingsT();
       modelSettings.skeletonHeight = skeletonHeight;
       const settingsRequest = new ChangeSettingsRequestT();
       settingsRequest.modelSettings = modelSettings;
       sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
     },
-    [sendRPCPacket]
+    [sendRPCPacket, store]
   );
 
   useEffect(() => {
@@ -178,21 +165,6 @@ export function useOperatingMode() {
       sendRPCPacket(RpcMessage.ChangeSettingsRequest, settingsRequest);
     }
 
-    if (skeleton?.floorHeight != null && !recent('floorOffset')) {
-      pending.serverFloor = skeleton.floorHeight;
-    }
-    const queued = pending.skeleton;
-    pending.skeleton = null;
-    if (queued) {
-      sendSkeletonHeight(queued);
-      // Queued changes are newer than this response; write them in so every listener reads them.
-      if (skeleton) {
-        for (const [key, value] of Object.entries(queued)) {
-          if (value !== null) Object.assign(skeleton, { [key]: value });
-        }
-      }
-    }
-
     setState((prev) => {
       const isAnchored = toggles?.floorClip ?? prev.isAnchored;
       return {
@@ -207,9 +179,6 @@ export function useOperatingMode() {
         correctionStrength: recent('correctionStrength')
           ? prev.correctionStrength
           : (model.legTweaks?.correctionStrength ?? prev.correctionStrength),
-        floorOffset: recent('floorOffset')
-          ? prev.floorOffset
-          : (skeleton?.floorHeight ?? prev.floorOffset),
         oscRate: recent('oscRate') ? prev.oscRate : (skeleton?.oscRate ?? prev.oscRate),
         chatboxEnabled: recent('chatboxEnabled')
           ? prev.chatboxEnabled
@@ -259,10 +228,7 @@ export function useOperatingMode() {
     ) {
       const skeletonHeight = new SkeletonHeightT();
       if (updates.floorOffset !== undefined) {
-        // ponytail: the protocol drops a float equal to its default (0), and the server then never sees the
-        // reset to 0. A micrometre reads as 0 cm everywhere; send a real 0 once SkeletonHeight forces defaults.
-        skeletonHeight.floorHeight =
-          updates.floorOffset === 0 ? 1e-6 : updates.floorOffset;
+        skeletonHeight.floorHeight = updates.floorOffset;
       }
       if (updates.oscRate !== undefined) skeletonHeight.oscRate = updates.oscRate;
       if (updates.chatboxEnabled !== undefined) {
@@ -279,7 +245,7 @@ export function useOperatingMode() {
   const triggerChatboxStatus = useCallback(() => {
     const skeletonHeight = new SkeletonHeightT();
     skeletonHeight.chatboxTrigger = true;
-    sendSkeletonHeight(skeletonHeight, true);
+    sendSkeletonHeight(skeletonHeight);
   }, [sendSkeletonHeight]);
 
   const sendChatboxCustomMessage = useCallback(
@@ -287,7 +253,7 @@ export function useOperatingMode() {
       if (!message || !message.trim()) return;
       const skeletonHeight = new SkeletonHeightT();
       skeletonHeight.chatboxMessage = message.trim();
-      sendSkeletonHeight(skeletonHeight, true);
+      sendSkeletonHeight(skeletonHeight);
     },
     [sendSkeletonHeight]
   );
