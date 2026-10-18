@@ -435,8 +435,8 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
         </span>
       </div>
 
-      {/* The panel colour behind the text masks the dot matrix, so the headline reads cleanly. */}
-      <div className="relative z-10 mt-4 flex flex-col items-center rounded-[10px] bg-background-70 px-4 py-1.5">
+      {/* No box: the dots stay visible around the text. A soft shadow in the panel colour keeps it readable. */}
+      <div className="relative z-10 mt-5 flex flex-col items-center [text-shadow:0_0_6px_rgb(var(--background-70)),0_0_12px_rgb(var(--background-70))]">
         <h2
           id="tracker-empty-title"
           className="font-serif text-ui-lg font-normal tracking-tight text-background-10"
