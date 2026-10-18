@@ -156,7 +156,7 @@ export function ClaudeTrackerWindowCard({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h3
-          className="truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
+          className="line-clamp-2 break-words font-mono text-[14px] font-semibold leading-snug text-background-10"
           title={trackerName}
         >
           {trackerName}
