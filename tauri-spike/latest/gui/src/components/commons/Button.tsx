@@ -69,7 +69,8 @@ export function Button({
       primary: classNames({
         'app-button-primary bg-accent-background-20 hover:bg-accent-background-40 text-white font-medium tracking-tight active:scale-[0.98] shadow-xs transition-all duration-150':
           !disabled,
-        'bg-accent-background-40/40 hover:bg-accent-background-40/40 cursor-not-allowed text-background-10/50':
+        // Disabled reads as disabled: a flat neutral fill and muted text, not a faded accent.
+        'bg-background-10/[0.06] hover:bg-background-10/[0.06] cursor-not-allowed text-background-30 border border-background-10/[0.08]':
           disabled,
       }),
       secondary: classNames({

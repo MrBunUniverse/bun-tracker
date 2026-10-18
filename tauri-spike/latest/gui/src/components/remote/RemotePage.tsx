@@ -15,26 +15,41 @@ import {
 import { useQuestCaptureSettings } from '@/hooks/quest-capture';
 import { isPawTheme, useConfig } from '@/hooks/config';
 
+// Short labels so the selects never truncate; the detail shows as a hint under the select.
 const CODEC_OPTIONS = [
-  { value: 'opus', label: 'Opus (Low Latency • Standard)' },
-  { value: 'aac', label: 'AAC (Hardware DSP • Anti-Glitch)' },
-  { value: 'raw', label: 'Raw PCM (Uncompressed • Lossless)' },
+  { value: 'opus', label: 'Opus', hint: 'Low latency · standard' },
+  { value: 'aac', label: 'AAC', hint: 'Hardware DSP · anti-glitch' },
+  { value: 'raw', label: 'Raw PCM', hint: 'Uncompressed · lossless' },
 ];
 
 const BITRATE_OPTIONS = [
-  { value: 64, label: '64 kbps (Fast / Low Wi-Fi Load)' },
-  { value: 96, label: '96 kbps (Balanced • Recommended)' },
-  { value: 128, label: '128 kbps (High Quality)' },
-  { value: 192, label: '192 kbps (Studio Fidelity)' },
+  { value: 64, label: '64 kbps', hint: 'Fast · low Wi-Fi load' },
+  { value: 96, label: '96 kbps', hint: 'Balanced · recommended' },
+  { value: 128, label: '128 kbps', hint: 'High quality' },
+  { value: 192, label: '192 kbps', hint: 'Studio fidelity' },
 ];
 
 const BUFFER_OPTIONS = [
-  { value: 40, label: '40 ms (Ultra-Low Latency • Clean 5GHz)' },
-  { value: 60, label: '60 ms (Fast • Low Latency)' },
-  { value: 80, label: '80 ms (Balanced • Recommended)' },
-  { value: 120, label: '120 ms (Smooth • Jitter-Resistant)' },
-  { value: 160, label: '160 ms (Ultra-Stable • Congested Wi-Fi)' },
+  { value: 40, label: '40 ms', hint: 'Ultra-low latency · clean 5 GHz' },
+  { value: 60, label: '60 ms', hint: 'Fast · low latency' },
+  { value: 80, label: '80 ms', hint: 'Balanced · recommended' },
+  { value: 120, label: '120 ms', hint: 'Smooth · jitter-resistant' },
+  { value: 160, label: '160 ms', hint: 'Ultra-stable · congested Wi-Fi' },
 ];
+
+function OptionHint({
+  options,
+  value,
+}: {
+  options: { value: string | number; hint: string }[];
+  value: string | number;
+}) {
+  const hint = options.find((opt) => opt.value === value)?.hint;
+  if (!hint) return null;
+  return (
+    <span className="text-ui-2xs leading-snug text-background-30">{hint}</span>
+  );
+}
 
 /**
  * Web Audio Synthesizer: Plays clear acoustic pings with exponential decay
@@ -601,6 +616,13 @@ export function RemotePage() {
     }
   };
 
+  // Why a start button is disabled, shown under it (demo mode needs neither).
+  const startBlocker = !status.scrcpyAvailable
+    ? 'Install scrcpy first'
+    : devices.length === 0
+      ? 'Connect a Quest first'
+      : null;
+
   // The page scrolls inside a box sized from the window itself (the top bar, the title strip and the margins are taken off),
   // so the bottom can always be reached, at any window size or zoom.
   return (
@@ -715,8 +737,12 @@ export function RemotePage() {
               <span className="flex flex-col gap-1 text-background-20">
                 {!status.adbAvailable && (
                   <span>
-                    • <b>ADB</b> was not detected. Launch <b>SideQuest</b> or
-                    install platform-tools.
+                    • <b>ADB</b> was not detected. Launch <b>SideQuest</b>, or
+                    install it in Terminal with{' '}
+                    <code className="font-mono [hyphens:manual]">
+                      brew install --cask android-platform-tools
+                    </code>
+                    . The button below doesn't install it.
                   </span>
                 )}
                 {!status.scrcpyAvailable && (
@@ -744,7 +770,7 @@ export function RemotePage() {
                 >
                   {isInstallingScrcpy
                     ? 'Installing scrcpy...'
-                    : 'Install scrcpy Automatically'}
+                    : 'Install scrcpy'}
                 </Button>
               </span>
             )}
@@ -863,8 +889,8 @@ export function RemotePage() {
               </Button>
             </div>
           )}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-background-10/[0.06]">
-            <div className="flex items-center gap-2 flex-grow">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-background-10/[0.06]">
+            <div className="flex min-w-0 flex-grow basis-[16rem] items-center gap-2">
               <span className="text-xs text-background-30 whitespace-nowrap font-medium">
                 Wi-Fi ADB:
               </span>
@@ -872,8 +898,8 @@ export function RemotePage() {
                 type="text"
                 value={wifiIp}
                 onChange={(e) => setWifiIp(e.target.value)}
-                placeholder="192.168.1.100 or 192.168.1.100:5555"
-                className="px-2.5 py-1 text-xs bg-background-10/[0.03] border border-background-10/[0.08] rounded-[8px] text-background-10 w-full focus:outline-none focus:border-accent-background-20/60 font-mono transition-colors"
+                placeholder="192.168.1.100:5555"
+                className="min-w-[20ch] px-2.5 py-1 text-xs bg-background-10/[0.03] border border-background-10/[0.08] rounded-[8px] text-background-10 w-full focus:outline-none focus:border-accent-background-20/60 font-mono transition-colors"
               />
             </div>
             <Button
@@ -1123,12 +1149,13 @@ export function RemotePage() {
         </div>
       )}
 
+      <div className="remote-audio flex w-full flex-col">
       {/* Bun: one tab switches between the game audio card and the headset mic card. */}
       {bun && (
         <div
           role="tablist"
           aria-label="Audio source"
-          className="flex self-start gap-1 p-1 rounded-[3px] border border-background-10/[0.1] bg-background-10/[0.04] shrink-0"
+          className="remote-audio__tabs flex gap-1 p-1 rounded-t-[12px] border border-b-0 border-background-10/[0.1] bg-background-70 shrink-0"
         >
           {(
             [
@@ -1254,6 +1281,7 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={CODEC_OPTIONS} value={gameCodec} />
               </div>
 
               {/* Quality & Bitrate Tuning Metric Tile */}
@@ -1282,6 +1310,7 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={BITRATE_OPTIONS} value={gameBitrate} />
               </div>
 
               {/* Latency Buffer Tuning Metric Tile */}
@@ -1303,16 +1332,17 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={BUFFER_OPTIONS} value={gameBufferMs} />
               </div>
 
               {/* Demo tone level; production gain belongs to the OBS audio graph. */}
-              <div className="p-3 rounded-[10px] bg-background-10/[0.02] border border-background-10/[0.06] flex flex-col gap-1.5">
+              <div className="remote-level p-3 rounded-[10px] bg-background-10/[0.02] border border-background-10/[0.06] flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-ui-2xs uppercase font-semibold text-background-30 tracking-wide">
                     {isDemoMode ? 'Demo Game Volume' : 'Live Level'}
                   </span>
-                  <span className="text-ui-2xs font-mono font-medium text-accent-background-10">
-                    {isDemoMode ? `${gameVolume}%` : 'OBS mixer'}
+                  <span className="text-ui-2xs font-mono font-medium text-background-30">
+                    {isDemoMode ? `${gameVolume}%` : 'Set in OBS mixer'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 pt-0.5">
@@ -1375,6 +1405,11 @@ export function RemotePage() {
                     ? 'Start Game Audio Demo'
                     : 'Start Game Audio Stream'}
             </Button>
+            {!isDemoMode && !isGameStreaming && !status.scrcpyAvailable && (
+              <span className="-mt-1.5 text-center text-ui-2xs text-background-30">
+                {startBlocker}
+              </span>
+            )}
           </div>
         </div>
 
@@ -1462,6 +1497,7 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={CODEC_OPTIONS} value={micCodec} />
               </div>
 
               {/* Quality & Bitrate Tuning Metric Tile */}
@@ -1490,6 +1526,7 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={BITRATE_OPTIONS} value={micBitrate} />
               </div>
 
               {/* Latency Buffer Tuning Metric Tile */}
@@ -1511,16 +1548,17 @@ export function RemotePage() {
                     </option>
                   ))}
                 </select>
+                <OptionHint options={BUFFER_OPTIONS} value={micBufferMs} />
               </div>
 
               {/* Demo tone level; production gain belongs to the OBS audio graph. */}
-              <div className="p-3 rounded-[10px] bg-background-10/[0.02] border border-background-10/[0.06] flex flex-col gap-1.5">
+              <div className="remote-level p-3 rounded-[10px] bg-background-10/[0.02] border border-background-10/[0.06] flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-ui-2xs uppercase font-semibold text-background-30 tracking-wide">
                     {isDemoMode ? 'Demo Microphone Gain' : 'Live Level'}
                   </span>
-                  <span className="text-ui-2xs font-mono font-medium text-accent-background-10">
-                    {isDemoMode ? `${micVolume}%` : 'OBS mixer'}
+                  <span className="text-ui-2xs font-mono font-medium text-background-30">
+                    {isDemoMode ? `${micVolume}%` : 'Set in OBS mixer'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 pt-0.5">
@@ -1584,8 +1622,14 @@ export function RemotePage() {
                     ? 'Start Microphone Demo'
                     : 'Start Microphone Stream'}
             </Button>
+            {!isDemoMode && !isMicStreaming && !status.scrcpyAvailable && (
+              <span className="-mt-1.5 text-center text-ui-2xs text-background-30">
+                {startBlocker}
+              </span>
+            )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Quest Mirror Studio */}
@@ -1754,6 +1798,11 @@ export function RemotePage() {
                 : 'Start video + audio + mic'}
             </Button>
           </div>
+          {startBlocker && !status.isStreamingVideo && (
+            <span className="-mt-1 text-center text-ui-2xs text-background-30">
+              {startBlocker}
+            </span>
+          )}
 
           <p className="text-ui-2xs leading-relaxed text-background-30">
             Single-eye cropping removes the second eye, but Quest menus,

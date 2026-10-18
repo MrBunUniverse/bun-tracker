@@ -1127,7 +1127,8 @@ body {
   :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
     display: grid !important;
     grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.6fr);
-    align-items: start;
+    /* Both columns share the row's height, so the headsets panel and the audio card line up. */
+    align-items: stretch;
   }
   :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > * {
     grid-column: 1 / -1;
@@ -1135,10 +1136,27 @@ body {
   :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > .remote-card.group:not(.remote-stream) {
     grid-column: 1;
   }
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > [role='tablist'],
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > [data-audio-tab] {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > .remote-audio {
     grid-column: 2;
   }
+}
+
+/* Audio tabs are the card's header: the card hangs straight off them, and its own banner (icon and
+   file name) is dropped because the tab already names it. Bun only. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio__tabs + [data-audio-tab] .remote-stream {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio__tabs + [data-audio-tab] .remote-stream .remote-card__banner {
+  display: none;
+}
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio [data-audio-tab],
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio [data-audio-tab] > .remote-stream {
+  flex-grow: 1;
+}
+/* The live level slider spans the card, not a third of it. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > .remote-level.remote-level {
+  grid-column: 1 / -1;
 }
 
 /* Audio tab: one card at a time, at full width. The other card stays mounted, so its stream keeps running. Bun only. */
