@@ -80,8 +80,6 @@ const FirmwareToolSettings = lazy(() =>
     default: module.FirmwareToolSettings,
   }))
 );
-import { DongleStatsPage } from './components/dongle/DongleStats';
-
 const RemotePage = lazy(() =>
   import('./components/remote/RemotePage').then((module) => ({
     default: module.RemotePage,
@@ -111,14 +109,6 @@ function Layout() {
               element={
                 <MainLayout isMobile={isMobile} full>
                   <Home />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/dongle"
-              element={
-                <MainLayout isMobile={isMobile}>
-                  <DongleStatsPage />
                 </MainLayout>
               }
             />

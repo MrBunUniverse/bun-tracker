@@ -1,6 +1,5 @@
 import classNames from 'classnames';
-import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { StatusDot } from '@/components/commons/StatusDot';
 
 // The dongle bridge (tools/esp32-dongle/bridge.py) serves its stats here.
@@ -64,28 +63,84 @@ export function useDongleStats() {
   return snap;
 }
 
-/** Header pill that opens the dongle page; the dot shows whether the bridge is reachable. */
+/** Header pill that opens the dongle stats as a popup, like Broadcast (same classes, so the same look and placement).
+ *  The dot shows whether the bridge is reachable. Closes on an outside click or Esc. */
 export function DonglePill() {
   const snap = useDongleStats();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onMouseDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setOpen(false);
+      rootRef.current?.querySelector('button')?.focus();
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <NavLink
-      to="/dongle"
-      className="flex items-center gap-2 rounded-[8px] border border-[var(--material-border-subtle)] px-3 py-1.5 text-ui-xs font-medium text-background-10"
+    <div
+      ref={rootRef}
+      className={classNames(
+        'chatbox-control chatbox-control--top relative flex shrink-0 items-center',
+        open && 'chatbox-control--open'
+      )}
       style={{ WebkitAppRegion: 'no-drag' } as any}
     >
-      <StatusDot
-        tone={snap ? 'ok' : 'idle'}
-        label={snap ? `Dongle ${snap.trackers.length}` : 'Dongle'}
-      />
-    </NavLink>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        title="ESP32 dongle stats"
+        className={classNames(
+          'flex h-8 cursor-pointer select-none items-center gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
+          open
+            ? 'bg-accent-background-20/[0.12] text-accent-background-10'
+            : 'text-background-10 hover:bg-background-10/[0.06]'
+        )}
+      >
+        <StatusDot
+          tone={snap ? 'ok' : 'idle'}
+          label={snap ? `Dongle ${snap.trackers.length}` : 'Dongle'}
+        />
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          aria-label="ESP32 dongle stats"
+          className="chatbox-panel chatbox-panel--open"
+          style={{ width: 'min(560px, calc(100vw - 20px))' }}
+        >
+          <div className="chatbox-header flex items-center">
+            <span className="chatbox-title text-background-10">
+              ESP32 dongle
+            </span>
+          </div>
+          <div className="chatbox-body flex min-h-0 flex-1 flex-col">
+            <DongleStatsPanel snap={snap} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 function Stat({ label, value, bad }: { label: string; value: string; bad?: boolean }) {
   return (
-    <div className="flex flex-col gap-1 rounded-[10px] bg-background-70 px-4 py-3">
+    <div className="flex flex-col gap-1 rounded-[10px] bg-background-70 px-3 py-2.5">
       <span className="text-ui-2xs text-background-30">{label}</span>
-      <span className={classNames('tnum text-ui-lg font-medium', bad ? 'text-status-critical' : 'text-background-10')}>
+      <span className={classNames('tnum text-ui-md font-medium', bad ? 'text-status-critical' : 'text-background-10')}>
         {value}
       </span>
     </div>
@@ -94,14 +149,12 @@ function Stat({ label, value, bad }: { label: string; value: string; bad?: boole
 
 const ms = (v: number | null) => (v === null ? '–' : `${v} ms`);
 
-export function DongleStatsPage() {
-  const snap = useDongleStats();
-
+function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
   if (!snap)
     return (
-      <div className="p-6 text-background-20">
+      <div className="text-background-20">
         <StatusDot tone="warn" label="Dongle bridge not running" />
-        <p className="mt-3 text-ui-sm">
+        <p className="mt-3 text-ui-xs">
           Start <code>tools/esp32-dongle/bridge.py</code>; it serves live stats on {STATS_URL}.
         </p>
       </div>
@@ -110,13 +163,14 @@ export function DongleStatsPage() {
   const esp = snap.esp32;
   const now = snap.time;
   return (
-    <div className="flex flex-col gap-4 overflow-y-auto p-6">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-4">
         <StatusDot tone="ok" label={`${snap.port} @ ${snap.baud}`} />
         <span className="text-ui-xs text-background-30">updates every 0.5 s</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+      {/* Fills the popup's width, not the window's. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
         <Stat label="Link load (ESP32 → Mac)" value={`${snap.link_in}%`} bad={snap.link_in > 60} />
         <Stat label="Packets up" value={String(snap.up)} />
         <Stat label="Packets down" value={String(snap.down)} />
