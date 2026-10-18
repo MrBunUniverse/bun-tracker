@@ -1,0 +1,15 @@
+.settings-layout {
+  display: grid;
+  position: relative;
+  grid-template:
+    't t' var(--topbar-h)
+    's c' calc(100% - var(--topbar-h))
+    / max-content minmax(0, 1fr);
+
+  @screen mobile {
+    grid-template:
+      't' var(--topbar-h)
+      'c' calc(100% - var(--topbar-h))
+      / 100%;
+  }
+}
