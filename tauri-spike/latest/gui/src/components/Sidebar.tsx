@@ -31,10 +31,14 @@ export function PreviewControls({
   open,
   isOrbiting = false,
   onToggleOrbit,
+  isFraming = false,
+  onToggleFrame,
 }: {
   open: boolean;
   isOrbiting?: boolean;
   onToggleOrbit?: () => void;
+  isFraming?: boolean;
+  onToggleFrame?: () => void;
 }) {
   const [userHeight, setUserHeight] = useState('');
   const { l10n } = useLocalization();
@@ -190,6 +194,41 @@ export function PreviewControls({
               </span>
             </button>
           )}
+          {onToggleFrame && (
+            <button
+              type="button"
+              aria-pressed={isFraming}
+              title={
+                isFraming
+                  ? 'Auto-frame is on: the camera follows the whole body. Turn off to zoom by hand.'
+                  : 'Auto-frame: keep the whole body in view'
+              }
+              className={classNames(
+                'flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                isFraming
+                  ? 'bg-accent-background-20/20 text-accent-background-10'
+                  : 'hover:bg-background-60 text-background-10'
+              )}
+              onClick={() => onToggleFrame()}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" />
+                <circle cx="12" cy="9" r="1.6" />
+                <path d="M12 11v4M9.5 13h5M12 15l-2 2.5M12 15l2 2.5" />
+              </svg>
+              <span>Auto-frame</span>
+            </button>
+          )}
           <button
             type="button"
             disabled
@@ -220,6 +259,7 @@ function PreviewSection({
   );
   const disabledRender = renderDisabled || !open;
   const [isOrbiting, setIsOrbiting] = useState(false);
+  const [isFraming, setIsFraming] = useState(true);
   const previewContextRef = useRef<PreviewContext | null>(null);
 
   const toggleRender = () => {
@@ -230,6 +270,11 @@ function PreviewSection({
     if (!previewContextRef.current) return;
     const newState = previewContextRef.current.toggleAutoOrbit();
     setIsOrbiting(newState);
+  };
+
+  const handleToggleFrame = () => {
+    if (!previewContextRef.current) return;
+    setIsFraming(previewContextRef.current.toggleAutoFrame());
   };
 
   useLayoutEffect(() => {
@@ -310,6 +355,8 @@ function PreviewSection({
         open={open}
         isOrbiting={isOrbiting}
         onToggleOrbit={handleToggleOrbit}
+        isFraming={isFraming}
+        onToggleFrame={handleToggleFrame}
       />
     </div>
   );

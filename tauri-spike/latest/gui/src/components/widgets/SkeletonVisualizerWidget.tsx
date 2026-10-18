@@ -8,11 +8,13 @@ import {
 } from '@/utils/skeletonHelper';
 import {
   Bone,
+  Box3,
   GridHelper,
   Group,
   PerspectiveCamera,
   Quaternion,
   Scene,
+  Sphere,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -207,6 +209,61 @@ function initializePreview(
 
   const isAutoOrbiting = () => autoOrbit;
 
+  // Auto-frame: keep the whole skeleton in view while dancing, crouching or lying down.
+  // The orbit target eases to the body's centre (the camera moves with it, so the user's
+  // viewing angle stays) and the zoom eases so the body fits with a margin. While it's on,
+  // it owns the zoom; the overlay's Auto-frame button turns it off.
+  let autoFrame = true;
+  const frameBox = new Box3();
+  const frameSphere = new Sphere();
+  const framePoint = new Vector3();
+  const frameShift = new Vector3();
+  const FRAME_MARGIN = 1.25;
+  const MIN_FRAME_RADIUS = 0.35;
+  const FRAME_LIFT = 0.22;
+
+  const frameView = (v: SkeletonPreviewView, aspect: number, dt: number) => {
+    frameBox.makeEmpty();
+    skeletonGroup.updateMatrixWorld();
+    skeleton.forEach((bone) => {
+      bone.getWorldPosition(framePoint);
+      // The helper draws bones through the group's heading, so measure them the same way.
+      frameBox.expandByPoint(
+        framePoint.applyMatrix4(skeletonGroup.matrixWorld)
+      );
+    });
+    if (frameBox.isEmpty()) return;
+    frameBox.getBoundingSphere(frameSphere);
+    const radius =
+      Math.max(frameSphere.radius, MIN_FRAME_RADIUS) * FRAME_MARGIN;
+    // Aim a little below the centre, so the body sits above the control strip at the bottom.
+    frameSphere.center.y -= radius * FRAME_LIFT;
+
+    // Ease about 95% of the way in a second, at any frame rate.
+    const k = 1 - Math.exp(-dt * 3);
+    frameShift
+      .subVectors(frameSphere.center, v.controls.target)
+      .multiplyScalar(k);
+    v.controls.target.add(frameShift);
+    v.camera.position.add(frameShift);
+
+    const distance = v.camera.position.distanceTo(v.controls.target);
+    const halfFov = (v.camera.fov * Math.PI) / 360;
+    const wantZoom =
+      (distance * Math.tan(halfFov) * Math.min(1, aspect)) / radius;
+    const zoomStep = (wantZoom - v.camera.zoom) * k;
+    v.camera.zoom += zoomStep;
+
+    // Keep drawing until the camera settles.
+    if (frameShift.lengthSq() > 1e-8 || Math.abs(zoomStep) > 1e-4) markDirty(2);
+  };
+
+  const setAutoFrame = (enable?: boolean) => {
+    autoFrame = typeof enable === 'boolean' ? enable : !autoFrame;
+    markDirty(10);
+    return autoFrame;
+  };
+
   const render = (deltaSeconds?: number) => {
     views.forEach((v) => {
       if (v.hidden || !renderer) return;
@@ -222,6 +279,16 @@ function initializePreview(
       const width = Math.floor(resolution.x * v.width);
       const height = Math.floor(resolution.y * v.height);
       if (width <= 0 || height <= 0) return;
+
+      if (autoFrame) {
+        frameView(
+          v,
+          width / height,
+          typeof deltaSeconds === 'number' && deltaSeconds > 0
+            ? deltaSeconds
+            : 0.016
+        );
+      }
 
       renderer.setViewport(left, bottom, width, height);
       renderer.setScissor(left, bottom, width, height);
@@ -443,6 +510,7 @@ function initializePreview(
       return view;
     },
     toggleAutoOrbit: (enable?: boolean) => setAutoOrbit(enable),
+    toggleAutoFrame: (enable?: boolean) => setAutoFrame(enable),
     isAutoOrbiting,
     getViews: () => views,
   };
