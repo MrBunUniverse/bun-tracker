@@ -10,9 +10,11 @@ import dev.slimevr.tracking.trackers.udp.IMUType
 import io.github.axisangles.ktmath.Quaternion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.math.PI
 
+@Disabled("Drift auto-learning is switched off until the recorded-data redesign")
 class AdaptiveDriftCompensationTests {
 	private fun imu(id: Int, position: TrackerPosition): Tracker = Tracker(
 		device = null,

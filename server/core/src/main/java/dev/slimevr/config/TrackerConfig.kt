@@ -25,7 +25,13 @@ class TrackerConfig {
 	// Adaptive Drift Profile & Persistent IMU Memory
 	var learnedDriftRateDegPerMin: Float = 0.0f
 	var totalDriftObservations: Int = 0
-	var autoLearnDrift: Boolean = true
+	// Drift auto-learning is switched off until the recorded-data redesign.
+	// Every learning and restore path checks this flag, and the setter also
+	// overrides a saved `true` from older configs.
+	var autoLearnDrift: Boolean = false
+		set(_) {
+			field = false
+		}
 	var imuProfileOverride: String? = null
 	var adaptiveDriftModelVersion: Int = 1
 	var adaptiveDriftConfidence: Float = 0.0f
