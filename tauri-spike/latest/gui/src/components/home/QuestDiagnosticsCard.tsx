@@ -171,7 +171,7 @@ export function QuestDiagnosticsCard() {
               className={
                 floorAnchor.isAnchored
                   ? 'text-status-success'
-                  : 'text-status-warning'
+                  : 'text-background-30'
               }
             >
               {l10n.getString(

@@ -10,7 +10,11 @@ import {
 } from '@/hooks/reset';
 import { Tooltip } from './commons/Tooltip';
 import { useAtomValue } from 'jotai';
-import { assignedTrackersAtom, sidebarAnimationAtom } from '@/store/app-store';
+import {
+  assignedTrackersAtom,
+  connectedIMUTrackersAtom,
+  sidebarAnimationAtom,
+} from '@/store/app-store';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { useMemo, useState, useEffect, CSSProperties } from 'react';
 import { ResetButtonIcon } from './home/ResetButton';
@@ -46,7 +50,8 @@ export function BasicResetButton(
     onTrigger?: () => void;
   }
 ) {
-  const { isMd } = useBreakpoint('md');
+  // Labels show from lg up; below that the tooltip carries the name.
+  const { isLg } = useBreakpoint('lg');
   const { l10n } = useLocalization();
   const {
     triggerReset,
@@ -54,10 +59,12 @@ export function BasicResetButton(
     name: resetName,
     timer,
     progress: resetProress,
-    disabled,
+    disabled: resetDisabled,
     duration,
     error,
   } = useReset(options);
+  const noTrackers = useAtomValue(connectedIMUTrackersAtom).length === 0;
+  const disabled = resetDisabled || noTrackers;
 
   const progress = status === 'counting' ? resetProress / duration : 0;
 
@@ -68,9 +75,13 @@ export function BasicResetButton(
 
   return (
     <Tooltip
-      disabled={!error && isMd}
+      disabled={!error && !noTrackers && isLg}
       content={
-        error ? (
+        noTrackers ? (
+          <Typography textAlign="text-center">
+            Connect a tracker first
+          </Typography>
+        ) : error ? (
           <Typography
             id={error}
             textAlign="text-center"

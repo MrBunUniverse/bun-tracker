@@ -88,7 +88,14 @@ export function PreviewControls({
             }
           )}
         >
-          <Typography variant="section-title">{userHeight}</Typography>
+          <Typography variant="section-title">
+            {userHeight && (
+              <span className="mr-1.5 font-sans font-normal text-background-30">
+                Height
+              </span>
+            )}
+            {userHeight}
+          </Typography>
         </div>
       </Tooltip>
       <div className="absolute bottom-0 w-full px-2 pb-3 flex justify-center">
@@ -281,7 +288,20 @@ function PreviewSection({
             className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-background-60 text-background-20 transition-colors hover:bg-background-50 hover:text-background-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20"
             onClick={onResetPreviewWidth}
           >
-            <Rotate360Icon width={16} />
+            {/* A width arrow: the circular arrow already means "reset" in the toolbar. */}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 12h16M7.5 8.5 4 12l3.5 3.5M16.5 8.5 20 12l-3.5 3.5" />
+            </svg>
           </button>
         )}
       </div>

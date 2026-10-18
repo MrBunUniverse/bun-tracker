@@ -603,16 +603,19 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
         </span>
       </div>
 
-      <h2
-        id="tracker-empty-title"
-        className="mt-5 font-serif text-ui-lg font-normal tracking-tight text-background-10"
-      >
-        Waiting for trackers
-      </h2>
-      <p className="mt-1.5 max-w-[420px] text-ui-xs text-background-30">
-        Turn on your trackers near this computer. They connect on their own and
-        appear here.
-      </p>
+      {/* The panel colour behind the text masks the dot matrix, so the headline reads cleanly. */}
+      <div className="relative z-10 mt-4 flex flex-col items-center rounded-[10px] bg-background-70 px-4 py-1.5">
+        <h2
+          id="tracker-empty-title"
+          className="font-serif text-ui-lg font-normal tracking-tight text-background-10"
+        >
+          Waiting for trackers
+        </h2>
+        <p className="mt-1.5 max-w-[420px] text-ui-xs text-background-30">
+          Turn on your trackers near this computer. They connect on their own
+          and appear here.
+        </p>
+      </div>
 
       <ol className="mt-6 flex w-full max-w-[420px] flex-col divide-y divide-[var(--material-border-subtle)] text-left">
         {SETUP_STEPS.map((step, index) => (
@@ -635,7 +638,8 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         <NavLink
           to="/onboarding/trackers-assign"
-          className="inline-flex h-8 items-center rounded-[8px] bg-accent-background-20 px-3.5 text-ui-xs font-medium text-white transition-colors hover:bg-accent-background-40"
+          title="Assign body parts once a tracker connects"
+          className="inline-flex h-8 items-center rounded-[8px] border border-[var(--material-border-primary)] px-3.5 text-ui-xs font-medium text-background-20 transition-colors hover:bg-background-10/[0.06] hover:text-background-10"
         >
           Assign trackers
         </NavLink>
@@ -652,7 +656,7 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
         aria-label="Setup tools"
         className="mt-8 flex w-full max-w-[420px] flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-[var(--material-border-subtle)] pt-4 text-ui-2xs"
       >
-        <span className="text-background-40">Setup tools</span>
+        <span className="font-medium text-background-20">Setup tools</span>
         {SETUP_LINKS.map((link) => (
           <NavLink
             key={link.to}
@@ -774,7 +778,12 @@ export function HomeEmptyState({
           'py-10 sm:py-14 px-6'
         )}
       >
-        <div className="w-full max-w-[980px] flex flex-col items-center">
+        <div
+          className={classNames(
+            'w-full max-w-[980px] flex flex-col items-center',
+            allTrackers.length === 0 && 'my-auto'
+          )}
+        >
           {/* Section Heading: "Trackers" with Live Count and Demo Switch */}
           {allTrackers.length > 0 && (
             <div
@@ -783,7 +792,7 @@ export function HomeEmptyState({
                 ...viewContentMotion(0),
               }}
               className={classNames(
-                'w-full max-w-[980px] mb-6 flex items-end justify-between',
+                'w-full max-w-[980px] mb-6 flex items-center justify-between',
                 viewSwitchKey != null && 'animate-view-content-settle',
                 trackersTabAnim.className
               )}
@@ -799,14 +808,6 @@ export function HomeEmptyState({
                     </span>
                   )}
                 </div>
-                {allTrackers.length > 0 && (
-                  <span
-                    key={allTrackers.length}
-                    className="text-ui-2xs font-mono font-medium text-background-30 mt-0.5 animate-found-pop"
-                  >
-                    {allTrackers.length} Active
-                  </span>
-                )}
               </div>
 
               <div className="flex items-center gap-2.5">

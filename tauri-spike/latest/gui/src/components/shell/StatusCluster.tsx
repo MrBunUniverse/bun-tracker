@@ -124,10 +124,7 @@ export function StatusCluster() {
           label={modeText}
           className="mobile:hidden"
         />
-        <StatusDot
-          tone={trackerCount > 0 ? 'ok' : 'idle'}
-          label={trackersText}
-        />
+        {/* The tracker count lives once, in the Home toolbar; the open panel still lists it. */}
         <svg
           width="12"
           height="12"

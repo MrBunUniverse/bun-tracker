@@ -51,10 +51,11 @@ export function HardRebootButton() {
             rebooting ? 'animate-spin' : 'hover:rotate-45'
           )}
         >
-          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-          <path d="M3 3v5h5" />
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-          <path d="M3 21v-5h5" />
+          {/* An app window with a reload arrow, so it isn't mistaken for the reset buttons' circular arrows. */}
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M3 8.5h18" />
+          <path d="M15 14.5a3 3 0 1 1-.9-2.1" />
+          <path d="M14.5 10.8v1.8h-1.8" />
         </svg>
       </button>
     </Tooltip>

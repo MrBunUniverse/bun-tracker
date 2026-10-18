@@ -11,7 +11,9 @@ import {
   showSidebarAtom,
   connectedIMUTrackersAtom,
   sidebarAnimationAtom,
+  hasRealTrackersAtom,
 } from '@/store/app-store';
+import { demoModeAtom } from '@/store/demo-trackers';
 import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
 import { useState, useRef, useEffect, CSSProperties } from 'react';
 import classNames from 'classnames';
@@ -275,6 +277,9 @@ export function Home() {
   const { isConnected } = useWebsocketAPI();
   const connectedTrackers = useAtomValue(connectedIMUTrackersAtom);
   const isHealthy = isConnected && connectedTrackers.length > 0;
+  const demoMode = useAtomValue(demoModeAtom);
+  const hasRealTrackers = useAtomValue(hasRealTrackersAtom);
+  const isDemo = demoMode && !hasRealTrackers;
 
   const { isMobile } = useBreakpoint('mobile');
   const isSidebarVisible = !isMobile && showSidebar;
@@ -410,6 +415,20 @@ export function Home() {
     <div className="home-view relative h-full flex flex-col min-h-0 overflow-hidden">
       <HomeSettingsModal open={settingsOpenState} />
 
+      {/* Demo: a striped band, so simulated trackers can't be mistaken for live data. */}
+      {isDemo && (
+        <div
+          role="status"
+          className="shrink-0 border-b border-status-warning/30 py-1 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-status-warning"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(135deg, rgba(var(--warning), 0.14) 0 10px, transparent 10px 20px)',
+          }}
+        >
+          Demo · simulated trackers, not live data
+        </div>
+      )}
+
       {/* Minimalist Flush Header Bar - No Floating Dock - Spans 100% full width, fixed position */}
       <div
         className="home-command-bar relative z-50 mx-3 flex flex-nowrap items-center gap-2 border-b border-background-10/[0.04] px-2 py-1.5 pt-2.5 select-none sm:mx-4 sm:gap-3 sm:px-3"
@@ -430,15 +449,6 @@ export function Home() {
             aria-expanded={isTrackerSetupOpen}
             aria-controls="home-tracker-setup-popover"
           >
-            <span className="home-tracker-count__label">
-              {l10n.getString('home-tracker-target')}
-            </span>
-            <span className="font-mono font-semibold text-background-10">
-              {activePreset?.targetCount ?? 5}
-            </span>
-            <span className="text-background-40/70" aria-hidden="true">
-              ·
-            </span>
             <span
               className={classNames(
                 'w-1.5 h-1.5 rounded-full shrink-0',
@@ -450,10 +460,11 @@ export function Home() {
               )}
               aria-hidden="true"
             />
+            {/* The one tracker count on screen: connected out of the preset's target. */}
             <span className="font-mono font-semibold text-background-10">
-              {connectedTrackers.length}
+              {connectedTrackers.length}/{activePreset?.targetCount ?? 5}
             </span>
-            <span className="home-tracker-count__label">
+            <span className="home-tracker-count__label lowercase">
               {l10n.getString('home-tracker-connected')}
             </span>
             <span
