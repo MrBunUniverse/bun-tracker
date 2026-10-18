@@ -11,6 +11,7 @@ import { useElectron } from '@/hooks/electron';
 import { useIsMac } from '@/hooks/platform';
 import { connectedIMUCountAtom } from '@/store/app-store';
 import { ChatboxDropdown } from './broadcast/ChatboxDropdown';
+import { DonglePill } from './dongle/DongleStats';
 import { CloseIcon } from './commons/icon/CloseIcon';
 import { DownloadIcon } from './commons/icon/DownloadIcon';
 import { MaximiseIcon } from './commons/icon/MaximiseIcon';
@@ -83,6 +84,7 @@ export function TopBar({
             <>
               <StatusCluster />
               <ChatboxDropdown variant="top" />
+              <DonglePill />
             </>
           )}
 
