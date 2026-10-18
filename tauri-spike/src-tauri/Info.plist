@@ -4,5 +4,9 @@
 <dict>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>SlimeVR reads the song playing in Apple Music to show it in the VRChat chatbox.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SlimeVR listens to your voice for the VRChat chatbox dictation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>SlimeVR transcribes your voice on-device for the VRChat chatbox.</string>
 </dict>
 </plist>

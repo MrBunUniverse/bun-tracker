@@ -298,10 +298,8 @@ body {
   overscroll-behavior: none;
 
   --navbar-w: 110px;
-  --topbar-h: 56px;
 
   @screen mobile {
-    --topbar-h: 56px;
     --navbar-h: 73px;
   }
 }
@@ -1018,6 +1016,13 @@ body {
   border-radius: 3px !important;
 }
 
+/* Broadcast panel sets its radius in SCSS, so the rule above misses it. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-widget,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-hero-bubble {
+  border-radius: 3px !important;
+}
+
 /* Setup: the ESC key is a pixel keycap, and the skip warning is a card like the settings panes. Bun only. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button {
   --e: rgb(var(--background-50));
@@ -1109,21 +1114,17 @@ body {
   outline-offset: 2px;
 }
 
-/* Quest controls: the expanded panel uses two columns and scrolls inside a cap, so the trackers below stay on screen. Bun only. */
-@media (min-width: 800px) {
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #quest-telemetry-controls .collapsible-tab-content > .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 28px;
-  }
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #quest-telemetry-controls > .overflow-hidden {
-  max-height: 46vh;
-  overflow-y: auto;
-}
-
 /* Remote page redesign: on wider windows the headsets sit on the left and the audio tab on the right.
    The header, the setup banner and the mirror studio span the full width. Bun only. */
-@media (min-width: 1000px) {
+/* It switches on the page's own width (the page is only part of the window), not the viewport's, so zoom and the docked preview cannot squeeze the columns. */
+.remote-page {
+  container-type: inline-size;
+}
+.remote-page * {
+  hyphens: manual;
+  overflow-wrap: break-word;
+}
+@container (min-width: 760px) {
   :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
     display: grid !important;
     grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.6fr);
@@ -1171,7 +1172,7 @@ body {
 /* Audio cards: codec, bitrate and latency buffer sit in one row inside each card. Header and live level take the full width. Bun only. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.5rem;
 }
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > * {
@@ -1213,7 +1214,7 @@ body {
     0 1px 2px rgba(0, 0, 0, 0.25);
 }
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page section.remote-card > div > div:nth-child(2) {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.375rem;
 }
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='bg-background-10/[0.03]'] {
@@ -1250,14 +1251,19 @@ body {
 }
 
 :root[data-theme='macos'] .home-tracker-card {
-  background: rgb(var(--background-60));
-  border-color: var(--material-border-primary);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+  /* lifted: lighter than the canvas, visible edge, top highlight */
+  background: rgb(var(--background-50));
+  border-color: var(--material-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(250, 249, 245, 0.08),
+    0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
 :root[data-theme='macos'] .home-tracker-card__banner {
-  background: rgb(var(--background-70));
+  /* inset screen for the 2D/3D preview */
+  background: rgb(var(--background-80));
   border-color: var(--material-border-subtle);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 :root[data-theme='macos'] .remote-card {
@@ -1319,10 +1325,6 @@ body {
 :root[data-theme='macos'] .home-skeleton-toggle {
   background: var(--material-tertiary);
   border-color: var(--material-border-subtle);
-}
-
-:root[data-theme='macos'] .telemetry-strip__toggle {
-  border-radius: 8px;
 }
 
 :root[data-theme='macos'] .telemetry-tabs {
@@ -2948,6 +2950,30 @@ a,
    heavier borders. */
 .home-tracker-card {
   box-shadow:
-    inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
-    0 1px 2px rgba(0, 0, 0, 0.25);
+    inset 0 1px 0 0 color-mix(in srgb, rgb(var(--background-10)) 10%, transparent),
+    0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.home-tracker-card__banner {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Tracker cards size by their own width, so the Home grid can keep two rows at any zoom: the smaller the
+   card, the less chrome it carries. */
+.home-tracker-card {
+  container-type: inline-size;
+}
+@container (max-width: 190px) {
+  .home-tracker-card .card-mode {
+    display: none;
+  }
+  .home-tracker-card .card-problems {
+    inset-inline: 0.25rem;
+    justify-content: center;
+  }
+}
+@container (max-width: 130px) {
+  .home-tracker-card .card-problems {
+    display: none;
+  }
 }

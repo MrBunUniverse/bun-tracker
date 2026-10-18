@@ -37,6 +37,12 @@ import { SettingGroup, SettingRow } from '@/components/commons/SettingRow';
 import { StatusDot } from '@/components/commons/StatusDot';
 import { Toggle } from '@/components/commons/Toggle';
 import './ChatboxDropdown.scss';
+import {
+  HEART_STYLES,
+  MUSIC_STYLES,
+  useHeartStyle,
+  useMusicStyle,
+} from './chatbox-styles';
 
 const textInput =
   'h-8 min-w-0 rounded-[8px] border border-[var(--material-border-subtle)] bg-background-10/[0.06] px-2.5 text-ui-xs text-background-10 placeholder-background-30 focus:border-accent-background-20 focus:outline-none';
@@ -233,38 +239,6 @@ function getShortTrackerName(
   return clean || 'Trk';
 }
 
-const MUSIC_BAR_SEGMENTS = 10;
-const MUSIC_TITLE_MAX = 60;
-
-function formatMusicClock(seconds: number) {
-  const whole = Math.max(0, Math.floor(seconds));
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
-}
-
-/** Title line plus a `1:18 ━━━◉────── 4:16` progress line for the chatbox. */
-function formatMusicLines(
-  track: string | undefined,
-  artist: string | undefined,
-  pos: number | undefined,
-  dur: number | undefined
-) {
-  let title = [track, artist].filter(Boolean).join(' • ');
-  if (title.length > MUSIC_TITLE_MAX) {
-    title = `${title.slice(0, MUSIC_TITLE_MAX - 1).trimEnd()}…`;
-  }
-  // Streams and some radio tracks report no duration; show the title only.
-  if (!dur || dur <= 0 || pos === undefined) return `♫ ${title}`;
-
-  const progress = Math.min(1, Math.max(0, pos / dur));
-  const knob = Math.min(
-    MUSIC_BAR_SEGMENTS - 1,
-    Math.floor(progress * MUSIC_BAR_SEGMENTS)
-  );
-  const bar =
-    '━'.repeat(knob) + '◉' + '─'.repeat(MUSIC_BAR_SEGMENTS - 1 - knob);
-  return `♫ ${title}\n${formatMusicClock(pos)} ${bar} ${formatMusicClock(dur)}`;
-}
-
 type BroadcastMode = 'pinned' | 'music' | 'bpm' | 'dictate';
 
 const broadcastModes: BroadcastMode[] = ['dictate', 'pinned', 'music', 'bpm'];
@@ -289,6 +263,8 @@ export function ChatboxDropdown({
   const [activeMode, setActiveMode] = useState<BroadcastMode>('dictate');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [message, setMessage] = useState('');
+  const [musicStyle, setMusicStyle] = useMusicStyle();
+  const [heartStyle, setHeartStyle] = useHeartStyle();
   const [sentMessageFeedback, setSentMessageFeedback] = useState(false);
   const fakeBpm = useFakeBpm();
   const [appleMusicInfo, setAppleMusicInfo] = useState<{
@@ -350,9 +326,33 @@ export function ChatboxDropdown({
     sendChatboxCustomMessage,
   } = useOperatingMode();
 
-  const dictation = useSpeechDictation((msg) => {
-    sendChatboxCustomMessage(msg);
-  });
+  const autoStickyTimerRef = useRef<number>(0);
+  const autoStickyTextRef = useRef('');
+  const floorAnchorTextRef = useRef<string | undefined>('');
+  const dictationStickySecondsRef = useRef(8);
+
+  const dictation = useSpeechDictation(
+    (msg) => {
+      sendChatboxCustomMessage(msg);
+    },
+    (text) => {
+      setChatboxCustomPinnedText(text);
+      setChatboxCustomPinnedEnabled(true);
+      autoStickyTextRef.current = text;
+      window.clearTimeout(autoStickyTimerRef.current);
+      const secs = dictationStickySecondsRef.current;
+      if (secs > 0) {
+        autoStickyTimerRef.current = window.setTimeout(() => {
+          // Only clear what auto-sticky wrote, not a note the user typed since.
+          if (floorAnchorTextRef.current === autoStickyTextRef.current) {
+            setChatboxCustomPinnedText('');
+          }
+        }, secs * 1000);
+      }
+    }
+  );
+  dictationStickySecondsRef.current = dictation.settings.stickySeconds;
+  floorAnchorTextRef.current = floorAnchor.chatboxCustomPinnedText;
 
   const isDemoMode = useAtomValue(demoModeAtom);
   const flatTrackers = useAtomValue(flatTrackersAtom);
@@ -460,16 +460,16 @@ export function ChatboxDropdown({
       const stickyText = floorAnchor.chatboxCustomPinnedText?.trim();
       const musicText =
         appleMusicInfo.playing && appleMusicInfo.formatted
-          ? formatMusicLines(
-              appleMusicInfo.track,
-              appleMusicInfo.artist,
-              appleMusicInfo.pos,
-              appleMusicInfo.dur
-            )
+          ? MUSIC_STYLES[musicStyle].format({
+              track: appleMusicInfo.track,
+              artist: appleMusicInfo.artist,
+              pos: appleMusicInfo.pos,
+              dur: appleMusicInfo.dur,
+            })
           : '';
       const bpmText =
         fakeBpm.enabled && fakeBpm.formattedBpmText
-          ? fakeBpm.formattedBpmText
+          ? HEART_STYLES[heartStyle].format(fakeBpm.currentBpm)
           : '';
 
       const lines: string[] = [];
@@ -509,6 +509,13 @@ export function ChatboxDropdown({
       appleMusicInfo.formatted,
       fakeBpm.enabled,
       fakeBpm.formattedBpmText,
+      fakeBpm.currentBpm,
+      musicStyle,
+      heartStyle,
+      appleMusicInfo.track,
+      appleMusicInfo.artist,
+      appleMusicInfo.pos,
+      appleMusicInfo.dur,
       getBatterySummaryText,
     ]
   );
@@ -848,6 +855,22 @@ export function ChatboxDropdown({
                     {dictation.error && (
                       <div className="rounded-[8px] bg-status-critical/15 p-2.5 text-ui-2xs text-status-critical">
                         {dictation.error}
+                        {/blocked|denied/i.test(dictation.error) && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              (window as any).__TAURI_INTERNALS__?.invoke(
+                                'plugin:opener|open_url',
+                                {
+                                  url: 'x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition',
+                                }
+                              )
+                            }
+                            className="mt-2 block cursor-pointer font-medium underline"
+                          >
+                            Open System Settings
+                          </button>
+                        )}
                       </div>
                     )}
 
@@ -994,6 +1017,22 @@ export function ChatboxDropdown({
                           label="Apple music broadcast"
                         />
                       </SettingRow>
+                      <SettingRow label="Style">
+                        <select
+                          value={musicStyle}
+                          onChange={(e) =>
+                            setMusicStyle(e.target.value as typeof musicStyle)
+                          }
+                          aria-label="Music style"
+                          className={selectClass}
+                        >
+                          {Object.entries(MUSIC_STYLES).map(([key, st]) => (
+                            <option key={key} value={key}>
+                              {st.label}
+                            </option>
+                          ))}
+                        </select>
+                      </SettingRow>
                     </SettingGroup>
                     <div className="chatbox-widget flex flex-col gap-0.5">
                       <span className="truncate text-ui-xs font-medium text-background-10">
@@ -1020,6 +1059,22 @@ export function ChatboxDropdown({
                           onChange={fakeBpm.setEnabled}
                           label="Simulated heart rate"
                         />
+                      </SettingRow>
+                      <SettingRow label="Heart style">
+                        <select
+                          value={heartStyle}
+                          onChange={(e) =>
+                            setHeartStyle(e.target.value as typeof heartStyle)
+                          }
+                          aria-label="Heart style"
+                          className={selectClass}
+                        >
+                          {Object.entries(HEART_STYLES).map(([key, st]) => (
+                            <option key={key} value={key}>
+                              {st.label}
+                            </option>
+                          ))}
+                        </select>
                       </SettingRow>
                     </SettingGroup>
 
@@ -1135,11 +1190,20 @@ export function ChatboxDropdown({
 
               <div className="chatbox-body flex min-h-0 flex-1 flex-col gap-5">
                 <SettingGroup title="Voice">
-                  <SettingRow label="Engine" description="Cloud speech to text">
-                    <span className="text-ui-xs text-background-20">
-                      Whisper v3 Turbo
-                    </span>
+                  <SettingRow label="Engine">
+                    <select
+                      value={dictation.settings.engine}
+                      onChange={(e) =>
+                        dictation.setEngine(e.target.value as 'local' | 'cloud')
+                      }
+                      aria-label="Speech engine"
+                      className={selectClass}
+                    >
+                      <option value="local">Mac built-in (free, on-device)</option>
+                      <option value="cloud">Groq Whisper v3 Turbo</option>
+                    </select>
                   </SettingRow>
+                  {dictation.settings.engine === 'cloud' && (
                   <SettingRow
                     stacked
                     label="Groq API key"
@@ -1173,6 +1237,7 @@ export function ChatboxDropdown({
                       </button>
                     </div>
                   </SettingRow>
+                  )}
                   <SettingRow label="Microphone">
                     <select
                       value={dictation.settings.inputDeviceId || 'default'}
@@ -1246,6 +1311,46 @@ export function ChatboxDropdown({
                       label="Auto-send to chatbox"
                     />
                   </SettingRow>
+                  {dictation.settings.engine === 'local' && (
+                    <SettingRow
+                      label="Fast mode"
+                      description="Send ~0.7s after you stop talking; may cut off long pauses"
+                    >
+                      <Toggle
+                        checked={dictation.settings.fastMode}
+                        onChange={dictation.setFastMode}
+                        label="Fast mode"
+                      />
+                    </SettingRow>
+                  )}
+                  <SettingRow
+                    label="Auto sticky note"
+                    description="Pin what you said and its translation"
+                  >
+                    <Toggle
+                      checked={dictation.settings.autoSticky}
+                      onChange={dictation.setAutoSticky}
+                      label="Auto sticky note"
+                    />
+                  </SettingRow>
+                  {dictation.settings.autoSticky && (
+                    <SettingRow label="Sticky disappears">
+                      <select
+                        value={dictation.settings.stickySeconds}
+                        onChange={(e) =>
+                          dictation.setStickySeconds(Number(e.target.value))
+                        }
+                        aria-label="Sticky disappears after"
+                        className={selectClass}
+                      >
+                        <option value={5}>After 5 seconds</option>
+                        <option value={8}>After 8 seconds</option>
+                        <option value={15}>After 15 seconds</option>
+                        <option value={30}>After 30 seconds</option>
+                        <option value={0}>Never</option>
+                      </select>
+                    </SettingRow>
+                  )}
                 </SettingGroup>
 
                 <SettingGroup title="Chatbox">

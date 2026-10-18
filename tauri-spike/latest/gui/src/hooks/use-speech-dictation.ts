@@ -17,6 +17,9 @@ export interface DictationSettings {
   format: DictationFormat;
   activationMode: DictationActivation;
   autoSend: boolean;
+  autoSticky: boolean;
+  fastMode: boolean;
+  stickySeconds: number; // 0 = keep until replaced
   playSound: boolean;
   inputDeviceId: string;
 }
@@ -60,13 +63,16 @@ const WORKLET_DATA_URI =
     : Buffer.from(WORKLET_PROCESSOR_CODE).toString('base64'));
 
 export const DEFAULT_DICTATION_SETTINGS: DictationSettings = {
-  engine: 'cloud',
+  engine: 'local',
   groqApiKey: '',
   targetLanguage: 'ja',
   sourceLanguage: 'auto',
   format: 'translation_only',
   activationMode: 'toggle',
   autoSend: true,
+  autoSticky: false,
+  fastMode: false,
+  stickySeconds: 8,
   playSound: false,
   inputDeviceId: 'default',
 };
@@ -225,7 +231,10 @@ export function formatDictationMessage(
   return `[${srcTag}] ${orig} ➔ [${dstTag}] ${trans}`;
 }
 
-export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
+export function useSpeechDictation(
+  onSendMessage?: (msg: string) => void,
+  onSticky?: (text: string) => void
+) {
   const [settings, setSettings] = useState<DictationSettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -266,6 +275,8 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
   const hasSpokenInCurrentChunkRef = useRef(false);
   const lastSpeechTimeRef = useRef(0);
   const isSlicingRef = useRef(false);
+
+  const recognitionRef = useRef<any>(null);
 
   // Keep ref up to date
   useEffect(() => {
@@ -366,6 +377,12 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
           return;
         }
 
+        if (settings.autoSticky && onSticky) {
+          // original on top, translation below (single line if identical)
+          const same = clean.toLowerCase() === trans.trim().toLowerCase();
+          onSticky(same || settings.targetLanguage === 'none' ? clean : `${clean}\n${trans}`);
+        }
+
         if (settings.autoSend && onSendMessage && formatted) {
           lastSentMessageRef.current = formatted;
           lastSentTimeRef.current = now;
@@ -379,8 +396,13 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
         setIsProcessing(false);
       }
     },
-    [settings, onSendMessage]
+    [settings, onSendMessage, onSticky]
   );
+
+  const fastModeRef = useRef(settings.fastMode);
+  fastModeRef.current = settings.fastMode;
+  const handleFinalSpeechRef = useRef(handleFinalSpeech);
+  handleFinalSpeechRef.current = handleFinalSpeech;
 
   // Cloud Groq Whisper transcription
   const transcribeWithGroq = useCallback(
@@ -437,6 +459,10 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
 
   // Process and transcribe accumulated PCM audio
   const processAccumulatedAudio = useCallback(async () => {
+    if (settings.engine === 'local') {
+      pcmChunksRef.current = []; // Mac built-in engine listens on its own
+      return;
+    }
     if (pcmChunksRef.current.length === 0) return;
     const chunks = pcmChunksRef.current;
     pcmChunksRef.current = [];
@@ -469,7 +495,7 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
     // Cloud Engine (Whisper v3 Turbo)
     const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
     await transcribeWithGroq(wavBlob);
-  }, [transcribeWithGroq]);
+  }, [transcribeWithGroq, settings.engine]);
 
   // Audio level meter and raw PCM stream setup
   const startAudioEngine = useCallback(async () => {
@@ -656,6 +682,13 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
     startupSeqRef.current++;
     isListeningRef.current = false;
     setIsListening(false);
+    const rec = recognitionRef.current;
+    recognitionRef.current = null;
+    try {
+      rec?.stop(); // still delivers the final result
+    } catch {
+      // ignore
+    }
     // Encode the final segment before closing the context loses its sample rate.
     if (hasSpokenInCurrentChunkRef.current) {
       hasSpokenInCurrentChunkRef.current = false;
@@ -708,6 +741,80 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
     isSlicingRef.current = false;
   }, []);
 
+  // Mac built-in recognition (Apple Speech via the webview's Web Speech API)
+  const startRecognition = useCallback(() => {
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError('Mac built-in speech is unavailable here. Switch Engine to Groq.');
+      stopAudioEngine();
+      return;
+    }
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang =
+      settings.sourceLanguage && settings.sourceLanguage !== 'auto'
+        ? settings.sourceLanguage
+        : navigator.language;
+    // Fast mode: send once the live text stops changing instead of waiting
+    // for the engine's end-of-utterance (~1-2s). ponytail: may cut a sentence early.
+    let fastTimer: ReturnType<typeof setTimeout> | undefined;
+    let skipFinal = false;
+    rec.onresult = (e: any) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) {
+          clearTimeout(fastTimer);
+          if (skipFinal) skipFinal = false;
+          else void handleFinalSpeechRef.current(r[0].transcript);
+        } else interim += r[0].transcript;
+      }
+      setInterimTranscript(interim);
+      clearTimeout(fastTimer);
+      if (fastModeRef.current && interim.trim()) {
+        fastTimer = setTimeout(() => {
+          skipFinal = true;
+          void handleFinalSpeechRef.current(interim);
+          try {
+            rec.stop(); // ends the utterance; onend restarts it
+          } catch {
+            // ignore
+          }
+        }, 700);
+      }
+    };
+    rec.onerror = (e: any) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      setError(
+        e.error === 'not-allowed' || e.error === 'service-not-allowed'
+          ? 'Speech Recognition is blocked. Allow it in System Settings > Privacy & Security > Speech Recognition, or switch Engine to Groq.'
+          : `Mac speech error: ${e.error}`
+      );
+      stopAudioEngine();
+    };
+    // WebKit ends the session after a pause; keep it going while listening.
+    rec.onend = () => {
+      clearTimeout(fastTimer);
+      skipFinal = false;
+      if (recognitionRef.current === rec && isListeningRef.current) {
+        try {
+          rec.start();
+        } catch {
+          // ignore
+        }
+      }
+    };
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+    } catch (err: any) {
+      setError(err.message || 'Mac speech failed to start');
+      stopAudioEngine();
+    }
+  }, [settings.sourceLanguage, stopAudioEngine]);
+
   // Public start/stop
   const startListening = useCallback(async () => {
     setError(null);
@@ -715,7 +822,8 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
     pcmChunksRef.current = [];
     hasSpokenInCurrentChunkRef.current = false;
     await startAudioEngine();
-  }, [startAudioEngine]);
+    if (settings.engine === 'local' && isListeningRef.current) startRecognition();
+  }, [startAudioEngine, startRecognition, settings.engine]);
 
   const stopListening = useCallback(() => {
     stopAudioEngine();
@@ -778,6 +886,11 @@ export function useSpeechDictation(onSendMessage?: (msg: string) => void) {
     setActivationMode: (activationMode: DictationActivation) =>
       setSettings((s) => ({ ...s, activationMode })),
     setAutoSend: (autoSend: boolean) => setSettings((s) => ({ ...s, autoSend })),
+    setStickySeconds: (stickySeconds: number) =>
+      setSettings((s) => ({ ...s, stickySeconds })),
+    setFastMode: (fastMode: boolean) => setSettings((s) => ({ ...s, fastMode })),
+    setAutoSticky: (autoSticky: boolean) =>
+      setSettings((s) => ({ ...s, autoSticky })),
     setPlaySound: (playSound: boolean) => setSettings((s) => ({ ...s, playSound })),
   };
 }

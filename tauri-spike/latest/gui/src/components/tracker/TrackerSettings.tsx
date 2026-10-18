@@ -544,17 +544,6 @@ export function TrackerSettingsPage() {
                         })}
                   </Typography>
                 </div>
-                {tracker?.tracker.info?.isImu && (
-                  <div className="flex justify-between items-center py-1 border-t border-background-60/40">
-                    <Typography>Adaptive Drift Profile</Typography>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-accent-background-20/20 border border-accent-background-20/40 text-background-10 font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-status-success shrink-0" />
-                        Auto-Learning
-                      </span>
-                    </div>
-                  </div>
-                )}
                 <div className="flex justify-between">
                   <Typography>
                     {l10n.getString('tracker-infos-network_version')}
@@ -701,149 +690,161 @@ export function TrackerSettingsPage() {
               />
             )}
           {tracker?.tracker.info?.isImu && (
-            <div className="flex flex-col gap-3 w-full mt-3 bg-background-80 p-4 rounded-lg">
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between items-center">
-                  <Typography variant="section-title">
-                    Adaptive Profile & Drift Memory
+            <details className="w-full mt-3 group">
+              <summary className="cursor-pointer select-none list-none flex items-center justify-between rounded-lg bg-background-80 px-4 py-3">
+                <Typography variant="section-title">Experimental</Typography>
+                <span className="text-xs text-background-30">
+                  Drift auto-learning is switched off
+                </span>
+              </summary>
+              <div className="flex flex-col gap-3 w-full mt-2 bg-background-80 p-4 rounded-lg">
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between items-center">
+                    <Typography variant="section-title">
+                      Adaptive Profile & Drift Memory
+                    </Typography>
+                    <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-accent-background-20/20 border border-accent-background-20/40 text-background-10 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-background-30 shrink-0" />
+                      Off
+                    </span>
+                  </div>
+                  <Typography color="secondary">
+                    Learns persistent drift rates per IMU across sessions and
+                    applies startup baseline compensation.
                   </Typography>
-                  <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-accent-background-20/20 border border-accent-background-20/40 text-background-10 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-status-success shrink-0" />
-                    Auto-Learning
-                  </span>
                 </div>
-                <Typography color="secondary">
-                  Learns persistent drift rates per IMU across sessions and
-                  applies startup baseline compensation.
-                </Typography>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-3 pt-1">
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Detected IMU</Typography>
-                  <Typography bold>
-                    {tracker?.tracker.info?.imuType !== undefined
-                      ? ImuType[tracker.tracker.info.imuType]
-                      : '--'}
-                  </Typography>
+                <div className="grid md:grid-cols-2 gap-3 pt-1">
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Detected IMU</Typography>
+                    <Typography bold>
+                      {tracker?.tracker.info?.imuType !== undefined
+                        ? ImuType[tracker.tracker.info.imuType]
+                        : '--'}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">
+                      Learned Drift Rate
+                    </Typography>
+                    <Typography bold className="text-accent-background-10">
+                      {learnedDriftDisplay}
+                    </Typography>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Learned Drift Rate</Typography>
-                  <Typography bold className="text-accent-background-10">
-                    {learnedDriftDisplay}
-                  </Typography>
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-4 gap-3 pt-1">
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Learner State</Typography>
-                  <Typography bold>{adaptiveMode}</Typography>
+                <div className="grid md:grid-cols-4 gap-3 pt-1">
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Learner State</Typography>
+                    <Typography bold>{adaptiveMode}</Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Confidence</Typography>
+                    <Typography bold>
+                      {adaptiveState
+                        ? `${Math.round(adaptiveState.confidence * 100)}%`
+                        : '--'}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Input</Typography>
+                    <Typography bold>
+                      {filterHealth
+                        ? `${filterHealth.inputRateHz.toFixed(1)} Hz`
+                        : '--'}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Jitter</Typography>
+                    <Typography bold>
+                      {filterHealth
+                        ? `${filterHealth.packetJitterMs.toFixed(1)} ms`
+                        : '--'}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">Stable Window</Typography>
+                    <Typography bold>
+                      {adaptiveState
+                        ? `${Math.round(Number(adaptiveState.stableDurationMs) / 1000)} s`
+                        : '--'}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
+                    <Typography color="secondary">
+                      Applied Correction
+                    </Typography>
+                    <Typography bold>
+                      {adaptiveState
+                        ? `${adaptiveState.appliedCorrectionDeg.toFixed(2)}°`
+                        : '--'}
+                    </Typography>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Confidence</Typography>
-                  <Typography bold>
-                    {adaptiveState
-                      ? `${Math.round(adaptiveState.confidence * 100)}%`
-                      : '--'}
-                  </Typography>
-                </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Input</Typography>
-                  <Typography bold>
-                    {filterHealth
-                      ? `${filterHealth.inputRateHz.toFixed(1)} Hz`
-                      : '--'}
-                  </Typography>
-                </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Jitter</Typography>
-                  <Typography bold>
-                    {filterHealth
-                      ? `${filterHealth.packetJitterMs.toFixed(1)} ms`
-                      : '--'}
-                  </Typography>
-                </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Stable Window</Typography>
-                  <Typography bold>
-                    {adaptiveState
-                      ? `${Math.round(Number(adaptiveState.stableDurationMs) / 1000)} s`
-                      : '--'}
-                  </Typography>
-                </div>
-                <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
-                  <Typography color="secondary">Applied Correction</Typography>
-                  <Typography bold>
-                    {adaptiveState
-                      ? `${adaptiveState.appliedCorrectionDeg.toFixed(2)}°`
-                      : '--'}
-                  </Typography>
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-1 pt-1">
-                <Typography bold>Profile Override</Typography>
-                <Dropdown
-                  display="block"
-                  control={control}
-                  name="imuProfileOverride"
-                  placeholder="Select Profile"
-                  items={IMU_PROFILE_ITEMS}
-                />
-              </div>
+                <div className="flex flex-col gap-1 pt-1">
+                  <Typography bold>Profile Override</Typography>
+                  <Dropdown
+                    display="block"
+                    control={control}
+                    name="imuProfileOverride"
+                    placeholder="Select Profile"
+                    items={IMU_PROFILE_ITEMS}
+                  />
+                </div>
 
-              <div className="flex flex-wrap justify-end gap-2 pt-1">
-                <Button
-                  variant="secondary"
-                  className="self-start text-xs !py-1.5"
-                  onClick={() => {
-                    const enabled = !adaptiveCorrectionEnabled;
-                    setDriftCorrectionEnabled(enabled);
-                    sendAdaptiveDriftAction(
-                      enabled
-                        ? AdaptiveDriftAction.ENABLE_CORRECTION
-                        : AdaptiveDriftAction.DISABLE_CORRECTION
-                    );
-                  }}
-                >
-                  {adaptiveCorrectionEnabled
-                    ? 'Disable Correction'
-                    : 'Enable Correction'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="self-start text-xs !py-1.5"
-                  onClick={() =>
-                    sendAdaptiveDriftAction(
-                      adaptivePaused
-                        ? AdaptiveDriftAction.RESUME_LEARNING
-                        : AdaptiveDriftAction.PAUSE_LEARNING
-                    )
-                  }
-                >
-                  {adaptivePaused ? 'Resume Learning' : 'Pause Learning'}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="self-start text-xs !py-1.5"
-                  onClick={() =>
-                    sendAdaptiveDriftAction(
-                      AdaptiveDriftAction.RESTORE_PREVIOUS_MODEL
-                    )
-                  }
-                >
-                  Restore Previous
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="self-start text-xs !py-1.5"
-                  onClick={handleResetLearnedDrift}
-                >
-                  Reset Learned Drift
-                </Button>
+                <div className="flex flex-wrap justify-end gap-2 pt-1">
+                  <Button
+                    variant="secondary"
+                    className="self-start text-xs !py-1.5"
+                    onClick={() => {
+                      const enabled = !adaptiveCorrectionEnabled;
+                      setDriftCorrectionEnabled(enabled);
+                      sendAdaptiveDriftAction(
+                        enabled
+                          ? AdaptiveDriftAction.ENABLE_CORRECTION
+                          : AdaptiveDriftAction.DISABLE_CORRECTION
+                      );
+                    }}
+                  >
+                    {adaptiveCorrectionEnabled
+                      ? 'Disable Correction'
+                      : 'Enable Correction'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="self-start text-xs !py-1.5"
+                    onClick={() =>
+                      sendAdaptiveDriftAction(
+                        adaptivePaused
+                          ? AdaptiveDriftAction.RESUME_LEARNING
+                          : AdaptiveDriftAction.PAUSE_LEARNING
+                      )
+                    }
+                  >
+                    {adaptivePaused ? 'Resume Learning' : 'Pause Learning'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="self-start text-xs !py-1.5"
+                    onClick={() =>
+                      sendAdaptiveDriftAction(
+                        AdaptiveDriftAction.RESTORE_PREVIOUS_MODEL
+                      )
+                    }
+                  >
+                    Restore Previous
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="self-start text-xs !py-1.5"
+                    onClick={handleResetLearnedDrift}
+                  >
+                    Reset Learned Drift
+                  </Button>
+                </div>
               </div>
-            </div>
+            </details>
           )}
           <div className="flex flex-col gap-2 w-full mt-3 sentry-mask">
             <Typography variant="section-title">

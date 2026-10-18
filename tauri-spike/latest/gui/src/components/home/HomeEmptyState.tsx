@@ -132,15 +132,15 @@ export function ClaudeTrackerWindowCard({
         'home-tracker-card group relative flex h-full flex-col overflow-hidden rounded-[12px] border bg-background-60 transition-[border-color,box-shadow] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
         isMoving
           ? 'tracker-card-moving'
-          : 'border-transparent hover:border-background-10/[0.2]'
+          : 'border-background-10/[0.16] hover:border-background-10/[0.3]'
       )}
     >
-      <div className="relative flex h-28 items-center justify-center bg-background-70">
+      <div className="home-tracker-card__banner relative flex h-28 items-center justify-center bg-background-80">
         <div
           role="group"
           aria-label="Preview mode"
           onClick={(e) => e.stopPropagation()}
-          className="absolute left-2 top-2 z-10 flex gap-0.5 rounded-[6px] border border-background-10/[0.1] bg-background-80/70 p-0.5"
+          className="card-mode absolute left-2 top-2 z-10 flex gap-0.5 rounded-[6px] border border-background-10/[0.1] bg-background-80/70 p-0.5"
         >
           {(['2D', '3D'] as const).map((mode) => {
             const active = mode === '3D' ? show3D : !show3D;
@@ -169,7 +169,7 @@ export function ClaudeTrackerWindowCard({
           })}
         </div>
         {problems.length > 0 && (
-          <div className="absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
+          <div className="card-problems absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
             {problems.map((problem) => (
               <span
                 key={problem.label}
@@ -215,9 +215,9 @@ export function ClaudeTrackerWindowCard({
       </div>
 
       <div className="flex flex-col gap-2 px-3 py-2.5">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
           <h3
-            className="min-w-0 truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
+            className="min-w-0 max-w-full truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
             title={trackerName}
           >
             {trackerName}
@@ -686,9 +686,8 @@ export function HomeEmptyState({
           {allTrackers.length > 0 ? (
             /* Live Connected Trackers Rendered As Claude Window Cards */
             <div
-              className={classNames(
-                'grid w-full max-w-[980px] gap-3 grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),1fr))]'
-              )}
+              // Always two columns, whatever the zoom; the rows grow with the tracker count.
+              className="grid w-full max-w-[980px] grid-cols-2 gap-3"
             >
               {allTrackers.map(({ tracker, device }, idx) => {
                 const cols = 3;
