@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import './TrackersTable.scss';
 import { IPv4 } from 'ip-num';
 import { ReactNode, useMemo } from 'react';
-import { isPawTheme, useConfig } from '@/hooks/config';
+import { useConfig } from '@/hooks/config';
 import { useTracker } from '@/hooks/tracker';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
 import { Typography } from '@/components/commons/Typography';
@@ -65,12 +65,12 @@ export function TrackerNameCell({
             }
           )}
         >
-          <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={30} />
+          <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={24} />
         </div>
       </div>
-      <div className="flex flex-col flex-grow min-w-0 gap-1">
+      <div className="flex flex-col flex-grow min-w-0 gap-0.5">
         <span
-          className="font-serif text-ui-sm leading-tight text-background-10 truncate"
+          className="truncate font-mono text-[13px] font-semibold leading-tight text-background-10"
           title={name.toString()}
         >
           {name}
@@ -149,7 +149,7 @@ function Cell({
   return (
     <div
       className={classNames(
-        'tracker-list-cell px-2 py-3 flex items-center min-w-0',
+        'tracker-list-cell px-2 py-2 flex items-center min-w-0',
         {
           hidden: !show,
           'pl-3': first,
@@ -167,11 +167,15 @@ function Row({
   highlightedTrackers,
   clickedTracker,
   gridTemplateColumns,
+  showType,
+  showTemp,
 }: {
   data: FlatDeviceTracker;
   highlightedTrackers: highlightedTrackers | undefined;
   clickedTracker: (tracker: TrackerDataT) => void;
   gridTemplateColumns: string;
+  showType: boolean;
+  showTemp: boolean;
 }) {
   const { config } = useConfig();
   const fontColor = config?.devSettings?.highContrast ? 'primary' : 'secondary';
@@ -230,7 +234,7 @@ function Row({
             <Cell first>
               <TrackerNameCell tracker={tracker} warning={warning} />
             </Cell>
-            <Cell>
+            <Cell show={showType}>
               <Typography color={fontColor}>
                 {device?.hardwareInfo?.manufacturer || '--'}
               </Typography>
@@ -276,7 +280,7 @@ function Row({
                 color={fontColor}
               />
             </Cell>
-            <Cell last={!moreInfo}>
+            <Cell last={!moreInfo} show={showTemp}>
               {tracker?.temp && tracker?.temp?.temp != 0 && (
                 <Typography color={fontColor} whitespace="whitespace-nowrap">
                   {tracker.temp.temp.toFixed(2)}
@@ -342,23 +346,23 @@ export function TrackersTable({
 
   const moreInfo = config?.devSettings?.moreInfo;
 
+  // Columns no tracker has data for (often Type and Temp) are left out.
+  const showType = filteredSortedTrackers.some(
+    ({ device }) => !!device?.hardwareInfo?.manufacturer
+  );
+  const showTemp = filteredSortedTrackers.some(
+    ({ tracker }) => !!tracker.temp?.temp
+  );
+
   const gridTemplateColumns = useMemo(() => {
-    // Bun: tighter columns, so the table fits a normal window without scrolling.
-    const bun = isPawTheme(config?.theme);
     const cols = [
-      bun ? 'minmax(11rem, 1.5fr)' : 'minmax(15rem, 1.5fr)', // Name
-      bun ? '5rem' : '9rem', // Type
-      bun ? '6.5rem' : '9rem', // Battery
-      bun ? '6rem' : '9rem', // Ping (w-24)
-      bun ? '3.5rem' : '5rem', // TPS
-      config?.devSettings?.preciseRotation
-        ? bun
-          ? '8rem'
-          : '11rem'
-        : bun
-          ? '6.5rem'
-          : '9rem', // Rotation
-      bun ? '7rem' : '9rem', // Temp
+      'minmax(11rem, 1.6fr)', // Name
+      ...(showType ? ['6rem'] : []), // Type
+      '6.5rem', // Battery
+      '7.5rem', // Ping and signal
+      '3.5rem', // TPS
+      config?.devSettings?.preciseRotation ? '9rem' : '7rem', // Rotation
+      ...(showTemp ? ['4.5rem'] : []), // Temp
     ];
 
     if (moreInfo) {
@@ -369,7 +373,7 @@ export function TrackersTable({
     }
 
     return cols.join(' ');
-  }, [config?.theme, config?.devSettings?.preciseRotation, moreInfo]);
+  }, [config?.devSettings?.preciseRotation, moreInfo, showType, showTemp]);
 
   return (
     <div className="tracker-list w-full overflow-x-auto p-2">
@@ -379,12 +383,16 @@ export function TrackersTable({
           style={{ gridTemplateColumns }}
         >
           <Header name={'tracker-table-column-name'} first />
-          <Header name={'tracker-table-column-type'} />
+          <Header name={'tracker-table-column-type'} show={showType} />
           <Header name={'tracker-table-column-battery'} />
           <Header name={'tracker-table-column-ping'} />
           <Header name={'tracker-table-column-tps'} />
           <Header name={'tracker-table-column-rotation'} />
-          <Header name={'tracker-table-column-temperature'} last={!moreInfo} />
+          <Header
+            name={'tracker-table-column-temperature'}
+            last={!moreInfo}
+            show={showTemp}
+          />
           <Header
             name={'tracker-table-column-linear-acceleration'}
             show={moreInfo}
@@ -397,7 +405,7 @@ export function TrackersTable({
             last={moreInfo}
           />
         </div>
-        <div className="flex flex-col gap-2 overflow-x-hidden">
+        <div className="tracker-list-body flex flex-col">
           {filteredSortedTrackers.map((data, index) => (
             <div
               key={`${data.device?.id?.id ?? 'dev'}_${data.tracker.trackerId?.trackerNum ?? index}_${index}`}
@@ -414,6 +422,8 @@ export function TrackersTable({
                 data={data}
                 highlightedTrackers={highlightedTrackers}
                 gridTemplateColumns={gridTemplateColumns}
+                showType={showType}
+                showTemp={showTemp}
               />
             </div>
           ))}

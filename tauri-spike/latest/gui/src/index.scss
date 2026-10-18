@@ -1215,57 +1215,6 @@ body {
   box-shadow: none;
 }
 
-/* Table view: rows are the same raised cards as the Home and Remote cards, in the Bun palette.
-   Colours come from the theme, not the table's own dark greys and orange. The moving glow is left as it is. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list {
-  --list-surface: rgb(var(--background-60));
-  --list-icon-surface: rgba(var(--accent-background-20), 0.14);
-  --list-border: rgba(var(--background-10), 0.08);
-  --list-hover-border: rgba(var(--background-10), 0.2);
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row {
-  border-radius: 3px;
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row:not(.tracker-list-row-moving) .tracker-list-icon {
-  color: rgb(var(--accent-background-30));
-  fill: rgb(var(--accent-background-30));
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-icon {
-  border-radius: 3px;
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list .tracker-list-row {
-  min-height: 72px;
-}
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-cell {
-  font-size: 15px;
-}
-/* Names wrap to two lines instead of cutting off, like the cards. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-name span.font-serif {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.3;
-}
-/* Long column names ("Rotation X/Y/Z") wrap inside their own column, so they don't run into the next one. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div > * {
-  white-space: normal;
-  line-height: 1.3;
-}
-/* Column names are small, uppercase monospace, like the settings section labels. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-list-header > div * {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(var(--background-30));
-}
-
 :root[data-theme='macos'] body {
   background-image: none;
 }

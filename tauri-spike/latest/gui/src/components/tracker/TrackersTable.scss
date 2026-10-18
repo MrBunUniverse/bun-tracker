@@ -1,30 +1,33 @@
+// One surface with hairline rows, in the theme's colours. Quiet at rest:
+// a moving tracker gets a thin motion bar on the left, not a glow.
 .tracker-list {
-  --list-surface: #1b1915;
-  --list-icon-surface: #14120f;
-  --list-border: rgb(255 255 255 / 8%);
-  --list-hover-border: rgb(255 255 255 / 20%);
+  .tracker-list-body {
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgb(var(--background-60));
+    box-shadow: inset 0 0 0 1px rgba(var(--background-10), 0.06);
+  }
 
   .tracker-list-row {
-    min-height: 64px;
-    border-radius: 12px;
-    background: var(--list-surface);
-    box-shadow: inset 0 0 0 1px var(--list-border);
+    min-height: 52px;
     cursor: pointer;
-    transition: box-shadow 200ms ease;
+    border-bottom: 1px solid rgba(var(--background-10), 0.06);
+    box-shadow: inset 3px 0 0 0 transparent;
+    transition:
+      background-color 150ms ease,
+      box-shadow 300ms ease;
 
     &:hover {
-      box-shadow: inset 0 0 0 1px var(--list-hover-border);
+      background: rgba(var(--background-10), 0.04);
     }
 
     &:focus-visible {
-      outline: 2px solid #d97757;
-      outline-offset: 2px;
+      outline: 2px solid rgb(var(--accent-background-30));
+      outline-offset: -2px;
     }
 
     &.tracker-list-row-moving {
-      box-shadow:
-        inset 0 0 0 2px rgb(var(--motion)),
-        0 0 14px rgba(var(--motion), 0.45);
+      box-shadow: inset 3px 0 0 0 rgb(var(--motion));
 
       .tracker-list-icon {
         color: rgb(var(--motion));
@@ -33,13 +36,15 @@
     }
   }
 
+  .tracker-list-body > div:last-child .tracker-list-row {
+    border-bottom: 0;
+  }
+
   .tracker-list-icon {
-    width: 48px;
-    height: 44px;
-    border-radius: 8px;
-    background: var(--list-icon-surface);
-    color: #d97757;
-    fill: #d97757;
+    width: 32px;
+    height: 32px;
+    color: rgb(var(--background-20));
+    fill: rgb(var(--background-20));
   }
 
   .tracker-list-name .glass-pill {
@@ -54,6 +59,17 @@
 
   .tracker-list-cell {
     font-variant-numeric: tabular-nums;
+  }
+
+  // Column names: small uppercase monospace, muted.
+  .tracker-list-header > div,
+  .tracker-list-header > div * {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--background-30));
   }
 
   @media (prefers-reduced-motion: reduce) {
