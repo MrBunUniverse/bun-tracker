@@ -218,11 +218,49 @@ function initializePreview(
   const frameSphere = new Sphere();
   const framePoint = new Vector3();
   const frameShift = new Vector3();
-  const FRAME_MARGIN = 1.25;
-  const MIN_FRAME_RADIUS = 0.35;
+  // Close-up, with only a thin margin around the bounding sphere.
+  const FRAME_MARGIN = 1.1;
+  const FRAME_PADDING = 0.08; // metres, so a swinging hand never touches the edge
+  const MIN_FRAME_RADIUS = 0.5;
   const FRAME_LIFT = 0.22;
+  // Spring times in seconds. The zoom opens fast so nothing is cut off and closes slowly, so
+  // swinging limbs don't make it breathe in and out. The position glides slower still.
+  const FRAME_MOVE_TIME = 0.7;
+  const FRAME_OPEN_TIME = 0.35;
+  const FRAME_CLOSE_TIME = 1.6;
 
-  const frameView = (v: SkeletonPreviewView, aspect: number, dt: number) => {
+  // Smoothed framing state: the camera follows these, never the raw (noisy) bounds.
+  const frameCenter = new Vector3();
+  const frameVelocity = new Vector3();
+  let frameRadius = 1;
+  let frameRadiusVelocity = 0;
+  let frameReady = false;
+
+  // Critically damped spring: velocity stays continuous, so there is no stutter when the
+  // target jumps. Returns the new value and updates `vel.v`.
+  const smoothDamp = (
+    current: number,
+    target: number,
+    vel: { v: number },
+    smoothTime: number,
+    dt: number
+  ) => {
+    const omega = 2 / Math.max(0.0001, smoothTime);
+    const x = omega * dt;
+    const decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const change = current - target;
+    const temp = (vel.v + omega * change) * dt;
+    vel.v = (vel.v - omega * temp) * decay;
+    let out = target + (change + temp) * decay;
+    if (target - current > 0 === out > target) {
+      out = target;
+      vel.v = 0;
+    }
+    return out;
+  };
+  const springVel = { v: 0 };
+
+  const frameView = (v: SkeletonPreviewView, aspect: number, rawDt: number) => {
     frameBox.makeEmpty();
     skeletonGroup.updateMatrixWorld();
     skeleton.forEach((bone) => {
@@ -233,33 +271,87 @@ function initializePreview(
       );
     });
     if (frameBox.isEmpty()) return;
+    const dt = Math.min(Math.max(rawDt, 0.001), 0.05);
     frameBox.getBoundingSphere(frameSphere);
-    const radius =
-      Math.max(frameSphere.radius, MIN_FRAME_RADIUS) * FRAME_MARGIN;
+    const wantRadius =
+      Math.max(frameSphere.radius, MIN_FRAME_RADIUS) * FRAME_MARGIN +
+      FRAME_PADDING;
     // Aim a little below the centre, so the body sits above the control strip at the bottom.
-    frameSphere.center.y -= radius * FRAME_LIFT;
+    frameSphere.center.y -= wantRadius * FRAME_LIFT;
 
-    // Ease about 95% of the way in a second, at any frame rate.
-    const k = 1 - Math.exp(-dt * 3);
-    frameShift
-      .subVectors(frameSphere.center, v.controls.target)
-      .multiplyScalar(k);
+    const halfFov = (v.camera.fov * Math.PI) / 360;
+    const fit = Math.tan(halfFov) * Math.min(1, aspect);
+    if (!frameReady) {
+      // Start from where the camera already is, so turning Auto-frame on glides in.
+      frameCenter.copy(v.controls.target);
+      frameVelocity.set(0, 0, 0);
+      frameRadius =
+        (v.camera.position.distanceTo(v.controls.target) * fit) /
+        Math.max(v.camera.zoom, 0.01);
+      frameRadiusVelocity = 0;
+      frameReady = true;
+    }
+
+    springVel.v = frameVelocity.x;
+    frameCenter.x = smoothDamp(
+      frameCenter.x,
+      frameSphere.center.x,
+      springVel,
+      FRAME_MOVE_TIME,
+      dt
+    );
+    frameVelocity.x = springVel.v;
+    springVel.v = frameVelocity.y;
+    frameCenter.y = smoothDamp(
+      frameCenter.y,
+      frameSphere.center.y,
+      springVel,
+      FRAME_MOVE_TIME,
+      dt
+    );
+    frameVelocity.y = springVel.v;
+    springVel.v = frameVelocity.z;
+    frameCenter.z = smoothDamp(
+      frameCenter.z,
+      frameSphere.center.z,
+      springVel,
+      FRAME_MOVE_TIME,
+      dt
+    );
+    frameVelocity.z = springVel.v;
+
+    springVel.v = frameRadiusVelocity;
+    frameRadius = smoothDamp(
+      frameRadius,
+      wantRadius,
+      springVel,
+      wantRadius > frameRadius ? FRAME_OPEN_TIME : FRAME_CLOSE_TIME,
+      dt
+    );
+    frameRadiusVelocity = springVel.v;
+
+    // Move the orbit target to the smoothed centre; the camera keeps its angle and distance.
+    frameShift.subVectors(frameCenter, v.controls.target);
     v.controls.target.add(frameShift);
     v.camera.position.add(frameShift);
 
     const distance = v.camera.position.distanceTo(v.controls.target);
-    const halfFov = (v.camera.fov * Math.PI) / 360;
-    const wantZoom =
-      (distance * Math.tan(halfFov) * Math.min(1, aspect)) / radius;
-    const zoomStep = (wantZoom - v.camera.zoom) * k;
-    v.camera.zoom += zoomStep;
+    v.camera.zoom = (distance * fit) / frameRadius;
 
     // Keep drawing until the camera settles.
-    if (frameShift.lengthSq() > 1e-8 || Math.abs(zoomStep) > 1e-4) markDirty(2);
+    if (
+      frameVelocity.lengthSq() > 1e-6 ||
+      Math.abs(frameRadiusVelocity) > 1e-3 ||
+      Math.abs(wantRadius - frameRadius) > 1e-3 ||
+      frameCenter.distanceToSquared(frameSphere.center) > 1e-6
+    ) {
+      markDirty(2);
+    }
   };
 
   const setAutoFrame = (enable?: boolean) => {
     autoFrame = typeof enable === 'boolean' ? enable : !autoFrame;
+    frameReady = false;
     markDirty(10);
     return autoFrame;
   };
