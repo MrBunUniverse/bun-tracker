@@ -15,6 +15,7 @@ import {
   Quaternion,
   Scene,
   Sphere,
+  Spherical,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -235,6 +236,13 @@ function initializePreview(
   let frameRadius = 1;
   let frameRadiusVelocity = 0;
   let frameReady = false;
+  // Eye level: the camera sits level with the aim point, looking straight at the body, not
+  // down on it like a drone. The turn left or right stays whatever the user chose.
+  const FRAME_EYE_LEVEL_PHI = Math.PI / 2 - 0.04;
+  const FRAME_PITCH_TIME = 0.8;
+  const frameSpherical = new Spherical();
+  const frameOffset = new Vector3();
+  let framePitchVelocity = 0;
 
   // Critically damped spring: velocity stays continuous, so there is no stutter when the
   // target jumps. Returns the new value and updates `vel.v`.
@@ -289,6 +297,7 @@ function initializePreview(
         (v.camera.position.distanceTo(v.controls.target) * fit) /
         Math.max(v.camera.zoom, 0.01);
       frameRadiusVelocity = 0;
+      framePitchVelocity = 0;
       frameReady = true;
     }
 
@@ -335,11 +344,29 @@ function initializePreview(
     v.controls.target.add(frameShift);
     v.camera.position.add(frameShift);
 
-    const distance = v.camera.position.distanceTo(v.controls.target);
+    // Ease the camera down to eye level, keeping its distance and its heading.
+    frameOffset.subVectors(v.camera.position, v.controls.target);
+    frameSpherical.setFromVector3(frameOffset);
+    springVel.v = framePitchVelocity;
+    const phi = smoothDamp(
+      frameSpherical.phi,
+      FRAME_EYE_LEVEL_PHI,
+      springVel,
+      FRAME_PITCH_TIME,
+      dt
+    );
+    framePitchVelocity = springVel.v;
+    const pitchMoving = Math.abs(phi - frameSpherical.phi) > 1e-5;
+    frameSpherical.phi = phi;
+    frameOffset.setFromSpherical(frameSpherical);
+    v.camera.position.copy(v.controls.target).add(frameOffset);
+
+    const distance = frameSpherical.radius;
     v.camera.zoom = (distance * fit) / frameRadius;
 
     // Keep drawing until the camera settles.
     if (
+      pitchMoving ||
       frameVelocity.lengthSq() > 1e-6 ||
       Math.abs(frameRadiusVelocity) > 1e-3 ||
       Math.abs(wantRadius - frameRadius) > 1e-3 ||
