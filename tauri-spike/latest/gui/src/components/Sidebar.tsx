@@ -122,9 +122,9 @@ export function PreviewControls({
               )}
               onClick={() => toggleBVH()}
             >
-              {bvhState === 'idle' && <RecordIcon width={17} />}
+              {bvhState === 'idle' && <RecordIcon width={16} />}
               {bvhState !== 'idle' && (
-                <div className="w-3.5 h-3.5 rounded-full bg-status-critical animate-pulse" />
+                <div className="h-4 w-4 rounded-full bg-status-critical animate-pulse" />
               )}
               <span>
                 {l10n.getString(
@@ -152,8 +152,8 @@ export function PreviewControls({
             )}
             onClick={() => toggleTracking()}
           >
-            {!paused && <PauseIcon width={19} />}
-            {paused && <PlayIcon width={19} />}
+            {!paused && <PauseIcon width={16} />}
+            {paused && <PlayIcon width={16} />}
             <span>
               {l10n.getString(paused ? 'tracking-paused' : 'tracking-unpaused')}
             </span>
@@ -181,7 +181,7 @@ export function PreviewControls({
                   'animate-[spin_4s_linear_infinite]': isOrbiting,
                 })}
               >
-                <Rotate360Icon width={17} />
+                <Rotate360Icon width={16} />
               </div>
               <span>
                 {l10n.getString(
@@ -195,9 +195,10 @@ export function PreviewControls({
             disabled
             aria-label={l10n.getString('preview-mocap_mode_soon')}
             title={l10n.getString('preview-mocap_mode_soon')}
-            className="flex min-h-10 items-center justify-center rounded-full px-2.5 text-background-40 opacity-60 cursor-not-allowed"
+            className="flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium text-background-40 opacity-60 cursor-not-allowed"
           >
-            <HumanIcon width={17} />
+            <HumanIcon width={16} />
+            <span>{l10n.getString('preview-mocap_mode_soon')}</span>
           </button>
         </div>
       </div>
