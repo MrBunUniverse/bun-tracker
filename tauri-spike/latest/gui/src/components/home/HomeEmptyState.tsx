@@ -118,51 +118,58 @@ export function ClaudeTrackerWindowCard({
     onClick?.(origin);
   };
 
-  // Compact card: icon on the left, name and problems in the middle, readings on the right.
+  const voltageText =
+    batteryVoltage != null && batteryVoltage > 0
+      ? `${batteryVoltage.toFixed(2)} V`
+      : null;
+
+  // Tile card: a preview on top (pixel icon, or the live 3D view), readings below.
   // Orange only marks motion; a quiet card means a healthy tracker.
   return (
     <div
       onClick={handleCardClick}
       className={classNames(
-        'home-tracker-card group relative flex h-24 items-center gap-3 rounded-[12px] border bg-background-60 px-3 transition-[border-color,box-shadow] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
+        'home-tracker-card group relative flex h-full flex-col overflow-hidden rounded-[12px] border bg-background-60 transition-[border-color,box-shadow] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
         isMoving
           ? 'tracker-card-moving'
           : 'border-transparent hover:border-background-10/[0.2]'
       )}
     >
-      <button
-        type="button"
-        onClick={toggle3D}
-        title={show3D ? 'Show the body icon' : 'Show the live 3D view'}
-        aria-pressed={show3D}
-        className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-background-70 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20"
-      >
-        {show3D ? (
-          <CardIMUVisualizer tracker={tracker} height={60} />
-        ) : (
-          <span
-            style={{ rotate: `${tilt.toFixed(0)}deg` }}
-            className={classNames(
-              'tracker-accent flex items-center justify-center transition-[rotate] duration-200',
-              isMoving
-                ? 'tracker-moving tracker-wiggle text-motion fill-motion'
-                : 'text-background-20 fill-background-20'
-            )}
-          >
-            <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={40} />
-          </span>
-        )}
-      </button>
-
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h3
-          className="line-clamp-2 break-words font-mono text-[14px] font-semibold leading-snug text-background-10"
-          title={trackerName}
+      <div className="relative flex h-28 items-center justify-center bg-background-70">
+        <div
+          role="group"
+          aria-label="Preview mode"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute left-2 top-2 z-10 flex gap-0.5 rounded-[6px] border border-background-10/[0.1] bg-background-80/70 p-0.5"
         >
-          {trackerName}
-        </h3>
-        {problems.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
+          {(['2D', '3D'] as const).map((mode) => {
+            const active = mode === '3D' ? show3D : !show3D;
+            return (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={active}
+                title={
+                  mode === '3D' ? 'Show the live 3D view' : 'Show the body icon'
+                }
+                onClick={(e) => {
+                  if (!active) toggle3D(e);
+                  else e.stopPropagation();
+                }}
+                className={classNames(
+                  'rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] leading-none transition-colors cursor-pointer',
+                  active
+                    ? 'bg-accent-background-20 text-white'
+                    : 'text-background-30 hover:text-background-10'
+                )}
+              >
+                {mode}
+              </button>
+            );
+          })}
+        </div>
+        {problems.length > 0 && (
+          <div className="absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
             {problems.map((problem) => (
               <span
                 key={problem.label}
@@ -175,44 +182,125 @@ export function ClaudeTrackerWindowCard({
               </span>
             ))}
           </div>
+        )}
+        {show3D ? (
+          <div className="pointer-events-none flex h-full w-full items-center justify-center">
+            <CardIMUVisualizer tracker={tracker} height={104} />
+            {/* A small body-part icon, so the 3D view still says which tracker it is. */}
+            <span
+              aria-hidden="true"
+              className={classNames(
+                'tracker-accent absolute bottom-2 left-2 flex items-center justify-center rounded-[6px] bg-background-80/70 p-1',
+                isMoving
+                  ? 'tracker-moving text-motion fill-motion'
+                  : 'text-background-20 fill-background-20'
+              )}
+            >
+              <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={22} />
+            </span>
+          </div>
         ) : (
-          <span className="font-sans text-ui-2xs text-background-30">
-            Connected
+          <span
+            style={{ rotate: `${tilt.toFixed(0)}deg` }}
+            className={classNames(
+              'tracker-accent flex items-center justify-center transition-[rotate] duration-200',
+              isMoving
+                ? 'tracker-moving tracker-wiggle text-motion fill-motion'
+                : 'text-background-20 fill-background-20'
+            )}
+          >
+            <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={52} />
           </span>
         )}
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-1 font-mono text-[12px] leading-none tnum">
-        <span
-          title={
-            batteryVoltage != null && batteryVoltage > 0
-              ? `Battery ${batteryPct != null ? `${Math.round(batteryPct)}% · ` : ''}${batteryVoltage.toFixed(2)} V`
-              : 'Battery'
-          }
-          className={classNames(
-            batteryPct == null
-              ? 'text-background-30'
-              : batteryPct < LOW_BATTERY_PCT
-                ? 'text-status-critical'
-                : batteryPct <= 40
+      <div className="flex flex-col gap-2 px-3 py-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3
+            className="min-w-0 truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
+            title={trackerName}
+          >
+            {trackerName}
+          </h3>
+          <div className="flex shrink-0 items-center gap-2 font-mono text-[12px] leading-none tnum">
+            <SignalBars rssi={isDisconnected ? null : rssi} />
+            <span
+              title="Ping"
+              className={
+                ping != null && ping > HIGH_PING_MS
                   ? 'text-status-warning'
-                  : 'text-background-10'
-          )}
-        >
-          {batteryPct != null ? `${Math.round(batteryPct)}%` : '--'}
-        </span>
-        <SignalBars rssi={isDisconnected ? null : rssi} />
-        <span
-          title="Ping"
-          className={classNames(
-            ping != null && ping > HIGH_PING_MS
-              ? 'text-status-warning'
-              : 'text-background-20'
-          )}
-        >
-          {ping != null && ping > 0 ? `${ping}ms` : '--'}
-        </span>
+                  : 'text-background-20'
+              }
+            >
+              {ping != null && ping > 0 ? `${ping}ms` : '--'}
+            </span>
+          </div>
+        </div>
+        <BatteryBar
+          pct={isDisconnected ? null : batteryPct}
+          voltage={voltageText}
+        />
       </div>
+    </div>
+  );
+}
+
+/** Battery as a battery shape whose fill is the charge, with the % beside it; voltage is in the tooltip. */
+function BatteryBar({
+  pct,
+  voltage,
+}: {
+  pct?: number | null;
+  voltage?: string | null;
+}) {
+  const known = pct != null;
+  const level = known ? Math.max(0, Math.min(100, Math.round(pct))) : 0;
+  const [fill, text] =
+    level < LOW_BATTERY_PCT
+      ? ['bg-status-critical', 'text-status-critical']
+      : level <= 40
+        ? ['bg-status-warning', 'text-status-warning']
+        : ['bg-accent-background-30', 'text-background-10'];
+  // Pixel battery: ten square cells in the theme's accent, like the pixel icons. Square corners on purpose.
+  const lit = known ? Math.ceil(level / 10) : 0;
+  return (
+    <div
+      className="flex items-center gap-2"
+      title={
+        known
+          ? `Battery ${level}%${voltage ? ` · ${voltage}` : ''}`
+          : 'Battery unknown'
+      }
+    >
+      <div className="flex min-w-0 flex-1 items-center">
+        <div
+          className={classNames(
+            'flex h-3.5 flex-1 gap-[2px] border-2 p-[2px] [border-radius:0!important]',
+            known
+              ? 'border-background-10/[0.35]'
+              : 'border-dashed border-background-10/[0.2]'
+          )}
+        >
+          {Array.from({ length: 10 }, (_, cell) => (
+            <span
+              key={cell}
+              className={classNames(
+                'h-full flex-1 transition-colors duration-500',
+                cell < lit ? fill : 'bg-background-10/[0.06]'
+              )}
+            />
+          ))}
+        </div>
+        <div className="h-1.5 w-[3px] shrink-0 bg-background-10/[0.35]" />
+      </div>
+      <span
+        className={classNames(
+          'w-9 shrink-0 text-right font-mono text-[12px] tnum',
+          known ? text : 'text-background-30'
+        )}
+      >
+        {known ? `${level}%` : '--'}
+      </span>
     </div>
   );
 }
@@ -599,7 +687,7 @@ export function HomeEmptyState({
             /* Live Connected Trackers Rendered As Claude Window Cards */
             <div
               className={classNames(
-                'grid w-full max-w-[980px] gap-3 grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))]'
+                'grid w-full max-w-[980px] gap-3 grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),1fr))]'
               )}
             >
               {allTrackers.map(({ tracker, device }, idx) => {
