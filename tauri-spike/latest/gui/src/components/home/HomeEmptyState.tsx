@@ -39,9 +39,6 @@ export function ClaudeTrackerWindowCard({
   const trackerName = useName();
   const velocity = useVelocity();
   const isDemo = useAtomValue(demoModeAtom);
-  const { config } = useConfig();
-  const bun = isPawTheme(config?.theme);
-
   const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
   const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
   const rssi = device?.hardwareStatus?.rssi;
@@ -84,8 +81,8 @@ export function ClaudeTrackerWindowCard({
         setDemoMoving(true);
         setTimeout(() => {
           if (isMounted) setDemoMoving(false);
-        }, 2400);
-      }, 4400);
+        }, 1200);
+      }, 7000);
     }, offset);
 
     return () => {
@@ -99,85 +96,7 @@ export function ClaudeTrackerWindowCard({
   const isDisconnected = tracker.status === TrackerStatusEnum.DISCONNECTED;
 
   const ping = device?.hardwareStatus?.ping;
-
-  // Format top-right window tag: show 0% when offline/dead, exact % when connected
-  let tag = 'Active';
-  if (isDisconnected) {
-    tag = '0%';
-  } else if (batteryPct != null) {
-    tag = `${Math.round(batteryPct)}%`;
-  } else if (batteryVoltage != null && batteryVoltage > 0) {
-    tag = `${batteryVoltage.toFixed(1)}V`;
-  }
-
-  // Format subtitle description: voltage, ping latency, and connection status
-  const descItems: string[] = [];
-  if (batteryVoltage != null && batteryVoltage > 0) {
-    descItems.push(`${batteryVoltage.toFixed(1)}V`);
-  }
-  if (isDisconnected) {
-    descItems.push('Sensor offline');
-  } else {
-    if (ping != null && ping > 0) {
-      descItems.push(`${ping}ms ping`);
-    }
-    descItems.push('Connected · Steady');
-  }
-
-  const getBallColors = (): [string, string, string] => {
-    if (isDisconnected || batteryPct == null) {
-      return isDisconnected
-        ? ['bg-background-40', 'bg-background-40', 'bg-background-40']
-        : [
-            'bg-[rgb(96,198,120)]',
-            'bg-[rgb(96,198,120)]',
-            'bg-[rgb(96,198,120)]',
-          ];
-    }
-    if (batteryPct >= 90)
-      return [
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(96,198,120)]',
-      ];
-    if (batteryPct >= 80)
-      return [
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(232,168,72)]',
-      ];
-    if (batteryPct >= 60)
-      return [
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(234,98,86)]',
-      ];
-    if (batteryPct >= 40)
-      return [
-        'bg-[rgb(96,198,120)]',
-        'bg-[rgb(232,168,72)]',
-        'bg-[rgb(234,98,86)]',
-      ];
-    if (batteryPct >= 20)
-      return [
-        'bg-[rgb(232,168,72)]',
-        'bg-[rgb(234,98,86)]',
-        'bg-[rgb(234,98,86)]',
-      ];
-    if (batteryPct > 0)
-      return [
-        'bg-[rgb(234,98,86)]',
-        'bg-[rgb(234,98,86)]',
-        'bg-[rgb(234,98,86)]',
-      ];
-    return [
-      'bg-[rgba(234,98,86,0.5)]',
-      'bg-[rgba(234,98,86,0.5)]',
-      'bg-[rgba(234,98,86,0.5)]',
-    ];
-  };
-
-  const [ball1, ball2, ball3] = getBallColors();
+  const problems = trackerProblems({ isDisconnected, batteryPct, ping });
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -193,356 +112,171 @@ export function ClaudeTrackerWindowCard({
     onClick?.(origin);
   };
 
+  // Compact card: icon on the left, name and problems in the middle, readings on the right.
+  // Orange only marks motion; a quiet card means a healthy tracker.
   return (
     <div
       onClick={handleCardClick}
       className={classNames(
-        'home-tracker-card group relative flex flex-col rounded-[12px] overflow-hidden bg-background-60 border transition-[border-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer select-none hover:-translate-y-0.5 active:scale-[0.985] active:duration-150',
+        'home-tracker-card group relative flex h-24 items-center gap-3 rounded-[12px] border bg-background-60 px-3 transition-[border-color,box-shadow] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
         isMoving
           ? 'tracker-card-moving'
-          : 'border-background-10/[0.08] hover:border-background-10/[0.2] shadow-xs hover:shadow-lg'
+          : 'border-transparent hover:border-background-10/[0.2]'
       )}
     >
-      {/* Card Header Banner */}
-      <div className="home-tracker-card__banner relative h-30 sm:h-32 w-full bg-background-70 border-b border-background-10/[0.06] overflow-hidden flex flex-col justify-between p-2.5 select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
-        {/* Card controls */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div
-            className="home-tracker-card__dots flex items-center gap-1.5"
-            title={
-              isDisconnected
-                ? 'Disconnected'
-                : batteryPct != null
-                  ? `Battery: ${Math.round(batteryPct)}%`
-                  : 'Active'
-            }
-          >
-            <span
-              className={classNames(
-                'h-2 w-2 shrink-0 rounded-full transition-colors duration-300',
-                ball1
-              )}
-            />
-            <span
-              className={classNames(
-                'h-2 w-2 shrink-0 rounded-full transition-colors duration-300',
-                ball2
-              )}
-            />
-            <span
-              className={classNames(
-                'h-2 w-2 shrink-0 rounded-full transition-colors duration-300',
-                ball3
-              )}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {bun ? (
-              <button
-                type="button"
-                onClick={toggle3D}
-                title={show3D ? 'Show the body icon' : 'Show the live 3D view'}
-                className="rounded-[3px] border border-background-10/[0.1] bg-background-10/[0.04] px-1.5 py-px font-mono text-[11px] tracking-wide text-background-30 hover:border-accent-background-30 hover:text-accent-background-10 select-none cursor-pointer transition-colors"
-              >
-                {show3D ? '2D' : '3D'}
-              </button>
-            ) : (
-            <button
-              type="button"
-              onClick={toggle3D}
-              className={classNames(
-                'px-1.5 py-0.5 rounded text-ui-2xs font-mono font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.95] cursor-pointer select-none flex items-center gap-1 border',
-                show3D
-                  ? 'tracker-accent-fill bg-accent-background-20 border-accent-background-20 text-white shadow-xs'
-                  : 'bg-background-10/[0.04] hover:bg-background-10/[0.08] border-background-10/[0.08] text-background-30 hover:text-background-10'
-              )}
-              title={show3D ? 'Hide 3D realtime view' : 'Show 3D realtime view'}
-            >
-              <svg
-                className="w-3 h-3"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                <line x1="12" y1="22.08" x2="12" y2="12" />
-              </svg>
-              <span>3D</span>
-            </button>
-            )}
-            <span className="home-tracker-card__tag text-ui-2xs font-mono font-medium text-background-30 tracking-wide">
-              {tag}
-            </span>
-          </div>
-          {/* Bun: the status sits in the preview's corner, so the name below gets the full width. */}
-          {bun && (
-            <TrackerStatusBadge
-              isDisconnected={isDisconnected}
-              isMoving={isMoving}
-            />
-          )}
-        </div>
-
-        {/* Main Graphic / 3D Realtime IMU Render Area */}
-        <div className="relative z-10 w-full flex-grow flex items-center">
-          {show3D ? (
-            <div className="w-full h-full flex items-center justify-between">
-              {/* Tracker body icon shifted smoothly to the left */}
-              <div
-                className={classNames(
-                  'tracker-accent shrink-0 pl-0.5 transition-all duration-250 ease-out',
-                  isMoving
-                    ? 'tracker-moving scale-[1.03] text-motion fill-motion drop-shadow-[0_0_6px_rgba(var(--motion),0.6)]'
-                    : classNames(
-                        isDemo
-                          ? 'tracker-demo-idle'
-                          : 'opacity-85 text-accent-background-10 fill-accent-background-20'
-                      )
-                )}
-              >
-                <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={34} />
-              </div>
-
-              {/* Realtime 3D Render filling the remaining ~80% of the banner */}
-              <div className="flex-grow h-full w-full relative flex items-center justify-center pointer-events-none overflow-hidden">
-                <CardIMUVisualizer tracker={tracker} height={bun ? 66 : 105} />
-              </div>
-            </div>
-          ) : (
-            /* Centered Graphic Icon - Limb Silhouette with Movement Pulse */
-            <div
-              className={classNames(
-                'tracker-accent w-full flex items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
-                isMoving
-                  ? 'tracker-moving scale-[1.06] -translate-y-0.5 text-motion fill-motion drop-shadow-[0_0_10px_rgba(var(--motion),0.7)]'
-                  : classNames(
-                      'group-hover:scale-105',
-                      isDemo
-                        ? 'tracker-demo-idle'
-                        : 'text-accent-background-10 fill-accent-background-20'
-                    )
-              )}
-            >
-              <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={46} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {bun ? (
-        <TrackerCardStats
-          name={trackerName}
-          batteryPct={batteryPct}
-          batteryVoltage={batteryVoltage}
-          ping={ping}
-          rssi={rssi}
-        />
-      ) : (
-      /* Card Body */
-      <div className="p-3 sm:p-3.5 flex flex-col flex-grow justify-between">
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-serif text-ui-xs sm:text-ui-sm font-normal tracking-tight transition-colors truncate text-background-10 group-hover:text-accent-background-20">
-              {trackerName}
-            </h3>
-            {isDisconnected ? (
-              <span className="px-1.5 py-0.5 rounded-[5px] text-ui-2xs font-mono font-medium uppercase shrink-0 bg-background-10/[0.04] text-background-40 border border-background-10/[0.06]">
-                Offline
-              </span>
-            ) : (
-              <span
-                className={classNames(
-                  'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[5px] text-ui-2xs font-mono font-medium shrink-0 border transition-colors',
-                  ping == null || ping <= 40
-                    ? 'bg-status-success/10 text-status-success border-status-success/20'
-                    : ping <= 90
-                      ? 'bg-status-warning/10 text-status-warning border-status-warning/20'
-                      : 'bg-status-critical/10 text-status-critical border-status-critical/20'
-                )}
-                title={ping != null ? `Ping latency: ${ping}ms` : 'Connected'}
-              >
-                <span
-                  className={classNames(
-                    'w-1.5 h-1.5 rounded-full shrink-0',
-                    ping == null || ping <= 40
-                      ? 'bg-status-success'
-                      : ping <= 90
-                        ? 'bg-status-warning'
-                        : 'bg-status-critical'
-                  )}
-                />
-                {ping != null ? `${ping}ms` : 'Connected'}
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-ui-2xs leading-snug text-background-30 font-sans truncate">
-            {descItems.join(' · ')}
-          </p>
-        </div>
-      </div>
-      )}
-    </div>
-  );
-}
-
-/** Bun: the card footer. The name gets room for two lines, the status is a pill, and each reading has a label. */
-function TrackerStatusBadge({
-  isDisconnected,
-  isMoving,
-}: {
-  isDisconnected: boolean;
-  isMoving: boolean;
-}) {
-  const status = isDisconnected ? 'Offline' : isMoving ? 'Moving' : 'Connected';
-  const statusTone = isDisconnected
-    ? 'text-background-30'
-    : isMoving
-      ? 'text-motion'
-      : 'text-status-success';
-  return (
-    <span
-      className={classNames(
-        'ml-auto shrink-0 rounded-[3px] border border-background-10/[0.1] bg-background-80/70 px-1.5 py-px font-mono text-[11px] uppercase tracking-wide',
-        statusTone
-      )}
-    >
-      {status}
-    </span>
-  );
-}
-
-/** Bun: the card body under the preview. One line for the name, then the stats as one-line rows. */
-function TrackerCardStats({
-  name,
-  batteryPct,
-  batteryVoltage,
-  ping,
-  rssi,
-}: {
-  name: string;
-  batteryPct?: number | null;
-  batteryVoltage?: number | null;
-  ping?: number | null;
-  rssi?: number | null;
-}) {
-  const pingTone =
-    ping == null || ping <= 0
-      ? undefined
-      : ping <= 40
-        ? 'text-status-success'
-        : ping <= 90
-          ? 'text-status-warning'
-          : 'text-status-critical';
-
-  return (
-    <div className="flex flex-grow flex-col gap-1.5 px-2.5 py-2">
-      <h3
-        className="home-tracker-card__name min-w-0 truncate font-serif text-[14px] font-semibold leading-snug text-background-10 transition-colors group-hover:text-accent-background-20"
-        title={name}
+      <button
+        type="button"
+        onClick={toggle3D}
+        title={show3D ? 'Show the body icon' : 'Show the live 3D view'}
+        aria-pressed={show3D}
+        className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-background-70 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20"
       >
-        {name}
-      </h3>
-      <BatteryBar pct={batteryPct} />
-      <dl className="grid grid-cols-3 gap-1">
-        <TrackerStat
-          label="Volt"
-          value={
-            batteryVoltage != null && batteryVoltage > 0
-              ? `${batteryVoltage.toFixed(1)}V`
-              : '--'
-          }
-        />
-        <TrackerStat
-          label="Ping"
-          value={ping != null && ping > 0 ? `${ping}ms` : '--'}
-          tone={pingTone}
-        />
-        <TrackerStat
-          label="RSSI"
-          value={rssi != null ? `${rssi}` : '--'}
-          title={rssi != null ? `Signal: ${rssi} dBm` : undefined}
-        />
-      </dl>
-    </div>
-  );
-}
+        {show3D ? (
+          <CardIMUVisualizer tracker={tracker} height={60} />
+        ) : (
+          <span
+            className={classNames(
+              'tracker-accent flex items-center justify-center',
+              isMoving
+                ? 'tracker-moving tracker-wiggle text-motion fill-motion'
+                : 'text-background-20 fill-background-20'
+            )}
+          >
+            <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={40} />
+          </span>
+        )}
+      </button>
 
-/** Bun: battery as a battery shape whose fill is the charge, with the % beside it. */
-function BatteryBar({ pct }: { pct?: number | null }) {
-  const known = pct != null;
-  const level = known ? Math.max(0, Math.min(100, Math.round(pct))) : 0;
-  const [fill, text] =
-    level <= 20
-      ? ['bg-status-critical', 'text-status-critical']
-      : level <= 40
-        ? ['bg-status-warning', 'text-status-warning']
-        : ['bg-status-success', 'text-background-10'];
-  return (
-    <div
-      className="flex items-center gap-1.5"
-      title={known ? `Battery: ${level}%` : 'Battery unknown'}
-    >
-      <div className="flex min-w-0 flex-1 items-center">
-        <div
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <h3
+          className="truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
+          title={trackerName}
+        >
+          {trackerName}
+        </h3>
+        {problems.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {problems.map((problem) => (
+              <span
+                key={problem.label}
+                className={classNames(
+                  'rounded-[3px] border px-1.5 py-px font-mono text-[10.5px] uppercase tracking-wide',
+                  problem.tone
+                )}
+              >
+                {problem.label}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="font-sans text-ui-2xs text-background-30">
+            Connected
+          </span>
+        )}
+      </div>
+
+      <div className="flex shrink-0 flex-col items-end gap-1 font-mono text-[12px] leading-none tnum">
+        <span
+          title={
+            batteryVoltage != null && batteryVoltage > 0
+              ? `Battery ${batteryPct != null ? `${Math.round(batteryPct)}% · ` : ''}${batteryVoltage.toFixed(2)} V`
+              : 'Battery'
+          }
           className={classNames(
-            'h-3 flex-1 rounded-[2px] border p-px',
-            known
-              ? 'border-background-10/[0.25]'
-              : 'border-dashed border-background-10/[0.2]'
+            batteryPct == null
+              ? 'text-background-30'
+              : batteryPct < LOW_BATTERY_PCT
+                ? 'text-status-critical'
+                : batteryPct <= 40
+                  ? 'text-status-warning'
+                  : 'text-background-10'
           )}
         >
-          <div
-            className={classNames(
-              'h-full rounded-[1px] transition-[width] duration-500',
-              fill
-            )}
-            style={{ width: `${level}%` }}
-          />
-        </div>
-        <div className="h-1.5 w-[3px] shrink-0 rounded-r-[1px] bg-background-10/[0.25]" />
+          {batteryPct != null ? `${Math.round(batteryPct)}%` : '--'}
+        </span>
+        <SignalBars rssi={isDisconnected ? null : rssi} />
+        <span
+          title="Ping"
+          className={classNames(
+            ping != null && ping > HIGH_PING_MS
+              ? 'text-status-warning'
+              : 'text-background-20'
+          )}
+        >
+          {ping != null && ping > 0 ? `${ping}ms` : '--'}
+        </span>
       </div>
-      <span
-        className={classNames(
-          'tnum w-9 shrink-0 text-right text-[13px] font-medium leading-snug',
-          known ? text : 'text-background-30'
-        )}
-      >
-        {known ? `${level}%` : '—'}
-      </span>
     </div>
   );
 }
 
-function TrackerStat({
-  label,
-  value,
-  tone,
-  title,
+const LOW_BATTERY_PCT = 15;
+const HIGH_PING_MS = 50;
+
+/** Chips appear only for something the user should act on. */
+function trackerProblems({
+  isDisconnected,
+  batteryPct,
+  ping,
 }: {
-  label: string;
-  value: string;
-  tone?: string;
-  title?: string;
+  isDisconnected: boolean;
+  batteryPct?: number | null;
+  ping?: number | null;
 }) {
+  if (isDisconnected) {
+    return [
+      {
+        label: 'Offline',
+        tone: 'border-background-10/[0.12] text-background-30',
+      },
+    ];
+  }
+  const problems: { label: string; tone: string }[] = [];
+  if (batteryPct != null && batteryPct < LOW_BATTERY_PCT) {
+    problems.push({
+      label: 'Low batt',
+      tone: 'border-status-critical/30 text-status-critical',
+    });
+  }
+  if (ping != null && ping > HIGH_PING_MS) {
+    problems.push({
+      label: 'High ping',
+      tone: 'border-status-warning/30 text-status-warning',
+    });
+  }
+  return problems;
+}
+
+/** Four signal bars from RSSI; the dBm value is in the tooltip. */
+function SignalBars({ rssi }: { rssi?: number | null }) {
+  const bars =
+    rssi == null || rssi === 0
+      ? 0
+      : rssi >= -55
+        ? 4
+        : rssi >= -65
+          ? 3
+          : rssi >= -75
+            ? 2
+            : 1;
   return (
-    <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-1 rounded-[3px] border border-background-10/[0.06] bg-background-10/[0.03] px-1 py-0.5"
-      title={title}>
-      <dt className="shrink-0 font-mono text-[10.5px] uppercase tracking-wide text-background-30">
-        {label}
-      </dt>
-      <dd
-        className={classNames(
-          'tnum min-w-0 max-w-full truncate text-[13px] font-medium leading-snug text-background-10',
-          tone
-        )}
-      >
-        {value}
-      </dd>
-    </div>
+    <span
+      className="flex h-3 items-end gap-[2px]"
+      title={rssi != null && rssi !== 0 ? `Signal: ${rssi} dBm` : 'No signal'}
+      role="img"
+      aria-label={`Signal ${bars} of 4`}
+    >
+      {[1, 2, 3, 4].map((bar) => (
+        <span
+          key={bar}
+          className={classNames(
+            'w-[3px] rounded-[1px]',
+            bar <= bars ? 'bg-background-10' : 'bg-background-10/[0.18]'
+          )}
+          style={{ height: `${bar * 25}%` }}
+        />
+      ))}
+    </span>
   );
 }
 
@@ -837,12 +571,11 @@ export function HomeEmptyState({
             /* Live Connected Trackers Rendered As Claude Window Cards */
             <div
               className={classNames(
-                'grid gap-5 sm:gap-6 w-full max-w-[980px]',
-                'grid-cols-2'
+                'grid w-full max-w-[980px] gap-3 grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))]'
               )}
             >
               {allTrackers.map(({ tracker, device }, idx) => {
-                const cols = 2;
+                const cols = 3;
                 const col = idx % cols;
                 const row = Math.floor(idx / cols);
 
