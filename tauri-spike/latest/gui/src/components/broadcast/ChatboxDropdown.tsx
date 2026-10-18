@@ -40,7 +40,8 @@ import './ChatboxDropdown.scss';
 
 const textInput =
   'h-8 min-w-0 rounded-[8px] border border-[var(--material-border-subtle)] bg-background-10/[0.06] px-2.5 text-ui-xs text-background-10 placeholder-background-30 focus:border-accent-background-20 focus:outline-none';
-const selectClass = `${textInput} max-w-[190px] cursor-pointer truncate`;
+// The 8px padding and 24px line height selects get elsewhere left 14px for the text in a 32px box and cut it in half.
+const selectClass = `${textInput} w-[13rem] max-w-full !py-0 !leading-[1.3] cursor-pointer truncate`;
 const primaryButton =
   'inline-flex h-8 cursor-pointer select-none items-center justify-center rounded-[8px] bg-accent-background-20 px-3.5 text-ui-xs font-medium text-white transition-colors hover:bg-accent-background-40 active:scale-[0.98]';
 const ghostButton =
@@ -1172,10 +1173,7 @@ export function ChatboxDropdown({
                       </button>
                     </div>
                   </SettingRow>
-                  <SettingRow
-                    label="Microphone"
-                    description="Audio input source"
-                  >
+                  <SettingRow label="Microphone">
                     <select
                       value={dictation.settings.inputDeviceId || 'default'}
                       onChange={(e) =>
@@ -1193,10 +1191,7 @@ export function ChatboxDropdown({
                       ))}
                     </select>
                   </SettingRow>
-                  <SettingRow
-                    label="Translate speech"
-                    description="Target output language"
-                  >
+                  <SettingRow label="Translate speech">
                     <select
                       value={dictation.settings.targetLanguage}
                       onChange={(e) =>

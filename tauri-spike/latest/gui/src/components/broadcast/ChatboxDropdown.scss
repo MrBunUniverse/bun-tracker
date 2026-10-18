@@ -27,6 +27,17 @@
   }
 }
 
+/* Narrow windows: the 440px panel no longer fits beside the pill, so it pins to the window's right edge. */
+@media (max-width: 960px) {
+  .chatbox-control--top .chatbox-panel {
+    position: fixed;
+    top: 58px;
+    left: auto;
+    right: 10px;
+    width: min(440px, calc(100vw - 20px));
+  }
+}
+
 .chatbox-control--top .chatbox-panel--open {
   animation-name: chatbox-panel-open-top;
 }
@@ -73,11 +84,11 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
-  width: 360px;
+  width: 440px;
   max-width: calc(100vw - 24px);
   /* Never taller than the window: header and composer stay pinned and only
      the middle (.chatbox-body) scrolls. */
-  max-height: min(600px, calc(100dvh - 96px));
+  max-height: calc(100dvh - 72px);
   padding: 16px;
   display: flex;
   flex-direction: column;
