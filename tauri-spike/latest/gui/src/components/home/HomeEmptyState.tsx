@@ -6,6 +6,7 @@ import {
   assignedTrackersAtom,
   unassignedTrackersAtom,
   hasRealTrackersAtom,
+  connectedIMUTrackersAtom,
   active3DTrackerKeysAtom,
   cardMorphOriginAtom,
   CardMorphOrigin,
@@ -13,6 +14,7 @@ import {
 import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
 import { demoModeAtom, toggleDemoModeAtom } from '@/store/demo-trackers';
 import { useTracker } from '@/hooks/tracker';
+import { useTrackerPresets } from '@/hooks/presets';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
 import { PawEars } from '@/components/commons/PawEars';
 import { PixelIcon } from '@/components/commons/PixelIcon';
@@ -35,9 +37,13 @@ export function ClaudeTrackerWindowCard({
   device?: DeviceDataT;
   onClick?: (origin: CardMorphOrigin) => void;
 }) {
-  const { useName, useVelocity } = useTracker(tracker);
+  const { useName, useVelocity, useIdentAdjRotationEulerDegrees } =
+    useTracker(tracker);
   const trackerName = useName();
   const velocity = useVelocity();
+  // The icon leans with the tracker's roll (after reset), capped so it stays readable.
+  const roll = useIdentAdjRotationEulerDegrees()?.z ?? 0;
+  const tilt = Math.max(-25, Math.min(25, roll));
   const isDemo = useAtomValue(demoModeAtom);
   const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
   const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
@@ -135,8 +141,9 @@ export function ClaudeTrackerWindowCard({
           <CardIMUVisualizer tracker={tracker} height={60} />
         ) : (
           <span
+            style={{ rotate: `${tilt.toFixed(0)}deg` }}
             className={classNames(
-              'tracker-accent flex items-center justify-center',
+              'tracker-accent flex items-center justify-center transition-[rotate] duration-200',
               isMoving
                 ? 'tracker-moving tracker-wiggle text-motion fill-motion'
                 : 'text-background-20 fill-background-20'
@@ -304,6 +311,9 @@ const SETUP_LINKS = [
 /** Shown while no tracker is connected: what to do next, in order. */
 function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   const { config } = useConfig();
+  const { activePreset } = useTrackerPresets();
+  const expected = activePreset?.targetCount ?? 5;
+  const connected = useAtomValue(connectedIMUTrackersAtom).length;
   const bun = isPawTheme(config?.theme);
   const animate = config?.animations !== false;
   const logoRef = useRef<HTMLSpanElement>(null);
@@ -349,6 +359,24 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
           Turn on your trackers near this computer. They connect on their own
           and appear here.
         </p>
+        {/* One slot per expected tracker; each lights up as a tracker connects. */}
+        <div
+          className="mt-3 flex items-center gap-1.5"
+          role="img"
+          aria-label={`${connected} of ${expected} trackers connected`}
+        >
+          {Array.from({ length: expected }, (_, i) => (
+            <span
+              key={i}
+              className={classNames(
+                'h-2 w-2 rounded-full transition-colors duration-500',
+                i < connected
+                  ? 'bg-status-success'
+                  : 'border border-background-10/[0.25]'
+              )}
+            />
+          ))}
+        </div>
       </div>
 
       <ol className="mt-6 flex w-full max-w-[420px] flex-col divide-y divide-[var(--material-border-subtle)] text-left">
