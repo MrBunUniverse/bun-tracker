@@ -1010,17 +1010,6 @@ body {
   border-radius: 0;
 }
 
-/* Toggle tracks get the same stepped outline. Their knob stays a circle (rounded-full), and the icon-only theme switch is left alone. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) button[role='switch'][class*='rounded-full'] {
-  --e: rgb(var(--background-50));
-  border-radius: 0 !important;
-  box-shadow:
-    0 -2px 0 0 var(--e),
-    0 2px 0 0 var(--e),
-    -2px 0 0 0 var(--e),
-    2px 0 0 0 var(--e);
-}
-
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [class*='rounded-']:not([class*='rounded-full']) {
   border-radius: 3px !important;
 }
