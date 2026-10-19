@@ -29,6 +29,55 @@ const RIPPLE = [
 ];
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
+// Wordmark mode: "SlimeVR" is drawn in a 5x7 dot font instead of the grid. The letters glow faintly while a wave runs
+// and fade out when the surface is still; the ripples only light up letter cells.
+const WORD = [
+  'rgba(239, 230, 214, 0.05)',
+  'rgba(239, 230, 214, 0.1)',
+  'rgba(239, 230, 214, 0.17)',
+];
+// Wave height at which the letters are fully lit.
+const WORD_PEAK = 0.3;
+const WORD_TEXT = 'SlimeVR';
+const FONT: Record<string, string[]> = {
+  S: ['01110', '10001', '10000', '01110', '00001', '10001', '01110'],
+  l: ['01100', '00100', '00100', '00100', '00100', '00100', '01110'],
+  i: ['00100', '00000', '01100', '00100', '00100', '00100', '01110'],
+  m: ['00000', '00000', '11010', '10101', '10101', '10101', '10101'],
+  e: ['00000', '00000', '01110', '10001', '11111', '10000', '01110'],
+  V: ['10001', '10001', '10001', '10001', '01010', '01010', '00100'],
+  R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
+};
+
+// Cell mask for the wordmark: centred across, in the upper fifth so the welcome card sits below it.
+// Scales up on wide windows (1x to 3x per font pixel).
+function buildWord(cols: number, rows: number) {
+  const scale = Math.max(1, Math.min(3, Math.floor(cols / 50)));
+  const glyphW = 5;
+  const glyphH = 7;
+  const width = (WORD_TEXT.length * (glyphW + 1) - 1) * scale;
+  const height = glyphH * scale;
+  const x0 = Math.floor((cols - width) / 2);
+  const y0 = Math.round(rows * 0.2 - height / 2);
+  const mask = new Uint8Array(cols * rows);
+  [...WORD_TEXT].forEach((ch, n) => {
+    const glyph = FONT[ch];
+    glyph.forEach((bits, r) => {
+      [...bits].forEach((bit, c) => {
+        if (bit !== '1') return;
+        for (let dy = 0; dy < scale; dy++) {
+          for (let dx = 0; dx < scale; dx++) {
+            const x = x0 + (n * (glyphW + 1) + c) * scale + dx;
+            const y = y0 + r * scale + dy;
+            if (x >= 0 && y >= 0 && x < cols && y < rows)
+              mask[y * cols + x] = 1;
+          }
+        }
+      });
+    });
+  });
+  return mask;
+}
 
 function rippleLevel(height: number) {
   const a = Math.abs(height);
@@ -41,6 +90,8 @@ function rippleLevel(height: number) {
 export function RippleDots({
   dots = false,
   solid = false,
+  // Draws "SlimeVR" in dots instead of the grid, and lets the ripples light only those letters.
+  wordmark = false,
   originEl,
   gapMin = 1500,
   gapMax = 4000,
@@ -49,6 +100,7 @@ export function RippleDots({
   dots?: boolean;
   // Paints the grid over a page-coloured backdrop, so ripple dots replace body's dots instead of stacking on them.
   solid?: boolean;
+  wordmark?: boolean;
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
@@ -78,6 +130,8 @@ export function RippleDots({
     // Two height buffers: the current frame and the one before it.
     let cur = new Float32Array(0);
     let prev = new Float32Array(0);
+    // Wordmark cells (null when the grid is drawn instead).
+    let word: Uint8Array | null = null;
     // Drops still in play, with their age in frames. Turbulence grows with the distance to the nearest one.
     let drops: { x: number; y: number; age: number }[] = [];
     // The page colour behind the canvas, read from body; empty when body is see-through.
@@ -109,6 +163,7 @@ export function RippleDots({
       rows = Math.floor((h - offY) / CELL) + 1;
       cur = new Float32Array(cols * rows);
       prev = new Float32Array(cols * rows);
+      word = wordmark ? buildWord(cols, rows) : null;
       drops = [];
     };
 
@@ -150,7 +205,7 @@ export function RippleDots({
         ctx.fillStyle = backdrop;
         ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       }
-      if (dots || solid) {
+      if ((dots || solid) && !word) {
         ctx.fillStyle = BASE;
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
@@ -185,13 +240,33 @@ export function RippleDots({
           }
         }
       }
+      // Wordmark: the letters glow while the surface is moving, and drop back to nothing once it is still.
+      if (word) {
+        const lit = moving
+          ? Math.min(1, Math.max(0, (peak - IDLE) / WORD_PEAK))
+          : 1;
+        if (lit > 0) {
+          ctx.fillStyle =
+            WORD[Math.min(WORD.length - 1, Math.floor(lit * WORD.length))];
+          for (let i = 0; i < word.length; i++) {
+            if (!word[i]) continue;
+            ctx.fillRect(
+              offX + (i % cols) * CELL - DOT / 2,
+              offY + Math.floor(i / cols) * CELL - DOT / 2,
+              DOT,
+              DOT
+            );
+          }
+        }
+      }
       let lastLevel = -1;
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const i = y * cols + x;
+          if (word && !word[i]) continue;
           const level = rippleLevel(cur[i]);
           if (level === 0) {
-            if (halo[i] === 0) continue;
+            if (word || halo[i] === 0) continue;
             ctx.fillStyle = HALO[halo[i] - 1];
             lastLevel = -1;
             ctx.fillRect(
@@ -284,7 +359,7 @@ export function RippleDots({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [shown, animate, dots, solid, originEl, gapMin, gapMax]);
+  }, [shown, animate, dots, solid, wordmark, originEl, gapMin, gapMax]);
 
   if (!shown) return null;
 

@@ -18,7 +18,7 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
   // The water ripple sits behind every setup step, and stays mounted while the steps change. In Bun only.
   return !state.alonePage ? (
     <div className="onboarding-layout relative isolate h-full">
-      <RippleDots solid />
+      <RippleDots solid wordmark={pathname === '/onboarding/home'} />
       <div style={{ gridArea: 't' }}>
         {/* Setup shows only its own progress: no server/Broadcast/Dongle pills, and no bar on the welcome tab. */}
         <TopBar
