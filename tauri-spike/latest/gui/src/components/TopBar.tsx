@@ -73,31 +73,31 @@ export function TopBar({
       <header className="relative z-[65] flex flex-col">
         <div
           className={classNames(
-            // Wraps onto a second line in narrow windows (high zoom) so every button stays visible.
-            'z-40 flex min-h-[46px] select-none flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
+            // The right group (GUI reset, full reset, window controls) never wraps, so it stays top right at every zoom. Only the status items on the left wrap.
+            'z-40 flex min-h-[46px] select-none flex-nowrap items-start gap-x-3 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
             'pl-4'
           )}
           style={{ WebkitAppRegion: 'drag' } as any}
           data-electron-drag-region
         >
-          {!hideStatus && (
-            <>
-              <StatusCluster />
-              <ChatboxDropdown variant="top" />
-              <QuestDiagnosticsCard />
-              <DonglePill />
-            </>
-          )}
-
           <div
-            className="h-full min-w-0 flex-1"
+            className="flex min-h-[36px] min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5"
             style={{ WebkitAppRegion: 'drag' } as any}
             data-electron-drag-region
-          />
+          >
+            {!hideStatus && (
+              <>
+                <StatusCluster />
+                <ChatboxDropdown variant="top" />
+                <QuestDiagnosticsCard />
+                <DonglePill />
+              </>
+            )}
+          </div>
 
           <div
             style={{ WebkitAppRegion: 'no-drag' } as any}
-            className="flex shrink-0 items-center gap-1"
+            className="flex h-[36px] shrink-0 items-center gap-1"
           >
             {version && electron.isElectron && (
               <IconButton
