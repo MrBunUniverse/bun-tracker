@@ -224,6 +224,8 @@ function initializePreview(
   const FRAME_PADDING = 0.08; // metres, so a swinging hand never touches the edge
   const MIN_FRAME_RADIUS = 0.5;
   const FRAME_LIFT = 0.22;
+  // The narrowest panel shape the framing fits (width over height).
+  const FRAME_MIN_ASPECT = 0.5;
   // Lying down: the body is long and flat, so the view turns to look straight down on it.
   const LYING_RATIO = 0.5;
   // Spring times in seconds. The zoom opens fast so nothing is cut off and closes slowly, so
@@ -301,7 +303,12 @@ function initializePreview(
     const major = lying ? halfWide : halfHeight;
     const needHeight = major * FRAME_MARGIN + FRAME_PADDING;
     const needWidth = halfWide * FRAME_MARGIN + FRAME_PADDING;
-    const wantRadius = Math.max(needHeight, needWidth / Math.max(aspect, 0.01));
+    // A panel that is still opening is nearly zero wide, which would zoom the camera far out. Clamp the
+    // shape the width can ask for; standing bodies are height-limited, so normal panels don't change.
+    const wantRadius = Math.max(
+      needHeight,
+      needWidth / Math.max(aspect, FRAME_MIN_ASPECT)
+    );
     // Standing: aim a little below the centre, so the body sits above the control strip.
     if (!lying) frameTarget.y -= wantRadius * FRAME_LIFT;
 
