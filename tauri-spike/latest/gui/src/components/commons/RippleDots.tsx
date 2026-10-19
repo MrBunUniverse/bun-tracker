@@ -34,13 +34,12 @@ const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
 const GLYPHS = [...'slimevr'];
 const GLYPH_FONT = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
 const WORD = [
-  'rgba(239, 230, 214, 0.18)',
-  'rgba(239, 230, 214, 0.26)',
-  'rgba(239, 230, 214, 0.34)',
+  'rgba(239, 230, 214, 0.5)',
+  'rgba(239, 230, 214, 0.62)',
+  'rgba(239, 230, 214, 0.8)',
 ];
 // Wave height at which the letters are fully lit.
 const WORD_PEAK = 0.3;
-const WORD_TEXT = 'SlimeVR';
 const FONT: Record<string, string[]> = {
   S: ['01110', '10001', '10000', '01110', '00001', '10001', '01110'],
   l: ['01100', '00100', '00100', '00100', '00100', '00100', '01110'],
@@ -49,32 +48,46 @@ const FONT: Record<string, string[]> = {
   e: ['00000', '00000', '01110', '10001', '11111', '10000', '01110'],
   V: ['10001', '10001', '10001', '10001', '01010', '01010', '00100'],
   R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
+  W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'],
+  c: ['00000', '00000', '01110', '10001', '10000', '10001', '01110'],
+  o: ['00000', '00000', '01110', '10001', '10001', '10001', '01110'],
+  t: ['01000', '01000', '11100', '01000', '01000', '01001', '00110'],
+  M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'],
+  r: ['00000', '00000', '10110', '11001', '10000', '10000', '10000'],
+  B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
+  u: ['00000', '00000', '10001', '10001', '10001', '10011', '01101'],
+  n: ['00000', '00000', '10110', '11001', '10001', '10001', '10001'],
+  '-': ['00000', '00000', '00000', '01110', '00000', '00000', '00000'],
+  ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
 };
 
-// Cell mask for the wordmark: centred across, in the upper fifth so the welcome card sits below it.
-// Scales up on wide windows (1x to 3x per font pixel).
-function buildWord(cols: number, rows: number) {
-  const scale = Math.max(1, Math.min(3, Math.floor(cols / 50)));
-  const glyphW = 5;
-  const glyphH = 7;
-  const width = (WORD_TEXT.length * (glyphW + 1) - 1) * scale;
-  const height = glyphH * scale;
-  const x0 = Math.floor((cols - width) / 2);
-  const y0 = Math.round(rows * 0.2 - height / 2);
+// Cell mask for the wordmark: each line centred across, the block in the upper part so the welcome card sits below it.
+// Scales up on wide windows (1x to 2x per font pixel).
+function buildWord(cols: number, rows: number, lines: string[]) {
+  const scale = Math.max(1, Math.min(2, Math.floor(cols / 90)));
+  const advance = 6; // a 5-wide glyph and a one-cell gap
+  const lineStep = 9; // 7 rows of glyph and 2 rows between lines
+  const leftOf = (line: string) =>
+    Math.floor((cols - (line.length * advance - 1) * scale) / 2);
+  const y0 = Math.round(rows * 0.08);
   const mask = new Uint8Array(cols * rows);
-  [...WORD_TEXT].forEach((ch, n) => {
-    const glyph = FONT[ch];
-    glyph.forEach((bits, r) => {
-      [...bits].forEach((bit, c) => {
-        if (bit !== '1') return;
-        for (let dy = 0; dy < scale; dy++) {
-          for (let dx = 0; dx < scale; dx++) {
-            const x = x0 + (n * (glyphW + 1) + c) * scale + dx;
-            const y = y0 + r * scale + dy;
-            if (x >= 0 && y >= 0 && x < cols && y < rows)
-              mask[y * cols + x] = 1;
+  lines.forEach((line, li) => {
+    const left = leftOf(line);
+    [...line].forEach((ch, n) => {
+      const glyph = FONT[ch];
+      if (!glyph) return;
+      glyph.forEach((bits, r) => {
+        [...bits].forEach((bit, c) => {
+          if (bit !== '1') return;
+          for (let dy = 0; dy < scale; dy++) {
+            for (let dx = 0; dx < scale; dx++) {
+              const x = left + (n * advance + c) * scale + dx;
+              const y = y0 + (li * lineStep + r) * scale + dy;
+              if (x >= 0 && y >= 0 && x < cols && y < rows)
+                mask[y * cols + x] = 1;
+            }
           }
-        }
+        });
       });
     });
   });
@@ -110,7 +123,7 @@ export function RippleDots({
   dots = false,
   solid = false,
   glyphs = false,
-  wordmark = false,
+  wordmark,
   originEl,
   gapMin = 1500,
   gapMax = 4000,
@@ -121,8 +134,8 @@ export function RippleDots({
   solid?: boolean;
   // Each cell is a dot at rest and a character from "slimevr" where a wave passes.
   glyphs?: boolean;
-  // Adds the SlimeVR letter shape on top of the pulse (welcome screen only). Needs `glyphs` to be on too.
-  wordmark?: boolean;
+  // Lines of text drawn in the dot font above the grid (the welcome title). Only characters in FONT can be used.
+  wordmark?: string[];
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
@@ -185,7 +198,7 @@ export function RippleDots({
       rows = Math.floor((h - offY) / CELL) + 1;
       cur = new Float32Array(cols * rows);
       prev = new Float32Array(cols * rows);
-      word = wordmark ? buildWord(cols, rows) : null;
+      word = wordmark ? buildWord(cols, rows, wordmark) : null;
       drops = [];
     };
 
@@ -279,18 +292,16 @@ export function RippleDots({
           }
         }
       }
-      // Wordmark: the letter cells light up over the grid while the surface moves, and drop back to plain grid once it is still.
+      // Wordmark: the title's cells stay visible at rest. A wave brightens them, and while one passes they become characters.
       if (word) {
-        const lit = moving
+        const pulse = moving
           ? Math.min(1, Math.max(0, (peak - IDLE) / WORD_PEAK))
           : 1;
-        if (lit > 0) {
-          ctx.fillStyle =
-            WORD[Math.min(WORD.length - 1, Math.floor(lit * WORD.length))];
-          for (let i = 0; i < word.length; i++) {
-            if (!word[i]) continue;
-            paint(i % cols, Math.floor(i / cols), true);
-          }
+        ctx.fillStyle =
+          WORD[Math.min(WORD.length - 1, Math.floor(pulse * WORD.length))];
+        for (let i = 0; i < word.length; i++) {
+          if (!word[i]) continue;
+          paint(i % cols, Math.floor(i / cols), pulse > 0);
         }
       }
       let lastLevel = -1;

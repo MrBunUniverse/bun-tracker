@@ -144,15 +144,18 @@ export function HomePage() {
           )}
         </div>
 
-        <h1 className="font-serif text-ui-xl sm:text-ui-xl font-normal tracking-tight text-background-10 min-h-[44px] flex items-center justify-center">
-          <span>{fullTitle.slice(0, typedChars)}</span>
-          {cursorVisible && (
-            <span
-              className="inline-block w-[3px] sm:w-[3.5px] h-[0.78em] bg-accent-background-20 ml-1.5 align-middle animate-terminal-cursor select-none rounded-[0.5px]"
-              aria-hidden="true"
-            />
-          )}
-        </h1>
+        {/* Bun draws the title in the dot art above the card instead. */}
+        {!bun && (
+          <h1 className="font-serif text-ui-xl sm:text-ui-xl font-normal tracking-tight text-background-10 min-h-[44px] flex items-center justify-center">
+            <span>{fullTitle.slice(0, typedChars)}</span>
+            {cursorVisible && (
+              <span
+                className="inline-block w-[3px] sm:w-[3.5px] h-[0.78em] bg-accent-background-20 ml-1.5 align-middle animate-terminal-cursor select-none rounded-[0.5px]"
+                aria-hidden="true"
+              />
+            )}
+          </h1>
+        )}
 
         <p
           className={classNames(
