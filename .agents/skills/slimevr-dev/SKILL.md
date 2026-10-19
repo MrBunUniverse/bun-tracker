@@ -5,7 +5,7 @@ description: Build, test, launch, diagnose, or modify this SlimeVR Kotlin server
 
 # SlimeVR Development
 
-Read [`../../../docs/dev/AI_DEVELOPMENT.md`](../../../docs/dev/AI_DEVELOPMENT.md) first. Preserve the dirty worktree, keep changes scoped, and select verification from the changed-area matrix there.
+The root `AGENTS.md` holds the repository map, commands, and verification matrix. Preserve the dirty worktree, keep changes scoped, and select verification from the changed-area matrix there.
 
 Load only the reference needed for the task:
 

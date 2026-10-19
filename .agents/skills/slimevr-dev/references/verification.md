@@ -16,6 +16,14 @@ cd gui && pnpm run build
 
 Do not encode a fixed test total in instructions; require zero failures and use the current runner output.
 
+Suites live in `gui/tests/` and run on Node's built-in runner through `tests/e2e-runner.ts`. They are source-contract and simulation tests; they do not replace browser, packaged-Electron, or connected-headset checks. `tier1`-`tier4` cover features, boundaries, combinations, and scenarios; `adaptive-bpm`, `quest-capture`, and `runtime-efficiency` are support suites; shared simulators are in `tests/helpers/test-utils.ts`. Run one file while iterating:
+
+```bash
+cd gui && node --test --experimental-strip-types tests/tier1-features.test.ts
+```
+
+Many tier tests assert on source text (class names, token values). When a UI change intentionally alters one, update the matching assertion in the same change.
+
 ## Server
 
 Run tests relevant to the modified server package, then rebuild the runtime artifact:
