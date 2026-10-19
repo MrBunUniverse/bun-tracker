@@ -151,7 +151,7 @@ export function StatusCluster() {
             null,
             'Connection details'
           )}
-          className="z-50 flex flex-col gap-3 rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          className="fixed z-50 flex flex-col gap-3 rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
           style={popover}
         >
           <h2 className="font-serif text-ui-md tracking-tight text-background-10">

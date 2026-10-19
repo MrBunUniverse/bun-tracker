@@ -180,7 +180,7 @@ export function QuestDiagnosticsCard() {
         <div
           role="dialog"
           aria-label="Quest controls"
-          className="z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          className="fixed z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
           style={popover}
         >
           <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-x-10 gap-y-4">
