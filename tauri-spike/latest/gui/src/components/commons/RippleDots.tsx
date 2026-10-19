@@ -29,8 +29,11 @@ const RIPPLE = [
 ];
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
-// Wordmark mode: "SlimeVR" is set in a 5x7 dot font on the grid. Its cells sprinkle in while a wave runs
-// and fade back to plain grid when the surface is still.
+// Wordmark mode: every grid cell is a character from "slimevr" instead of a dot. The SlimeVR letter shape
+// (5x7 dot font) lights up on top while a wave runs, and fades back to plain grid when the surface is still.
+const GLYPHS = [...'slimevr'];
+const GLYPH_BASE = 'rgba(239, 230, 214, 0.08)';
+const GLYPH_FONT = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
 const WORD = [
   'rgba(239, 230, 214, 0.18)',
   'rgba(239, 230, 214, 0.26)',
@@ -194,11 +197,34 @@ export function RippleDots({
       [cur, prev] = [prev, cur];
     };
 
-    // Paints the dots (when asked) and the ripples over them. Returns the biggest height, to tell when the surface is still.
+    // One grid cell: a dot, or a character from "slimevr" in wordmark mode. Its centre sits on the grid point.
+    const paint = (x: number, y: number) => {
+      if (word) {
+        ctx.fillText(
+          GLYPHS[(x + 3 * y) % GLYPHS.length],
+          offX + x * CELL,
+          offY + y * CELL
+        );
+        return;
+      }
+      ctx.fillRect(
+        offX + x * CELL - DOT / 2,
+        offY + y * CELL - DOT / 2,
+        DOT,
+        DOT
+      );
+    };
+
+    // Paints the grid (when asked) and the ripples over it. Returns the biggest height, to tell when the surface is still.
     const draw = () => {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (word) {
+        ctx.font = GLYPH_FONT;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+      }
       // The canvas paints the whole grid over a backdrop in the page colour, hiding body's own dots here.
       // Ripple dots then replace grid dots instead of stacking on them (which showed as doubled dots whenever the two grids were a pixel off).
       if (backdrop) {
@@ -206,16 +232,9 @@ export function RippleDots({
         ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       }
       if (dots || solid) {
-        ctx.fillStyle = BASE;
+        ctx.fillStyle = word ? GLYPH_BASE : BASE;
         for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            ctx.fillRect(
-              offX + x * CELL - DOT / 2,
-              offY + y * CELL - DOT / 2,
-              DOT,
-              DOT
-            );
-          }
+          for (let x = 0; x < cols; x++) paint(x, y);
         }
       }
       // Halo: 2 for cells next to a wave, 1 for cells two out.
@@ -250,12 +269,7 @@ export function RippleDots({
             WORD[Math.min(WORD.length - 1, Math.floor(lit * WORD.length))];
           for (let i = 0; i < word.length; i++) {
             if (!word[i]) continue;
-            ctx.fillRect(
-              offX + (i % cols) * CELL - DOT / 2,
-              offY + Math.floor(i / cols) * CELL - DOT / 2,
-              DOT,
-              DOT
-            );
+            paint(i % cols, Math.floor(i / cols));
           }
         }
       }
@@ -268,24 +282,14 @@ export function RippleDots({
             if (halo[i] === 0) continue;
             ctx.fillStyle = HALO[halo[i] - 1];
             lastLevel = -1;
-            ctx.fillRect(
-              offX + x * CELL - DOT / 2,
-              offY + y * CELL - DOT / 2,
-              DOT,
-              DOT
-            );
+            paint(x, y);
             continue;
           }
           if (level !== lastLevel) {
             ctx.fillStyle = RIPPLE[level - 1];
             lastLevel = level;
           }
-          ctx.fillRect(
-            offX + x * CELL - DOT / 2,
-            offY + y * CELL - DOT / 2,
-            DOT,
-            DOT
-          );
+          paint(x, y);
         }
       }
       return peak;
