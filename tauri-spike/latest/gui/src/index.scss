@@ -601,16 +601,9 @@ body {
   --window-icon-stroke: 180, 162, 128;
 }
 
-/* Pixel look: one cream dot grid behind every page, with the same contrast as the welcome screen. Only the Welcome screen animates (RippleDots). 3px corners and a coral light toggle. Circles keep rounded-full. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) body {
-  background-image: radial-gradient(
-    rgba(var(--background-10), 0.1) 1px,
-    transparent 1.5px
-  );
-  background-size: 12px 12px;
-}
+/* Pixel look: 3px corners and a coral light toggle. Circles keep rounded-full. The body dot grid was removed. */
 
-/* The page stays see-through so the body dot grid shows. Panels are solid, so the dots stop at their edges. Backdrop blur would smear the dots, so it goes too. */
+/* Panels are solid and drop the backdrop blur, so the page behind them stays flat. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-standard.bg-background-80 {
   background-color: transparent;
   backdrop-filter: none;
@@ -931,7 +924,7 @@ body {
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout select {
   min-height: 46px;
   font-size: 16px;
-  border-radius: 12px !important;
+  border-radius: 3px !important;
 }
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[42px]'],
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[40px]'] {
@@ -1004,6 +997,22 @@ body {
   /* Dark label on the lighter coral: about 7.5:1, where cream on the old fill was 3.1:1. */
   background-color: rgb(var(--accent-background-30));
   color: rgb(var(--background-90));
+  border-radius: 0 !important;
+  box-shadow:
+    0 -2px 0 0 var(--e),
+    0 2px 0 0 var(--e),
+    -2px 0 0 0 var(--e),
+    2px 0 0 0 var(--e);
+}
+
+/* Slider rails are square pixel bars. The thumb stays a circle. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .apple-slider {
+  border-radius: 0;
+}
+
+/* Toggle tracks get the same stepped outline. Their knob stays a circle (rounded-full), and the icon-only theme switch is left alone. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) button[role='switch'][class*='rounded-full'] {
+  --e: rgb(var(--background-50));
   border-radius: 0 !important;
   box-shadow:
     0 -2px 0 0 var(--e),
