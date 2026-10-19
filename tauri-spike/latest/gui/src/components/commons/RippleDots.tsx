@@ -29,10 +29,9 @@ const RIPPLE = [
 ];
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
-// Wordmark mode: every grid cell is a character from "slimevr" instead of a dot. The SlimeVR letter shape
-// (5x7 dot font) lights up on top while a wave runs, and fades back to plain grid when the surface is still.
+// Wordmark mode: a cell stays a dot until a wave reaches it, then becomes a character from "slimevr" while the
+// wave passes, and goes back to a dot. The SlimeVR letter shape (5x7 dot font) lights up on top during the pulse.
 const GLYPHS = [...'slimevr'];
-const GLYPH_BASE = 'rgba(239, 230, 214, 0.08)';
 const GLYPH_FONT = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
 const WORD = [
   'rgba(239, 230, 214, 0.18)',
@@ -197,9 +196,9 @@ export function RippleDots({
       [cur, prev] = [prev, cur];
     };
 
-    // One grid cell: a dot, or a character from "slimevr" in wordmark mode. Its centre sits on the grid point.
-    const paint = (x: number, y: number) => {
-      if (word) {
+    // One grid cell: a dot, or with `glyph` a character from "slimevr" (wordmark mode only). Centred on the grid point.
+    const paint = (x: number, y: number, glyph = false) => {
+      if (word && glyph) {
         ctx.fillText(
           GLYPHS[(x + 3 * y) % GLYPHS.length],
           offX + x * CELL,
@@ -232,7 +231,7 @@ export function RippleDots({
         ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       }
       if (dots || solid) {
-        ctx.fillStyle = word ? GLYPH_BASE : BASE;
+        ctx.fillStyle = BASE;
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) paint(x, y);
         }
@@ -269,7 +268,7 @@ export function RippleDots({
             WORD[Math.min(WORD.length - 1, Math.floor(lit * WORD.length))];
           for (let i = 0; i < word.length; i++) {
             if (!word[i]) continue;
-            paint(i % cols, Math.floor(i / cols));
+            paint(i % cols, Math.floor(i / cols), true);
           }
         }
       }
@@ -282,14 +281,14 @@ export function RippleDots({
             if (halo[i] === 0) continue;
             ctx.fillStyle = HALO[halo[i] - 1];
             lastLevel = -1;
-            paint(x, y);
+            paint(x, y, true);
             continue;
           }
           if (level !== lastLevel) {
             ctx.fillStyle = RIPPLE[level - 1];
             lastLevel = level;
           }
-          paint(x, y);
+          paint(x, y, true);
         }
       }
       return peak;
