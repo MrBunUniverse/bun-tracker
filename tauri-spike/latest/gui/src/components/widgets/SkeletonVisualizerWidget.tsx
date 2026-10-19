@@ -787,14 +787,28 @@ export function SkeletonVisualizerWidget({
 }) {
   const { l10n } = useLocalization();
   const [error, setError] = useState(false);
+  // Starts in the hidden pose even when mounted enabled, so opening the view slides it in too. Two frames give the browser
+  // time to paint the hidden pose before the visible one, which is what makes the transition run.
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setEntered(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, []);
+  const hidden = disabled || !entered;
 
   return (
     <div className={classNames('w-full h-full relative')}>
       <div
-        // Enabling slides the skeleton up into place and un-blurs it, on an ease-in-out curve, rather than snapping in.
+        // Enabling or opening slides the skeleton up into place and un-blurs it, on an ease-in-out curve, rather than snapping in.
         className={classNames(
           'skeleton-slide w-full h-full transition-[transform,opacity,filter] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]',
-          disabled
+          hidden
             ? 'blur opacity-60 translate-y-4 scale-[0.98]'
             : 'opacity-100 translate-y-0 scale-100'
         )}
