@@ -29,12 +29,12 @@ const RIPPLE = [
 ];
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
-// Wordmark mode: "SlimeVR" is drawn in a 5x7 dot font instead of the grid. The letters glow faintly while a wave runs
-// and fade out when the surface is still; the ripples only light up letter cells.
+// Wordmark mode: "SlimeVR" is set in a 5x7 dot font on the grid. Its cells sprinkle in while a wave runs
+// and fade back to plain grid when the surface is still.
 const WORD = [
-  'rgba(239, 230, 214, 0.05)',
-  'rgba(239, 230, 214, 0.1)',
-  'rgba(239, 230, 214, 0.17)',
+  'rgba(239, 230, 214, 0.18)',
+  'rgba(239, 230, 214, 0.26)',
+  'rgba(239, 230, 214, 0.34)',
 ];
 // Wave height at which the letters are fully lit.
 const WORD_PEAK = 0.3;
@@ -205,7 +205,7 @@ export function RippleDots({
         ctx.fillStyle = backdrop;
         ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
       }
-      if ((dots || solid) && !word) {
+      if (dots || solid) {
         ctx.fillStyle = BASE;
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
@@ -240,7 +240,7 @@ export function RippleDots({
           }
         }
       }
-      // Wordmark: the letters glow while the surface is moving, and drop back to nothing once it is still.
+      // Wordmark: the letter cells light up over the grid while the surface moves, and drop back to plain grid once it is still.
       if (word) {
         const lit = moving
           ? Math.min(1, Math.max(0, (peak - IDLE) / WORD_PEAK))
@@ -263,10 +263,9 @@ export function RippleDots({
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const i = y * cols + x;
-          if (word && !word[i]) continue;
           const level = rippleLevel(cur[i]);
           if (level === 0) {
-            if (word || halo[i] === 0) continue;
+            if (halo[i] === 0) continue;
             ctx.fillStyle = HALO[halo[i] - 1];
             lastLevel = -1;
             ctx.fillRect(
