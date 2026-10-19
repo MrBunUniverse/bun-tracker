@@ -791,9 +791,13 @@ export function SkeletonVisualizerWidget({
   return (
     <div className={classNames('w-full h-full relative')}>
       <div
-        className={classNames('w-full h-full transition-all', {
-          blur: disabled,
-        })}
+        // Enabling slides the skeleton up into place and un-blurs it, on an ease-in-out curve, rather than snapping in.
+        className={classNames(
+          'w-full h-full transition-[transform,opacity,filter] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]',
+          disabled
+            ? 'blur opacity-60 translate-y-4 scale-[0.98]'
+            : 'opacity-100 translate-y-0 scale-100'
+        )}
       >
         <ErrorBoundary onError={() => setError(true)} fallback={<></>}>
           <SkeletonVisualizer onInit={onInit} disabled={disabled} />
