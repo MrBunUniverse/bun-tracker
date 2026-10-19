@@ -101,7 +101,7 @@ export function StatusCluster() {
   return (
     <div
       ref={rootRef}
-      className="relative shrink-0"
+      className="shrink-0"
       style={{ WebkitAppRegion: 'no-drag' } as any}
     >
       <button

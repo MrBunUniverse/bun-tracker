@@ -74,7 +74,8 @@ export function TopBar({
         <div
           className={classNames(
             // The right group (GUI reset, full reset, window controls) never wraps, so it stays top right at every zoom. Only the status items on the left wrap.
-            'z-40 flex min-h-[46px] select-none flex-nowrap items-start gap-x-3 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
+            // The status popover anchors to this row, so it opens below the whole bar.
+            'relative z-40 flex min-h-[46px] select-none flex-nowrap items-start gap-x-3 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
             'pl-4'
           )}
           style={{ WebkitAppRegion: 'drag' } as any}
