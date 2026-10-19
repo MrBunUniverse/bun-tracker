@@ -110,9 +110,12 @@ class QuestAutoDetectionAndRpcTests {
 		configManager.vrConfig.vrcOSC.oscqueryEnabled = false
 		val vrServer = VRServer(configManager = configManager)
 		vrServer.configManager.vrConfig.questStandalone.oscRate = 60
+		vrServer.configManager.vrConfig.skeleton.hmdHeight = 1.7f
+		vrServer.configManager.vrConfig.skeleton.floorHeight = 0f
 
 		val fbb = FlatBufferBuilder(256)
-		val heightOffset = SkeletonHeight.createSkeletonHeight(fbb, 0f, 0f, 90, false, false, 0, false)
+		// Quest panel message: no hmdHeight, floorHeight = VRChat elevation
+		val heightOffset = SkeletonHeight.createSkeletonHeight(fbb, 0f, 0.1f, 90, false, false, 0, false)
 		ModelSettings.startModelSettings(fbb)
 		ModelSettings.addSkeletonHeight(fbb, heightOffset)
 		val modelOffset = ModelSettings.endModelSettings(fbb)
@@ -132,6 +135,9 @@ class QuestAutoDetectionAndRpcTests {
 		rpcSettingsHandler.onChangeSettingsRequest(null, header)
 
 		assertEquals(90, vrServer.configManager.vrConfig.questStandalone.oscRate)
+		assertEquals(0.1f, vrServer.configManager.vrConfig.questStandalone.floorHeight)
+		assertEquals(0f, vrServer.configManager.vrConfig.skeleton.floorHeight)
+		assertEquals(1.7f, vrServer.configManager.vrConfig.skeleton.userHeight)
 	}
 
 	@Test

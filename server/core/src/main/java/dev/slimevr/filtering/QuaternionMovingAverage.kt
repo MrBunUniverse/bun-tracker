@@ -16,6 +16,12 @@ private const val DEFAULT_PACKET_INTERVAL_SECONDS = 0.016f
 private const val MAX_SAMPLE_INTERVAL_SECONDS = 0.5f
 private const val MIN_VELOCITY_INTERVAL_SECONDS = 0.004f
 
+// Playback filters: amount 0..1 maps to a delay. Fixed Delay spans 0..100 ms
+// (0.1/0.3/0.5 are its 10/30/50 ms presets); Smooth Playback spans 0..300 ms
+// (0.3/0.5/0.7 are its 90/150/210 ms presets).
+private const val FIXED_DELAY_MAX_NANOS = 100_000_000L
+private const val SMOOTH_PLAYBACK_MAX_NANOS = 300_000_000L
+
 /**
  * Low-allocation quaternion filter driven by packet timestamps.
  *
@@ -46,6 +52,7 @@ class QuaternionMovingAverage(
 	val effectiveLatencyMs: Float
 		get() = when (type) {
 			TrackerFilters.SMOOTHING, TrackerFilters.ADAPTIVE_HYBRID -> (1000f / smoothFactor.coerceAtLeast(1f))
+			TrackerFilters.FIXED_DELAY, TrackerFilters.SMOOTH_PLAYBACK -> (playout?.delayNanos ?: 0L) / 1_000_000f
 			else -> 0f
 		}
 
@@ -65,6 +72,9 @@ class QuaternionMovingAverage(
 	private var inferredGapCount = 0L
 	private var sampleAgeSeconds = 0f
 
+	// Only the playback filters keep a history of timestamped samples.
+	private var playout: PlayoutBuffer? = null
+
 	init {
 		// amount should range from 0 to 1. Values above 1 are retained for
 		// compatibility with older configuration files, but have diminishing effect.
@@ -73,6 +83,12 @@ class QuaternionMovingAverage(
 			// lower smoothFactor = more smoothing
 			smoothFactor = SMOOTH_MULTIPLIER * (1 - amount.coerceAtMost(1f)) + SMOOTH_MIN
 			if (amount > 1) smoothFactor /= amount
+		}
+		val share = amount.coerceIn(0f, 1f)
+		if (type == TrackerFilters.FIXED_DELAY) {
+			playout = PlayoutBuffer((share * FIXED_DELAY_MAX_NANOS).toLong(), smoothing = false)
+		} else if (type == TrackerFilters.SMOOTH_PLAYBACK) {
+			playout = PlayoutBuffer((share * SMOOTH_PLAYBACK_MAX_NANOS).toLong(), smoothing = true)
 		}
 		resetQuats(initialRotation, initialRotation)
 	}
@@ -120,6 +136,13 @@ class QuaternionMovingAverage(
 				val dynamicSmoothFactor = smoothFactor * (1f + predictionWeight * 1.8f)
 				val blend = (dynamicSmoothFactor * timeSinceUpdate).coerceAtMost(1f)
 				filteredQuaternion = smoothingQuaternion.interpQ(dynamicTarget, blend)
+			}
+
+			TrackerFilters.FIXED_DELAY, TrackerFilters.SMOOTH_PLAYBACK -> {
+				playout?.let {
+					it.advance(dt)
+					filteredQuaternion = it.sample(latestQuaternion)
+				}
 			}
 
 			TrackerFilters.NONE -> {
@@ -174,6 +197,8 @@ class QuaternionMovingAverage(
 		if (type == TrackerFilters.SMOOTHING || type == TrackerFilters.ADAPTIVE_HYBRID) {
 			timeSinceUpdate = 0f
 			smoothingQuaternion = filteredQuaternion
+		} else if (type == TrackerFilters.FIXED_DELAY || type == TrackerFilters.SMOOTH_PLAYBACK) {
+			playout?.push(timestampNanos, newQ)
 		} else if (type == TrackerFilters.NONE) {
 			// Keep polarity continuity even when filtering is disabled.
 			filteredQuaternion = newQ
@@ -221,5 +246,6 @@ class QuaternionMovingAverage(
 		inferredGapCount = 0L
 		sampleAgeSeconds = 0f
 		addQuaternion(rot, System.nanoTime())
+		playout?.reset(rot)
 	}
 }

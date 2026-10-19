@@ -39,11 +39,29 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		private const val STILL_TIME_MS = 1500L
 		private const val BLEND_TIME_MS = 500L
 		private const val SNAPSHOT_INTERVAL_MS = 50L
-		private const val MAX_SAMPLE_GAP_MS = 250L
+
+		// Gaps are measured against any packet from the device. A motionless
+		// tracker sends no rotation and is only heard through its ping replies,
+		// so anything up to a missed ping is a normal cadence.
+		private const val MAX_SAMPLE_GAP_MS = 1000L
 		private const val MAX_STILL_ANGLE_RAD = 2f * PI.toFloat() / 180f
 		private const val MAX_REFERENCE_DISAGREEMENT_RAD = 12f * PI.toFloat() / 180f
 		private const val MIN_REFERENCE_CONFIDENCE = 0.75f
 		private const val MAX_LEARNABLE_CORRECTION_RAD = 45f * PI.toFloat() / 180f
+
+		// How long returning samples stay held while waiting for trusted
+		// references (or stillness) before the tracker's own data is judged.
+		private const val REFERENCE_WAIT_MS = 2000L
+
+		// How long a tracker may wait for references before the user is asked for a reset.
+		private const val REMINDER_AFTER_MS = 30_000L
+		private const val STILLNESS_WAIT_MS = 5000L
+
+		// A tracker that kept running through an outage keeps its yaw reference;
+		// one that rebooted returns with an unrelated yaw. Returning data within
+		// this window of the expected yaw is resumed without a correction.
+		private const val MAX_CONTINUITY_YAW_RAD = 25f * PI.toFloat() / 180f
+		private const val SELF_RESUME_CONFIDENCE = 0.5f
 		private const val MAX_ANCHORS = 6
 		private val TORSO_POSITIONS = setOf(
 			TrackerPosition.UPPER_CHEST,
@@ -82,6 +100,9 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 	private var latestAdjustedSample = Quaternion.IDENTITY
 	private var stableSince = 0L
 	private var blendStartedAt = 0L
+	private var resumedAt = 0L
+	private var heldSince = 0L
+	private var reminded = false
 	private var nextSnapshotAt = 0L
 	private var baselineIntervalMs = 20f
 	private var snapshotCapturedAt = 0L
@@ -100,13 +121,16 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		!tracker.isHmd &&
 		!tracker.isComputed
 
+	/** True when this handler checks the tracker after a dropout, so the dropout itself needs no reset. */
+	fun handlesDropouts(): Boolean = enabled()
+
 	@Synchronized
 	fun onRotationSample(rotation: Quaternion, gapMs: Long, now: Long): Boolean {
-		if (state == TrackerRecoveryState.NEEDS_RESET) return true
 		if (!enabled()) {
-			cancel()
+			cancel(force = true)
 			return false
 		}
+		if (state == TrackerRecoveryState.NEEDS_RESET && !awaitingReferences()) return true
 
 		if (!isFinite(rotation)) {
 			requireFullReset(TrackerRecoveryReason.INVALID_ROTATION)
@@ -129,20 +153,32 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 			return true
 		}
 
-		if (state == TrackerRecoveryState.COMPENSATING || gapMs >= COMPENSATE_AFTER_MS) {
+		if (state == TrackerRecoveryState.COMPENSATING || state == TrackerRecoveryState.NEEDS_RESET || gapMs >= COMPENSATE_AFTER_MS) {
 			if (!configurationStillMatchesSnapshot()) {
 				requireFullReset(TrackerRecoveryReason.ROLE_OR_MOUNTING_CHANGED)
 				return true
 			}
+			if (resumedAt == 0L || gapMs >= COMPENSATE_AFTER_MS) resumedAt = now
 			val liveCandidates = liveAnchorCandidates()
-			if (!hasEnoughLiveReferences(liveCandidates)) {
-				requireFullReset(TrackerRecoveryReason.NO_REFERENCE)
+			val failure = referenceFailure(liveCandidates)
+			if (failure != null) {
+				// Missing references are usually transient (a shared Wi-Fi drop
+				// puts every anchor into recovery at once), so keep re-evaluating
+				// instead of latching on the first returning sample.
+				lastSampleRotation = rotation
+				if (state == TrackerRecoveryState.NEEDS_RESET) return true
+				if (now - resumedAt < REFERENCE_WAIT_MS) {
+					state = TrackerRecoveryState.COMPENSATING
+					reason = failure
+				} else if (yawIsContinuous(liveCandidates, rotation)) {
+					resumeLive(now)
+				} else {
+					requireFullReset(failure, now)
+				}
 				return true
 			}
-			if (trustedYaw(liveCandidates) == null) {
-				requireFullReset(TrackerRecoveryReason.REFERENCE_DISAGREEMENT)
-				return true
-			}
+			// Trusted references are back, so the reset request no longer applies.
+			if (state == TrackerRecoveryState.NEEDS_RESET) tracker.needReset = false
 			state = TrackerRecoveryState.WAITING_FOR_STILLNESS
 			reason = TrackerRecoveryReason.TRACKER_MOVING
 			progress = 0f
@@ -153,6 +189,14 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		if (state == TrackerRecoveryState.WAITING_FOR_STILLNESS) {
 			val sampleAngle = angleBetween(lastSampleRotation, rotation)
 			val cadenceLimit = max(MAX_SAMPLE_GAP_MS.toFloat(), baselineIntervalMs * 2f).toLong()
+			val moving = gapMs > cadenceLimit || sampleAngle > MAX_STILL_ANGLE_RAD
+			if (moving && now - resumedAt >= STILLNESS_WAIT_MS && yawIsContinuous(liveAnchorCandidates(), rotation)) {
+				// The wearer never stood still, but the returning yaw already
+				// agrees with the references, so there is nothing to realign.
+				resumeLive(now)
+				lastSampleRotation = rotation
+				return true
+			}
 			if (gapMs > cadenceLimit) {
 				stableSince = now
 				reason = TrackerRecoveryReason.POOR_PACKET_RATE
@@ -177,7 +221,7 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 	@Synchronized
 	fun tick(now: Long, sampleAgeMs: Long) {
 		if (!enabled()) {
-			cancel()
+			cancel(force = true)
 			return
 		}
 
@@ -206,10 +250,20 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 			TrackerRecoveryState.VALIDATING,
 			-> {
 				updateFallbackFromAnchor()
+				// A tracker that is perfectly still sends no further rotation,
+				// so stillness also has to complete without a new sample.
+				if (state == TrackerRecoveryState.WAITING_FOR_STILLNESS &&
+					sampleAgeMs <= MAX_SAMPLE_GAP_MS &&
+					now - stableSince >= STILL_TIME_MS
+				) {
+					state = TrackerRecoveryState.VALIDATING
+				}
 				if (state == TrackerRecoveryState.VALIDATING) validateAndApply(now)
 			}
 
-			TrackerRecoveryState.NEEDS_RESET -> Unit
+			TrackerRecoveryState.NEEDS_RESET -> {
+				if (!reminded && now - heldSince >= REMINDER_AFTER_MS) remind()
+			}
 
 			TrackerRecoveryState.BLENDING -> {
 				progress = ((now - blendStartedAt).toFloat() / BLEND_TIME_MS).coerceIn(0f, 1f)
@@ -240,6 +294,7 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		progress = 0f
 		confidence = 0f
 		stableSince = 0L
+		resumedAt = 0L
 		anchorSnapshots.clear()
 		if (wasActive && tracker.status == TrackerStatus.BUSY) tracker.status = TrackerStatus.OK
 	}
@@ -247,6 +302,7 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 	private fun beginGap(now: Long) {
 		captureSnapshot(now)
 		fallbackRotation = lastGoodRotation
+		resumedAt = 0L
 		state = TrackerRecoveryState.BRIDGING_GAP
 		reason = TrackerRecoveryReason.TRACKER_OFFLINE
 		progress = 0f
@@ -316,15 +372,15 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		}
 
 		val liveCandidates = liveAnchorCandidates()
-		if (!hasEnoughLiveReferences(liveCandidates)) {
-			requireFullReset(TrackerRecoveryReason.NO_REFERENCE)
+		val trusted = trustedYaw(liveCandidates)
+		if (trusted == null) {
+			// References dropped out while waiting; the next sample re-evaluates.
+			state = TrackerRecoveryState.COMPENSATING
+			reason = referenceFailure(liveCandidates) ?: TrackerRecoveryReason.NO_REFERENCE
+			progress = 0f
 			return
 		}
-
-		val (desiredYaw, referenceConfidence) = trustedYaw(liveCandidates) ?: run {
-			requireFullReset(TrackerRecoveryReason.REFERENCE_DISAGREEMENT)
-			return
-		}
+		val (desiredYaw, referenceConfidence) = trusted
 
 		// The most recent adjusted sample is newer than the filter output. Using
 		// it avoids validating a reconnect against the previous server frame.
@@ -340,7 +396,8 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 			val observedDrift = wrapAngle(yaw(preAdaptiveRotation) - desiredYaw)
 			tracker.resetsHandler.learnDriftObservation(observedDrift, now - snapshotCapturedAt, referenceConfidence)
 		}
-		tracker.resetsHandler.recoveryYawFix = Quaternion.rotationAroundYAxis(correction)
+		// The sample already includes the previous fix, so compose with it.
+		tracker.resetsHandler.recoveryYawFix = Quaternion.rotationAroundYAxis(correction) * tracker.resetsHandler.recoveryYawFix
 		tracker.needReset = false
 		tracker.resetFilteringQuats(fallbackRotation)
 		startBlend(now, referenceConfidence)
@@ -348,7 +405,34 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		VRServer.instance.vrcOSCHandler.sendTrackerRecoveryNotification(tracker, true)
 	}
 
+	/**
+	 * Resumes the tracker's own data without a yaw correction. Only used when
+	 * the returning yaw is continuous with what the body was doing, which rules
+	 * out a reboot having changed the tracker's yaw reference.
+	 */
+	private fun resumeLive(now: Long) {
+		startBlend(now, SELF_RESUME_CONFIDENCE)
+		LogManager.info("[TrackerRecovery] ${tracker.displayName} resumed its own rotation without references")
+		VRServer.instance.vrcOSCHandler.sendTrackerRecoveryNotification(tracker, true)
+	}
+
+	private fun yawIsContinuous(candidates: List<Pair<AnchorSnapshot, Float>>, rotation: Quaternion): Boolean {
+		val expectedYaw = desiredYaw(candidates) ?: yaw(lastGoodRotation)
+		return abs(wrapAngle(expectedYaw - yaw(rotation))) <= MAX_CONTINUITY_YAW_RAD
+	}
+
+	private fun referenceFailure(candidates: List<Pair<AnchorSnapshot, Float>>): TrackerRecoveryReason? = when {
+		!hasEnoughLiveReferences(candidates) -> TrackerRecoveryReason.NO_REFERENCE
+		trustedYaw(candidates) == null -> TrackerRecoveryReason.REFERENCE_DISAGREEMENT
+		else -> null
+	}
+
+	/** A reference failure is re-evaluated; other failures need a Full Reset. */
+	private fun awaitingReferences(): Boolean = state == TrackerRecoveryState.NEEDS_RESET &&
+		(reason == TrackerRecoveryReason.NO_REFERENCE || reason == TrackerRecoveryReason.REFERENCE_DISAGREEMENT)
+
 	private fun startBlend(now: Long, recoveryConfidence: Float) {
+		resumedAt = 0L
 		state = TrackerRecoveryState.BLENDING
 		reason = TrackerRecoveryReason.NONE
 		progress = 0f
@@ -376,14 +460,28 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		snapshotPosition == tracker.trackerPosition &&
 		snapshotMounting == tracker.resetsHandler.mountingOrientation
 
-	private fun requireFullReset(failure: TrackerRecoveryReason) {
+	private fun requireFullReset(failure: TrackerRecoveryReason, now: Long = 0L) {
 		state = TrackerRecoveryState.NEEDS_RESET
 		reason = failure
 		progress = 0f
 		confidence = 0f
-		tracker.needReset = true
+		heldSince = now
+		reminded = false
+		// Missing or disagreeing references usually come back within seconds (a shared dropout,
+		// lying down, standing up). The tracker is held and realigns when they return, so only
+		// remind the user if that hasn't happened after a while.
+		if (awaitingReferences()) return
+		remind()
+	}
+
+	private fun remind() {
+		reminded = true
+		// The reset reminders switch (recoveryChatboxNotifications) also silences the checklist prompt.
+		if (!VRServer.instanceInitialized || VRServer.instance.configManager.vrConfig.resetsConfig.recoveryChatboxNotifications) {
+			tracker.needReset = true
+		}
 		if (VRServer.instanceInitialized) {
-			LogManager.warning("[TrackerRecovery] ${tracker.displayName} needs reset: $failure")
+			LogManager.warning("[TrackerRecovery] ${tracker.displayName} needs reset: $reason")
 			VRServer.instance.vrcOSCHandler.sendTrackerRecoveryNotification(tracker, false)
 		}
 	}

@@ -151,6 +151,8 @@ class VRServer @JvmOverloads constructor(
 		trackingChecklistManager = TrackingChecklistManager(this)
 		val autoFullReset = AutoFullReset(this)
 		addOnTick { autoFullReset.tick() }
+		// The battery chatbox starts off every run; the user turns it on when they want it
+		configManager.vrConfig.questStandalone.chatboxEnabled = false
 		protocolAPI = ProtocolAPI(this)
 		val computedTrackers = humanPoseManager.computedTrackers
 

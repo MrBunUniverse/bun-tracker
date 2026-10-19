@@ -340,8 +340,11 @@ class RPCSettingsHandler(var rpcHandler: RPCHandler, var api: ProtocolAPI) {
 			}
 
 			modelSettings.skeletonHeight()?.let {
-				if (it.hmdHeight() > 0) api.server.configManager.vrConfig.skeleton.hmdHeight = it.hmdHeight()
-				api.server.configManager.vrConfig.skeleton.floorHeight = it.floorHeight()
+				// Quest panel sends hmdHeight=0 with floorHeight as the VRChat elevation; only real height messages touch the skeleton floor (userHeight = hmd - floor).
+				if (it.hmdHeight() > 0) {
+					api.server.configManager.vrConfig.skeleton.hmdHeight = it.hmdHeight()
+					api.server.configManager.vrConfig.skeleton.floorHeight = it.floorHeight()
+				}
 				api.server.configManager.vrConfig.questStandalone.floorHeight = it.floorHeight()
 				if (it.hasOscRate() && it.oscRate() > 0) {
 					api.server.configManager.vrConfig.questStandalone.oscRate = it.oscRate()

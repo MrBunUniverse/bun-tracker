@@ -8,6 +8,9 @@ import dev.slimevr.protocol.rpc.setup.RPCUtil
 import io.eiren.util.logging.LogManager
 import randomFreePort
 import java.io.IOException
+import java.net.InetAddress
+import java.net.NetworkInterface
+import javax.jmdns.NetworkTopologyDiscovery
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.thread
@@ -29,6 +32,18 @@ class VRCOSCQueryHandler(
 	init {
 		// Request data
 		val localIp = RPCUtil.getLocalIp() ?: throw IllegalStateException("No local IP address found for OSCQuery to bind to")
+		// Announce only on the LAN address. Otherwise mDNS announces on every interface, and a
+		// USB link such as a plugged-in iPhone (169.254.x) can end up as the address VRChat on
+		// the Quest resolves, so it sends tracking data where it never arrives.
+		val lanAddress = InetAddress.getByName(localIp)
+		NetworkTopologyDiscovery.Factory.setClassDelegate {
+			object : NetworkTopologyDiscovery {
+				override fun getInetAddresses() = arrayOf(lanAddress)
+				override fun useInetAddress(networkInterface: NetworkInterface?, interfaceAddress: InetAddress?) = interfaceAddress == lanAddress
+				override fun lockInetAddress(interfaceAddress: InetAddress?) {}
+				override fun unlockInetAddress(interfaceAddress: InetAddress?) {}
+			}
+		}
 		val httpPort = randomFreePort()
 		oscQueryServer = OSCQueryServer(
 			"SlimeVR-Server-$httpPort",

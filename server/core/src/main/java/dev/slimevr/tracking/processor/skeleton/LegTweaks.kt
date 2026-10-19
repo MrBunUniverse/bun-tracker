@@ -150,6 +150,8 @@ class LegTweaks(private val skeleton: HumanSkeleton) {
 		// reset the buffer
 		bufferHead = LegTweaksBuffer()
 		bufferInvalid = true
+		// the clamp is not updated while disabled, so its history is stale
+		zeroSlideClamp.reset()
 	}
 
 	fun setLocalizerMode(value: Boolean) {

@@ -184,7 +184,9 @@ class Tracker @JvmOverloads constructor(
 	var status: TrackerStatus by Delegates.observable(TrackerStatus.DISCONNECTED) { _, old, new ->
 		if (old == new) return@observable
 
-		if (allowReset && !old.reset && new.reset && !needReset) {
+		// A dropout alone doesn't mean the tracker lost its orientation. When recovery is on, it
+		// checks the tracker once it's back and asks for a reset only if it can't line it up.
+		if (allowReset && !old.reset && new.reset && !needReset && !recovery.handlesDropouts()) {
 			needReset = true
 		}
 
@@ -317,11 +319,13 @@ class Tracker @JvmOverloads constructor(
 		val now = monotonicMillis()
 		val connectionAgeMs = now - timeAtLastUpdate
 		val sampleAgeMs = now - timeAtLastRotationUpdate
-		val livenessAgeMs = if (hasRotation) sampleAgeMs else connectionAgeMs
+		// Firmware only sends rotation while it changes, so a motionless tracker
+		// is silent on rotation but still answers pings. Liveness and recovery
+		// must follow the connection, not the age of the last rotation.
 		if (usesTimeout) {
-			if (livenessAgeMs > DISCONNECT_MS) {
+			if (connectionAgeMs > DISCONNECT_MS) {
 				status = TrackerStatus.DISCONNECTED
-			} else if (livenessAgeMs > TIMEOUT_MS) {
+			} else if (connectionAgeMs > TIMEOUT_MS) {
 				status = TrackerStatus.TIMED_OUT
 			}
 		}
@@ -339,7 +343,7 @@ class Tracker @JvmOverloads constructor(
 		filteringHandler.update(deltaTime, sampleAgeMs)
 		yawResetSmoothing.tick(deltaTime)
 		stayAligned.update()
-		recovery.tick(now, sampleAgeMs)
+		recovery.tick(now, connectionAgeMs)
 	}
 
 	/**
@@ -405,6 +409,9 @@ class Tracker @JvmOverloads constructor(
 		} else {
 			now - timeAtLastRotationUpdate
 		}
+		// How long the device itself was silent before this sample. A tracker
+		// that kept answering pings while motionless was never offline.
+		val silenceMs = (sampleTimeNanos / 1_000_000L - timeAtLastUpdate).coerceIn(0L, gapMs)
 		timer.update()
 		timeAtLastUpdate = maxOf(timeAtLastUpdate, sampleTimeNanos / 1_000_000L)
 		timeAtLastRotationUpdate = sampleTimeNanos / 1_000_000L
@@ -414,7 +421,7 @@ class Tracker @JvmOverloads constructor(
 		if (trackRotDirection) {
 			filteringHandler.dataTick(adjustedSample, sampleTimeNanos)
 		}
-		val recovering = recovery.onRotationSample(adjustedSample, gapMs, now)
+		val recovering = recovery.onRotationSample(adjustedSample, silenceMs, now)
 		if (recovering) {
 			status = TrackerStatus.BUSY
 		} else if (status == TrackerStatus.TIMED_OUT || status == TrackerStatus.DISCONNECTED) {

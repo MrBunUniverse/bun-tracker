@@ -90,6 +90,8 @@ dependencies {
 
 	// Jitpack
 	implementation("com.github.SlimeVR:oscquery-kt:566a0cba58")
+	// Same version oscquery-kt brings in; used directly to limit mDNS to the LAN interface
+	implementation("com.github.jmdns:jmdns:0e40954468")
 
 	// For SteamVR driver detection
 	implementation("io.ktor:ktor-client-core:2.3.13")

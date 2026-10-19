@@ -97,7 +97,7 @@ skeleton:
     shouldersDistance: 0.08
     upperChestLength: 0.16
     skeletonOffset: 0.0
-  hmdHeight: 0.0
+  hmdHeight: 1.7
   floorHeight: 0.0
 legTweaks:
   correctionStrength: 0.3
@@ -131,6 +131,7 @@ resetsConfig:
   yawResetDelay: 0.0
   fullResetDelay: 3.0
   mountingResetDelay: 3.0
+  autoFullReset: true
 stayAlignedConfig:
   enabled: false
   adaptiveKinetic: true
@@ -152,7 +153,359 @@ stayAlignedConfig:
   setupComplete: false
 hidConfig:
   trackersOverHID: false
-trackers: {}
+trackers:
+  ReconnectObservation:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.35
+    totalDriftObservations: 1
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 1.0
+    adaptiveDriftLastAcceptedAt: 1792237129918
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: true
+  PresetBNO:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: false
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "bno085"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  DefaultAdaptiveProfile:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  PresetLSM:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.85
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "lsm6_icm"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  ManualResetRebase:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 2.0
+    totalDriftObservations: 2
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  imu-2:
+    customName: null
+    designation: "body:hip"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: -1.0499449
+    totalDriftObservations: 1
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.88333213
+    adaptiveDriftLastAcceptedAt: 1792237129894
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: true
+  ReconnectObservationFilters:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 1.5
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  imu-1:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 2.4499955
+    totalDriftObservations: 1
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.9166667
+    adaptiveDriftLastAcceptedAt: 1792237129869
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: true
+  RestoreMeasuredDrift:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 6.0
+    totalDriftObservations: 2
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 1792237069910
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  ProfileOverride:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "bno085"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  ResetLearned:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "mpu6050"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  PresetMPU:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 4.5
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "mpu6050"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  BnoCorrectionDefault:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  imu-11:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  imu-12:
+    customName: null
+    designation: "body:hip"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 0.0
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: null
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
+  PresetBMI:
+    customName: null
+    designation: "body:chest"
+    hide: false
+    adjustment: null
+    mountingOrientation: null
+    mountingResetOrientation: null
+    allowDriftCompensation: true
+    shouldHaveMagEnabled: true
+    learnedDriftRateDegPerMin: 3.15
+    totalDriftObservations: 0
+    autoLearnDrift: false
+    imuProfileOverride: "bmi160"
+    adaptiveDriftModelVersion: 1
+    adaptiveDriftConfidence: 0.0
+    adaptiveDriftLastAcceptedAt: 0
+    adaptiveDriftLearningPaused: false
+    previousLearnedDriftRateDegPerMin: 0.0
+    previousTotalDriftObservations: 0
+    previousAdaptiveDriftConfidence: 0.0
+    previousAdaptiveDriftLastAcceptedAt: 0
+    hasPreviousAdaptiveDriftModel: false
 bridges: {}
 knownDevices: []
 overlay:
@@ -168,7 +521,7 @@ questStandalone:
   enabled: true
   activeProfile: "STANDING"
   floorAnchorEnabled: true
-  floorHeight: 0.0
+  floorHeight: 0.1
   correctionStrength: 0.5
   hmdVerticalOffset: 0.0
   recenterBehavior: "REANCHOR_ON_FULL_RESET"
@@ -180,7 +533,7 @@ questStandalone:
   constraintStrength: 0.8
   predictionEnabled: false
   oscRate: 90
-  chatboxEnabled: true
+  chatboxEnabled: false
   chatboxIntervalSeconds: 30
   chatboxLowBatteryWarning: true
   chatboxOnlyMode: false

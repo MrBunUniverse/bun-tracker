@@ -31,12 +31,15 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 	companion object {
 		// Kinematic and impact thresholds
 		const val CONTACT_PROXIMITY_MAX = 0.045f // 4.5 cm from floor plane
+		const val CONTACT_PENETRATION_MAX = 0.10f // deeper than 10 cm is a bad estimate, not contact
 		const val STANCE_VELOCITY_MAX = 0.18f // 18 cm/s horizontal speed threshold
 		const val STANCE_ANGULAR_VEL_MAX = 1.8f // 1.8 rad/s angular stillness threshold
 		const val JERK_IMPACT_THRESHOLD = 10.0f // m/s^3 heel-strike impact detection
 		const val LIFT_VELOCITY_THRESHOLD = 0.15f // m/s upward velocity to initiate toe-off
 		const val LIFT_HEIGHT_THRESHOLD = 0.025f // 2.5 cm above floor to release
 		const val BREAKOUT_STRIDE_BASE = 0.24f // 24 cm horizontal stride breakout limit
+		const val SMALL_STEP_DISTANCE = 0.08f // 8 cm of sustained travel is a step, not drift
+		const val SPEED_SMOOTHING_TIME = 0.05f // seconds
 		const val RELEASE_BLEND_DURATION = 0.040f // 40ms cosine ease-out release
 		const val MIN_DT = 0.001f
 		const val MAX_DT = 0.1f
@@ -53,6 +56,7 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 
 		var velocity: Vector3 = Vector3.NULL
 		var horizontalSpeed: Float = 0f
+		var smoothedHorizontalSpeed: Float = 0f
 		var angularVelocity: Float = 0f
 		var jerk: Float = 0f
 
@@ -69,6 +73,7 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 			prevAccelerationMag = 0f
 			velocity = Vector3.NULL
 			horizontalSpeed = 0f
+			smoothedHorizontalSpeed = 0f
 			angularVelocity = 0f
 			jerk = 0f
 			releaseTimer = 0f
@@ -113,14 +118,10 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 		}
 		lastTimestampNs = now
 
-		// If strength is virtually 0 or user is not standing, bypass clamp smoothly
-		if (strength <= 0.05f || !isStanding) {
-			leftFoot.state = StanceState.SWING
-			rightFoot.state = StanceState.SWING
-			leftFoot.prevRawPosition = leftRawPos
-			leftFoot.prevRawRotation = leftRawRot
-			rightFoot.prevRawPosition = rightRawPos
-			rightFoot.prevRawRotation = rightRawRot
+		// If strength is virtually 0, bypass the clamp entirely
+		if (strength <= 0.05f) {
+			leftFoot.reset()
+			rightFoot.reset()
 			return FootClampOutput(
 				leftRawPos,
 				rightRawPos,
@@ -135,9 +136,11 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 		updateKinematics(leftFoot, leftRawPos, leftRawRot, leftAccel, dt)
 		updateKinematics(rightFoot, rightRawPos, rightRawRot, rightAccel, dt)
 
-		// Evaluate and solve stance per foot
-		solveFootState(leftFoot, leftRawPos, leftSoleY, strength, dt)
-		solveFootState(rightFoot, rightRawPos, rightSoleY, strength, dt)
+		// Evaluate and solve stance per foot. Kinematics keep updating while the
+		// user is not standing so a low pose leaves no stale history behind, but
+		// no anchor may be held or acquired until they are standing again.
+		solveFootState(leftFoot, leftRawPos, leftSoleY, strength, dt, isStanding)
+		solveFootState(rightFoot, rightRawPos, rightSoleY, strength, dt, isStanding)
 
 		// Post-solve: If both feet are in stance and one is taking a distant step, arbitrate release
 		arbitrateDualStance(leftFoot, rightFoot, leftRawPos, rightRawPos)
@@ -167,6 +170,7 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 			foot.initialized = true
 			foot.velocity = Vector3.NULL
 			foot.horizontalSpeed = 0f
+			foot.smoothedHorizontalSpeed = 0f
 			foot.angularVelocity = 0f
 			foot.jerk = 0f
 			return
@@ -176,6 +180,9 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 		val vx = foot.velocity.x
 		val vz = foot.velocity.z
 		foot.horizontalSpeed = sqrt(vx * vx + vz * vz)
+		// Per-frame speed is spiky when frames outpace tracker packets, so
+		// intent is judged on a short time-based average instead.
+		foot.smoothedHorizontalSpeed += (foot.horizontalSpeed - foot.smoothedHorizontalSpeed) * (dt / (SPEED_SMOOTHING_TIME + dt))
 
 		val angleDeltaRad = rawRot.angleToR(foot.prevRawRotation)
 		foot.angularVelocity = angleDeltaRad / dt
@@ -194,19 +201,21 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 		soleY: Float,
 		strength: Float,
 		dt: Float,
+		isStanding: Boolean,
 	) {
 		val distToGround = rawPos.y - soleY
 
 		when (foot.state) {
 			StanceState.SWING -> {
 				// Check for touchdown / stance engagement
-				val inProximity = distToGround <= CONTACT_PROXIMITY_MAX
+				val inProximity = distToGround in -CONTACT_PENETRATION_MAX..CONTACT_PROXIMITY_MAX
 				val isNotRising = foot.velocity.y < 0.08f
-				val isSlow = foot.horizontalSpeed < (STANCE_VELOCITY_MAX * (0.8f + 0.4f * strength))
+				val stanceSpeed = STANCE_VELOCITY_MAX * (0.8f + 0.4f * strength)
+				val isSlow = foot.horizontalSpeed < stanceSpeed && foot.smoothedHorizontalSpeed < stanceSpeed
 				val isOrientationStill = foot.angularVelocity < (STANCE_ANGULAR_VEL_MAX * (0.8f + 0.4f * strength))
 				val isImpact = foot.jerk > JERK_IMPACT_THRESHOLD && foot.horizontalSpeed < 0.28f
 
-				if (inProximity && isNotRising && ((isSlow && isOrientationStill) || isImpact)) {
+				if (isStanding && inProximity && isNotRising && ((isSlow && isOrientationStill) || isImpact)) {
 					foot.state = StanceState.STANCE_LOCKED
 					// Rigid anchor at touchdown point, vertical clamped flush with sole level
 					foot.anchorPosition = Vector3(rawPos.x, max(rawPos.y, soleY), rawPos.z)
@@ -232,10 +241,14 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 
 				val breakoutThreshold = BREAKOUT_STRIDE_BASE * (1.15f - 0.25f * strength)
 				val isDeliberateStep = horizontalBreakoutDist > breakoutThreshold
+				val isSmallStep = horizontalBreakoutDist > SMALL_STEP_DISTANCE && foot.smoothedHorizontalSpeed > STANCE_VELOCITY_MAX
 				val isDeliberateLift = foot.velocity.y > LIFT_VELOCITY_THRESHOLD && distToGround > LIFT_HEIGHT_THRESHOLD
+				// Contact is defined by proximity, so a foot that has left the
+				// contact band is released however slowly it got there.
+				val hasLeftGround = distToGround > CONTACT_PROXIMITY_MAX || distToGround < -CONTACT_PENETRATION_MAX
 				val isViolentRotate = foot.angularVelocity > (STANCE_ANGULAR_VEL_MAX * 2.2f)
 
-				if (isDeliberateStep || isDeliberateLift || isViolentRotate) {
+				if (!isStanding || isDeliberateStep || isSmallStep || isDeliberateLift || hasLeftGround || isViolentRotate) {
 					foot.state = StanceState.RELEASE_BLEND
 					foot.releaseTimer = 0f
 				} else {
@@ -297,7 +310,9 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 	): Vector3 = when (foot.state) {
 		StanceState.SWING -> rawPos
 
-		StanceState.STANCE_LOCKED -> {
+		// The release blend starts from the locked output, so it is weighted by
+		// the same strength; otherwise the foot would jump to the full anchor.
+		StanceState.STANCE_LOCKED, StanceState.RELEASE_BLEND -> {
 			if (strength >= 0.95f) {
 				foot.clampedPosition
 			} else {
@@ -306,7 +321,5 @@ class ZeroSlideFootClamp(private val skeleton: HumanSkeleton?) {
 				rawPos * (1.0f - factor) + foot.clampedPosition * factor
 			}
 		}
-
-		StanceState.RELEASE_BLEND -> foot.clampedPosition
 	}
 }

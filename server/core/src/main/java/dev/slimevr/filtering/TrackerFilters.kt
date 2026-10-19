@@ -7,6 +7,14 @@ enum class TrackerFilters(val id: Int, val configKey: String) {
 	SMOOTHING(1, "smoothing"),
 	PREDICTION(2, "prediction"),
 	ADAPTIVE_HYBRID(3, "adaptive_hybrid"),
+
+	// Plays rotations back a fixed time late so uneven packet arrival and
+	// single lost packets are drawn through instead of shown as stutter.
+	FIXED_DELAY(4, "fixed_delay"),
+
+	// Fixed delay plus a centred average around the playout time: trades more
+	// latency for motion without shake or stutter on weak links and cheap IMUs.
+	SMOOTH_PLAYBACK(5, "smooth_playback"),
 	;
 
 	companion object {
