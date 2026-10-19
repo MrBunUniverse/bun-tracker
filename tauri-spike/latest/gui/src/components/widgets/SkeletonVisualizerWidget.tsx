@@ -236,6 +236,8 @@ function initializePreview(
   let frameRadius = 1;
   let frameRadiusVelocity = 0;
   let frameReady = false;
+  // True while the framing is still moving; the loop then renders at display rate.
+  let frameMoving = false;
   // Eye level: the camera sits level with the aim point, looking straight at the body, not
   // down on it like a drone. The turn left or right stays whatever the user chose.
   const FRAME_EYE_LEVEL_PHI = Math.PI / 2 - 0.04;
@@ -278,7 +280,10 @@ function initializePreview(
         framePoint.applyMatrix4(skeletonGroup.matrixWorld)
       );
     });
-    if (frameBox.isEmpty()) return;
+    if (frameBox.isEmpty()) {
+      frameMoving = false;
+      return;
+    }
     const dt = Math.min(Math.max(rawDt, 0.001), 0.05);
     frameBox.getBoundingSphere(frameSphere);
     const wantRadius =
@@ -365,15 +370,13 @@ function initializePreview(
     v.camera.zoom = (distance * fit) / frameRadius;
 
     // Keep drawing until the camera settles.
-    if (
+    frameMoving =
       pitchMoving ||
       frameVelocity.lengthSq() > 1e-6 ||
       Math.abs(frameRadiusVelocity) > 1e-3 ||
       Math.abs(wantRadius - frameRadius) > 1e-3 ||
-      frameCenter.distanceToSquared(frameSphere.center) > 1e-6
-    ) {
-      markDirty(2);
-    }
+      frameCenter.distanceToSquared(frameSphere.center) > 1e-6;
+    if (frameMoving) markDirty(2);
   };
 
   const setAutoFrame = (enable?: boolean) => {
@@ -467,10 +470,12 @@ function initializePreview(
         : autoOrbit
           ? 33.3
           : 16.6;
-    const effectiveInterval = Math.max(
-      adaptiveBaseInterval,
-      autoOrbit ? 0 : frameInterval
-    );
+    // While auto-frame is gliding, draw every display frame: the 30 fps cap made it stutter.
+    // Still scenes, unfocused windows and hidden tabs keep the lighter rates.
+    const smoothFrame = autoFrame && frameMoving && isFocused && !isHidden;
+    const effectiveInterval = smoothFrame
+      ? SMOOTH_FRAME_INTERVAL
+      : Math.max(adaptiveBaseInterval, autoOrbit ? 0 : frameInterval);
 
     const now = performance.now();
     const elapsed = now - lastRenderTimeRef;
@@ -637,6 +642,8 @@ function initializePreview(
 
 const BASE_FRAMERATE = 60;
 const LOW_FRAMERATE = 30;
+// Auto-frame's camera glide draws at the base rate, not the low one.
+const SMOOTH_FRAME_INTERVAL = 1000 / BASE_FRAMERATE;
 
 export type PreviewContext = ReturnType<typeof initializePreview>;
 
