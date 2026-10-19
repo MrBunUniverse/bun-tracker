@@ -9,8 +9,13 @@ import { SkipSetupButton } from './SkipSetupButton';
 import { SkipSetupWarningModal } from './SkipSetupWarningModal';
 import './OnboardingLayout.scss';
 
-// The welcome title, drawn in the dot font above the card in Bun (the font only has these letters).
-const WELCOME_TITLE = ['Welcome to', 'MrBun-SlimeVR'];
+// The welcome title, drawn in the dot font above the card in Bun (the font only has these letters). Widest layout first;
+// narrower windows fall back to a split that fits.
+const WELCOME_TITLE = [
+  ['Welcome to', 'MrBun-SlimeVR'],
+  ['Welcome to', 'MrBun-', 'SlimeVR'],
+  ['Welcome', 'to', 'MrBun-', 'SlimeVR'],
+];
 
 export function OnboardingLayout({ children }: { children: ReactNode }) {
   const { isMobile } = useBreakpoint('mobile');

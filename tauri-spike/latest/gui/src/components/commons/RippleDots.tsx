@@ -61,18 +61,27 @@ const FONT: Record<string, string[]> = {
   ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
 };
 
-// Cell mask for the wordmark: each line centred across, the block in the upper part so the welcome card sits below it.
-// Scales up on wide windows (1x to 2x per font pixel).
-function buildWord(cols: number, rows: number, lines: string[]) {
-  const scale = Math.max(1, Math.min(2, Math.floor(cols / 90)));
-  const advance = 6; // a 5-wide glyph and a one-cell gap
-  const lineStep = 9; // 7 rows of glyph and 2 rows between lines
-  const leftOf = (line: string) =>
-    Math.floor((cols - (line.length * advance - 1) * scale) / 2);
+const ADVANCE = 6; // a 5-wide glyph and a one-cell gap
+const LINE_STEP = 9; // 7 rows of glyph and 2 rows between lines
+
+// Width in cells of the widest line at this scale.
+function lineWidth(lines: string[], scale: number) {
+  return Math.max(...lines.map((line) => (line.length * ADVANCE - 1) * scale));
+}
+
+// Cell mask for the wordmark: the first layout that fits the width, each line centred across, in the upper part so
+// the welcome card sits below it. Scales up to 2x per font pixel on wide windows. Null when nothing fits.
+function buildWord(cols: number, rows: number, layouts: string[][]) {
+  const lines = layouts.find((set) => lineWidth(set, 1) + 2 <= cols);
+  if (!lines) return null;
+  const scale = Math.max(
+    1,
+    Math.min(2, Math.floor(cols / (lineWidth(lines, 1) + 4)))
+  );
   const y0 = Math.round(rows * 0.08);
   const mask = new Uint8Array(cols * rows);
   lines.forEach((line, li) => {
-    const left = leftOf(line);
+    const left = Math.floor((cols - lineWidth([line], scale)) / 2);
     [...line].forEach((ch, n) => {
       const glyph = FONT[ch];
       if (!glyph) return;
@@ -81,8 +90,8 @@ function buildWord(cols: number, rows: number, lines: string[]) {
           if (bit !== '1') return;
           for (let dy = 0; dy < scale; dy++) {
             for (let dx = 0; dx < scale; dx++) {
-              const x = left + (n * advance + c) * scale + dx;
-              const y = y0 + (li * lineStep + r) * scale + dy;
+              const x = left + (n * ADVANCE + c) * scale + dx;
+              const y = y0 + (li * LINE_STEP + r) * scale + dy;
               if (x >= 0 && y >= 0 && x < cols && y < rows)
                 mask[y * cols + x] = 1;
             }
@@ -134,8 +143,9 @@ export function RippleDots({
   solid?: boolean;
   // Each cell is a dot at rest and a character from "slimevr" where a wave passes.
   glyphs?: boolean;
-  // Lines of text drawn in the dot font above the grid (the welcome title). Only characters in FONT can be used.
-  wordmark?: string[];
+  // Title layouts for the dot font above the grid (the welcome title), widest first. The first one that fits the window is
+  // drawn. Only characters in FONT can be used.
+  wordmark?: string[][];
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
