@@ -1,13 +1,13 @@
 :root {
   --navbar-w: 0px;
-  --topbar-h: 56px;
   --sidebar-actual-w: 0px;
 }
 
 .main-layout {
   display: grid;
   position: relative;
-  grid-template-rows: var(--topbar-h) calc(100% - var(--topbar-h));
+  /* The top bar wraps to a second line in narrow windows, so its row grows with it. */
+  grid-template-rows: auto minmax(0, 1fr);
   grid-template-columns: minmax(0, 1fr) var(--sidebar-actual-w, 0px);
   grid-template-areas:
     't t'
@@ -53,16 +53,16 @@
 
     &.full {
       grid-template:
-        't' var(--topbar-h)
+        't' auto
         'l' var(--checklist-h)
         'b' var(--toolbar-h)
-        'c' calc(100% - var(--topbar-h) - var(--checklist-h) - var(--toolbar-h))
+        'c' minmax(0, 1fr)
         / 100%;
     }
 
     grid-template:
-      't' var(--topbar-h)
-      'c' calc(100% - var(--topbar-h))
+      't' auto
+      'c' minmax(0, 1fr)
       / 100%;
   }
 }

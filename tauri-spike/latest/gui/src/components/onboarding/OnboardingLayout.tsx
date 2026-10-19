@@ -18,11 +18,12 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
   // The water ripple sits behind every setup step, and stays mounted while the steps change. In Bun only.
   return !state.alonePage ? (
     <div className="onboarding-layout relative isolate h-full">
-      <RippleDots />
+      <RippleDots solid />
       <div style={{ gridArea: 't' }}>
+        {/* Setup shows only its own progress: no server/Broadcast/Dongle pills, and no bar on the welcome tab. */}
         <TopBar
-          progress={state.progress}
-          hideStatus={pathname === '/onboarding/home'}
+          progress={pathname === '/onboarding/home' ? undefined : state.progress}
+          hideStatus
         />
       </div>
       <div style={{ gridArea: 'c' }} className="mt-2 relative">
@@ -46,7 +47,7 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
     </div>
   ) : (
     <div className="relative isolate h-full">
-      <RippleDots />
+      <RippleDots solid />
       <MainLayout isMobile={isMobile}>{children}</MainLayout>
     </div>
   );

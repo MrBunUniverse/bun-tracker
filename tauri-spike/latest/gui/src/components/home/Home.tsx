@@ -24,7 +24,6 @@ import { ResetActionsGroup } from '@/components/Toolbar';
 import { useTrackerPresets } from '@/hooks/presets';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 
-import { QuestDiagnosticsCard } from './QuestDiagnosticsCard';
 import { Sidebar } from '@/components/Sidebar';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { useTrackingChecklist } from '@/hooks/tracking-checklist';
@@ -665,11 +664,6 @@ export function Home() {
             )}
           </button>
         </div>
-      </div>
-
-      {/* Compact server and Quest status row. Expanded controls stay opt-in. */}
-      <div className="shrink-0">
-        <QuestDiagnosticsCard />
       </div>
 
       {/* Lower Workspace Split: Left = Tracker Scroll Area, Right = 3D Skeleton Live View */}

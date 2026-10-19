@@ -1,11 +1,7 @@
 .onboarding-layout {
   display: grid;
   grid-template:
-    't' var(--topbar-h)
-    'c' calc(100% - var(--topbar-h))
+    't' auto
+    'c' minmax(0, 1fr)
     / 100%;
-
-  @screen mobile {
-    --topbar-h: 74px;
-  }
 }

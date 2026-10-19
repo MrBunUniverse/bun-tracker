@@ -40,12 +40,15 @@ function rippleLevel(height: number) {
 
 export function RippleDots({
   dots = false,
+  solid = false,
   originEl,
   gapMin = 1500,
   gapMax = 4000,
   className = 'absolute inset-0 -z-10 w-full h-full pointer-events-none',
 }: {
   dots?: boolean;
+  // Paints the grid over a page-coloured backdrop, so ripple dots replace body's dots instead of stacking on them.
+  solid?: boolean;
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
@@ -77,6 +80,8 @@ export function RippleDots({
     let prev = new Float32Array(0);
     // Drops still in play, with their age in frames. Turbulence grows with the distance to the nearest one.
     let drops: { x: number; y: number; age: number }[] = [];
+    // The page colour behind the canvas, read from body; empty when body is see-through.
+    let backdrop = '';
     let raf = 0;
     let last = 0;
     let running = false;
@@ -85,6 +90,11 @@ export function RippleDots({
     // Sizes the canvas and buffers. Ripples reset on resize, which is fine for a background.
     const size = () => {
       dpr = window.devicePixelRatio || 1;
+      const bg = getComputedStyle(document.body).backgroundColor;
+      backdrop =
+        !solid || /rgba?\(.*,\s*0\)$/.test(bg) || bg === 'transparent'
+          ? ''
+          : bg;
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       canvas.width = Math.round(w * dpr);
@@ -134,7 +144,13 @@ export function RippleDots({
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (dots) {
+      // The canvas paints the whole grid over a backdrop in the page colour, hiding body's own dots here.
+      // Ripple dots then replace grid dots instead of stacking on them (which showed as doubled dots whenever the two grids were a pixel off).
+      if (backdrop) {
+        ctx.fillStyle = backdrop;
+        ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      }
+      if (dots || solid) {
         ctx.fillStyle = BASE;
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
@@ -161,7 +177,10 @@ export function RippleDots({
               const ny = y + dy;
               if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
               const j = ny * cols + nx;
-              halo[j] = Math.max(halo[j], Math.max(Math.abs(dx), Math.abs(dy)) <= 1 ? 2 : 1);
+              halo[j] = Math.max(
+                halo[j],
+                Math.max(Math.abs(dx), Math.abs(dy)) <= 1 ? 2 : 1
+              );
             }
           }
         }
@@ -265,7 +284,7 @@ export function RippleDots({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [shown, animate, dots, originEl, gapMin, gapMax]);
+  }, [shown, animate, dots, solid, originEl, gapMin, gapMax]);
 
   if (!shown) return null;
 

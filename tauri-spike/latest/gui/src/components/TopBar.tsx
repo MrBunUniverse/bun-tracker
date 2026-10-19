@@ -4,13 +4,13 @@ import { useLocalization } from '@fluent/react';
 import { useAtomValue } from 'jotai';
 import classNames from 'classnames';
 import { GH_REPO, VersionContext } from '@/App';
-import { useBreakpoint } from '@/hooks/breakpoint';
 import { useConfig } from '@/hooks/config';
 import { openUrl } from '@/hooks/crossplatform';
 import { useElectron } from '@/hooks/electron';
 import { useIsMac } from '@/hooks/platform';
 import { connectedIMUCountAtom } from '@/store/app-store';
 import { ChatboxDropdown } from './broadcast/ChatboxDropdown';
+import { QuestDiagnosticsCard } from './home/QuestDiagnosticsCard';
 import { DonglePill } from './dongle/DongleStats';
 import { CloseIcon } from './commons/icon/CloseIcon';
 import { DownloadIcon } from './commons/icon/DownloadIcon';
@@ -38,7 +38,6 @@ export function TopBar({
   const { l10n } = useLocalization();
   const electron = useElectron();
   const isMac = useIsMac();
-  const { isMobile } = useBreakpoint('mobile');
   const connectedIMUCount = useAtomValue(connectedIMUCountAtom);
   const { config, setConfig, saveConfig } = useConfig();
   const version = useContext(VersionContext);
@@ -74,7 +73,8 @@ export function TopBar({
       <header className="relative z-[65] flex flex-col">
         <div
           className={classNames(
-            'z-40 flex h-[46px] select-none items-center gap-3 border-b border-[var(--material-border-subtle)] bg-background-80 pr-3',
+            // Wraps onto a second line in narrow windows (high zoom) so every button stays visible.
+            'z-40 flex min-h-[46px] select-none flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
             'pl-4'
           )}
           style={{ WebkitAppRegion: 'drag' } as any}
@@ -84,12 +84,13 @@ export function TopBar({
             <>
               <StatusCluster />
               <ChatboxDropdown variant="top" />
+              <QuestDiagnosticsCard />
               <DonglePill />
             </>
           )}
 
           <div
-            className="h-full min-w-4 flex-1"
+            className="h-full min-w-0 flex-1"
             style={{ WebkitAppRegion: 'drag' } as any}
             data-electron-drag-region
           />
@@ -157,7 +158,7 @@ export function TopBar({
             )}
           </div>
         </div>
-        {isMobile && progress !== undefined && (
+        {progress !== undefined && (
           <div className="mb-2 flex h-6 flex-col justify-center gap-2 border-b border-accent-background-30 px-2">
             <ProgressBar progress={progress} height={3} parts={3} />
           </div>

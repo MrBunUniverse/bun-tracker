@@ -1,12 +1,9 @@
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { assignedTrackersAtom } from '@/store/app-store';
-import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
-import { useCollapsibleHeight } from '@/hooks/collapsible-height';
 import { useOperatingMode } from '@/hooks/operating-mode';
 import { useTrackerPresets } from '@/hooks/presets';
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { useLocalization } from '@fluent/react';
+import { useState, useEffect, useRef } from 'react';
 import { SegmentedControl } from '@/components/commons/SegmentedControl';
 import { SettingGroup, SettingRow } from '@/components/commons/SettingRow';
 import { Slider } from '@/components/commons/Slider';
@@ -20,7 +17,6 @@ const sentButton = `${buttonBase} bg-status-success/15 text-status-success`;
 const stepButton = `${buttonBase} !h-7 !w-7 shrink-0 !px-0 bg-background-10/[0.08] text-background-20 hover:bg-background-10/[0.14] hover:text-background-10`;
 
 export function QuestDiagnosticsCard() {
-  const { l10n } = useLocalization();
   const {
     floorAnchor,
     toggleFloorAnchor,
@@ -111,84 +107,72 @@ export function QuestDiagnosticsCard() {
     }, 1200);
   };
 
-  const [showTuning, setShowTuning] = useState(false);
-  const tuningPanel = useCollapsibleHeight(showTuning);
+  const [open, setOpen] = useState(false);
   const [advancedTab, setAdvancedTab] = useState<'motion' | 'vrchat'>('motion');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [top, setTop] = useState(58);
 
-  useLayoutEffect(() => {
-    if (tuningPanel.ref.current) {
-      tuningPanel.ref.current.inert = !showTuning;
-    }
-  }, [showTuning, tuningPanel.ref]);
+  // Sits just under the pill, which moves down when the top bar wraps in narrow windows.
+  useEffect(() => {
+    if (!open) return;
+    const place = () =>
+      setTop((rootRef.current?.getBoundingClientRect().bottom ?? 50) + 8);
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
+
+  // Closes on an outside click or Esc.
+  useEffect(() => {
+    if (!open) return;
+    const onMouseDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
 
   const rates = [30, 50, 60, 90] as const;
 
-  const sidebarTabAnim = useSidebarPushAnimation(1);
-
   return (
     <div
-      style={sidebarTabAnim.style}
-      className={classNames(
-        'w-full flex flex-col select-none liquid-glass-tab-strip',
-        sidebarTabAnim.className
-      )}
+      ref={rootRef}
+      className="relative flex shrink-0 items-center"
+      style={{ WebkitAppRegion: 'no-drag' } as any}
     >
-      {/* Flush Header Strip matching getting started collapsed tab */}
       <button
         type="button"
-        aria-expanded={showTuning}
-        aria-controls="quest-telemetry-controls"
-        onClick={() => setShowTuning((prev) => !prev)}
-        className="telemetry-strip__toggle w-full cursor-pointer px-4 py-2 flex items-center justify-between select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-background-20/70 sm:px-6"
-        title={
-          showTuning ? 'Hide telemetry controls' : 'Show telemetry controls'
-        }
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((value) => !value)}
+        title="Quest controls"
+        className={classNames(
+          'flex h-8 cursor-pointer select-none items-center gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
+          open
+            ? 'bg-background-10/[0.08] text-background-10'
+            : 'text-background-10 hover:bg-background-10/[0.06]'
+        )}
       >
-        <div className="flex items-center gap-2 min-w-0 flex-nowrap overflow-hidden">
-          <span className="text-ui-xs text-background-10 font-medium truncate whitespace-nowrap shrink-0">
-            Quest controls
-          </span>
-          <div
-            className={classNames(
-              'flex items-center gap-1.5 text-ui-2xs tnum text-background-30 font-sans whitespace-nowrap shrink-0 overflow-hidden transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]',
-              showTuning
-                ? 'opacity-0 max-w-0 pointer-events-none -translate-x-2'
-                : 'opacity-100 max-w-[400px] translate-x-0'
-            )}
-          >
-            <span className="text-background-40/60">·</span>
-            <span>
-              {l10n.getString('home-quest-floor-offset')}:{' '}
-              {floorAnchor.floorOffset >= 0 ? '+' : ''}
-              {(floorAnchor.floorOffset * 100).toFixed(0)}cm
-            </span>
-            <span className="text-background-40/60">·</span>
-            <span>
-              {l10n.getString('home-quest-osc-rate')}: {floorAnchor.oscRate}Hz
-            </span>
-            <span className="text-background-40/60">·</span>
-            <span
-              className={
-                floorAnchor.isAnchored
-                  ? 'text-status-success'
-                  : 'text-background-30'
-              }
-            >
-              {l10n.getString(
-                floorAnchor.isAnchored
-                  ? 'home-quest-anchored'
-                  : 'home-quest-unanchored'
-              )}
-            </span>
-          </div>
-        </div>
+        <span className="whitespace-nowrap">Quest controls</span>
+        <span className="tnum whitespace-nowrap text-ui-2xs text-background-30">
+          {floorAnchor.floorOffset >= 0 ? '+' : ''}
+          {(floorAnchor.floorOffset * 100).toFixed(0)}cm · {floorAnchor.oscRate}
+          Hz
+        </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 16 16"
           fill="none"
           className={classNames(
-            'h-4 w-4 shrink-0 text-background-30 transition-transform duration-200 ease-out',
-            showTuning && 'rotate-180'
+            'h-3.5 w-3.5 shrink-0 text-background-30 transition-transform duration-200',
+            open && 'rotate-180'
           )}
         >
           <path
@@ -201,232 +185,225 @@ export function QuestDiagnosticsCard() {
         </svg>
       </button>
 
-      {/* Expanded Controls Panel with Cinematic Liquid Glass Animation */}
-      <div
-        id="quest-telemetry-controls"
-        ref={tuningPanel.ref}
-        aria-hidden={!showTuning}
-        style={tuningPanel.style}
-        onTransitionEnd={tuningPanel.onTransitionEnd}
-        className={classNames(
-          'collapsible-tab-grid',
-          showTuning
-            ? 'collapsible-tab-grid-expanded'
-            : 'collapsible-tab-grid-collapsed'
-        )}
-      >
-        <div className="overflow-hidden min-h-0">
-          <div
-            className={classNames(
-              'w-full px-4 pt-3 pb-1.5 flex flex-col gap-1.5 border-t border-background-10/[0.035] liquid-glass-tab-panel collapsible-tab-content sm:px-6'
-            )}
-          >
-            <div className="grid grid-cols-1 gap-x-10 gap-y-4 pb-3 md:grid-cols-2">
-              <SettingGroup title="Tracking">
-                <SettingRow
-                  label="Trackers assigned"
-                  description={activePreset?.name || 'Custom Setup'}
-                >
-                  <span className="tnum text-ui-xs text-background-20">
-                    {activeAssigned} active · {activePreset?.targetCount || 5}{' '}
-                    target
-                  </span>
-                </SettingRow>
-
-                <SettingRow
-                  label="Floor clip"
-                  description={floorAnchor.isAnchored ? 'On' : 'Off'}
-                >
-                  <button
-                    type="button"
-                    onClick={toggleFloorAnchor}
-                    aria-pressed={floorAnchor.isAnchored}
-                    className={ghostButton}
-                  >
-                    {floorAnchor.isAnchored ? 'Turn off' : 'Turn on'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCalibrate}
-                    disabled={calibrating}
-                    className={solidButton}
-                  >
-                    {calibrating ? 'Done' : 'Calibrate'}
-                  </button>
-                </SettingRow>
-
-                <SettingRow
-                  stacked
-                  label="Elevation"
-                  value={
-                    isEditingElevation ? (
-                      <span className="flex items-center gap-1">
-                        <input
-                          ref={elevationInputRef}
-                          type="text"
-                          value={elevationInputVal}
-                          onChange={(e) => setElevationInputVal(e.target.value)}
-                          onBlur={handleCommitElevation}
-                          onKeyDown={handleElevationKeyDown}
-                          className="w-14 rounded-[6px] border border-accent-background-20 bg-background-10/[0.08] px-1.5 py-0.5 text-center text-ui-xs tnum text-background-10 outline-none"
-                          placeholder="0"
-                          aria-label="Custom Elevation in centimeters"
-                        />
-                        <span className="text-background-30">cm</span>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleStartEditElevation}
-                        className="cursor-text rounded-[6px] px-1.5 py-0.5 tnum text-background-10 transition-colors hover:bg-background-10/[0.08]"
-                        title="Click to type custom elevation in cm"
-                      >
-                        {floorAnchor.floorOffset >= 0 ? '+' : ''}
-                        {(floorAnchor.floorOffset * 100).toFixed(0)} cm
-                      </button>
-                    )
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => adjustFloorHeight(-1)}
-                      className={stepButton}
-                      title="Lower elevation by 1cm"
-                      aria-label="Lower elevation by 1cm"
-                    >
-                      −
-                    </button>
-                    <Slider
-                      min={-150}
-                      max={200}
-                      value={Math.round(floorAnchor.floorOffset * 100)}
-                      onChange={(v) => setFloorHeight(v / 100)}
-                      label="Floor Elevation Offset"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => adjustFloorHeight(1)}
-                      className={stepButton}
-                      title="Raise elevation by 1cm"
-                      aria-label="Raise elevation by 1cm"
-                    >
-                      +
-                    </button>
-                    {Math.round(floorAnchor.floorOffset * 100) !== 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setFloorHeight(0)}
-                        className={ghostButton}
-                        title="Snap floor back to exact 0cm"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </SettingRow>
-
-                <SettingRow label="OSC target rate">
-                  <SegmentedControl
-                    ariaLabel="OSC output rate"
-                    value={String(floorAnchor.oscRate)}
-                    onChange={(v) =>
-                      setOscRate(Number(v) as (typeof rates)[number])
-                    }
-                    options={rates.map((r) => ({
-                      value: String(r),
-                      label: `${r}Hz`,
-                    }))}
-                  />
-                </SettingRow>
-              </SettingGroup>
-
-              <SettingGroup
-                title="Advanced"
-                hint={`${Math.round(floorAnchor.correctionStrength * 100)}% correction · foot plant ${floorAnchor.footPlant ? 'on' : 'off'}`}
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Quest controls"
+          className="z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          style={{
+            // Pinned inside the window at any zoom; scrolls when taller.
+            position: 'fixed',
+            top,
+            left: 10,
+            width: 'min(760px, calc(100vw - 20px))',
+            maxHeight: `calc(100dvh - ${top + 10}px)`,
+          }}
+        >
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-x-10 gap-y-4">
+            <SettingGroup title="Tracking">
+              <SettingRow
+                label="Trackers assigned"
+                description={activePreset?.name || 'Custom Setup'}
               >
-                <div className="pb-2.5 pt-1">
-                  <SegmentedControl
-                    ariaLabel="Advanced telemetry settings"
-                    className="w-full [&>button]:flex-1"
-                    value={advancedTab}
-                    onChange={setAdvancedTab}
-                    options={[
-                      { value: 'motion', label: 'Motion' },
-                      { value: 'vrchat', label: 'VRChat' },
-                    ]}
-                  />
-                </div>
+                <span className="tnum text-ui-xs text-background-20">
+                  {activeAssigned} active · {activePreset?.targetCount || 5}{' '}
+                  target
+                </span>
+              </SettingRow>
 
-                {advancedTab === 'motion' ? (
-                  <>
-                    <SettingRow
-                      stacked
-                      label="Correction strength"
-                      value={`${Math.round(floorAnchor.correctionStrength * 100)}%`}
-                    >
-                      <Slider
-                        min={0}
-                        max={100}
-                        value={Math.round(floorAnchor.correctionStrength * 100)}
-                        onChange={(v) => setCorrectionStrength(v / 100)}
-                        label="Correction Strength"
+              <SettingRow
+                label="Floor clip"
+                description={floorAnchor.isAnchored ? 'On' : 'Off'}
+              >
+                <button
+                  type="button"
+                  onClick={toggleFloorAnchor}
+                  aria-pressed={floorAnchor.isAnchored}
+                  className={ghostButton}
+                >
+                  {floorAnchor.isAnchored ? 'Turn off' : 'Turn on'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCalibrate}
+                  disabled={calibrating}
+                  className={solidButton}
+                >
+                  {calibrating ? 'Done' : 'Calibrate'}
+                </button>
+              </SettingRow>
+
+              <SettingRow
+                stacked
+                label="Elevation"
+                value={
+                  isEditingElevation ? (
+                    <span className="flex items-center gap-1">
+                      <input
+                        ref={elevationInputRef}
+                        type="text"
+                        value={elevationInputVal}
+                        onChange={(e) => setElevationInputVal(e.target.value)}
+                        onBlur={handleCommitElevation}
+                        onKeyDown={handleElevationKeyDown}
+                        className="w-14 rounded-[6px] border border-accent-background-20 bg-background-10/[0.08] px-1.5 py-0.5 text-center text-ui-xs tnum text-background-10 outline-none"
+                        placeholder="0"
+                        aria-label="Custom Elevation in centimeters"
                       />
-                    </SettingRow>
-                    <SettingRow
-                      label="Foot plant lock"
-                      description="Keeps planted feet from sliding"
+                      <span className="text-background-30">cm</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleStartEditElevation}
+                      className="cursor-text rounded-[6px] px-1.5 py-0.5 tnum text-background-10 transition-colors hover:bg-background-10/[0.08]"
+                      title="Click to type custom elevation in cm"
                     >
-                      <Toggle
-                        checked={floorAnchor.footPlant}
-                        onChange={setFootPlant}
-                        label="Toggle Foot Plant Lock"
-                      />
-                    </SettingRow>
-                  </>
-                ) : (
-                  <>
-                    <SettingRow
-                      label="Battery status in chatbox"
-                      description="Share tracker battery levels in VRChat"
+                      {floorAnchor.floorOffset >= 0 ? '+' : ''}
+                      {(floorAnchor.floorOffset * 100).toFixed(0)} cm
+                    </button>
+                  )
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustFloorHeight(-1)}
+                    className={stepButton}
+                    title="Lower elevation by 1cm"
+                    aria-label="Lower elevation by 1cm"
+                  >
+                    −
+                  </button>
+                  <Slider
+                    min={-150}
+                    max={200}
+                    value={Math.round(floorAnchor.floorOffset * 100)}
+                    onChange={(v) => setFloorHeight(v / 100)}
+                    label="Floor Elevation Offset"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustFloorHeight(1)}
+                    className={stepButton}
+                    title="Raise elevation by 1cm"
+                    aria-label="Raise elevation by 1cm"
+                  >
+                    +
+                  </button>
+                  {Math.round(floorAnchor.floorOffset * 100) !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setFloorHeight(0)}
+                      className={ghostButton}
+                      title="Snap floor back to exact 0cm"
                     >
-                      <button
-                        type="button"
-                        onClick={handleSendChatbox}
-                        className={chatboxSent ? sentButton : ghostButton}
-                        title="Broadcast current tracker battery levels into VRChat chatbox now"
-                      >
-                        {chatboxSent ? '✓ Sent' : 'Send now'}
-                      </button>
-                      <Toggle
-                        checked={floorAnchor.chatboxEnabled}
-                        onChange={setChatboxEnabled}
-                        label="Toggle VRChat Chatbox Battery HUD"
-                        title="Toggle automatic periodic chatbox battery updates"
-                      />
-                    </SettingRow>
-                    <SettingRow
-                      label="Chat-only mode"
-                      description={
-                        floorAnchor.chatboxOnlyMode
-                          ? 'Tracker OSC muted; chat bubble stays active'
-                          : 'Mutes tracker OSC; chat bubble stays active'
-                      }
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </SettingRow>
+
+              <SettingRow label="OSC target rate">
+                <SegmentedControl
+                  ariaLabel="OSC output rate"
+                  value={String(floorAnchor.oscRate)}
+                  onChange={(v) =>
+                    setOscRate(Number(v) as (typeof rates)[number])
+                  }
+                  options={rates.map((r) => ({
+                    value: String(r),
+                    label: `${r}Hz`,
+                  }))}
+                />
+              </SettingRow>
+            </SettingGroup>
+
+            <SettingGroup
+              title="Advanced"
+              hint={`${Math.round(floorAnchor.correctionStrength * 100)}% correction · foot plant ${floorAnchor.footPlant ? 'on' : 'off'}`}
+            >
+              <div className="pb-2.5 pt-1">
+                <SegmentedControl
+                  ariaLabel="Advanced telemetry settings"
+                  className="w-full [&>button]:flex-1"
+                  value={advancedTab}
+                  onChange={setAdvancedTab}
+                  options={[
+                    { value: 'motion', label: 'Motion' },
+                    { value: 'vrchat', label: 'VRChat' },
+                  ]}
+                />
+              </div>
+
+              {advancedTab === 'motion' ? (
+                <>
+                  <SettingRow
+                    stacked
+                    label="Correction strength"
+                    value={`${Math.round(floorAnchor.correctionStrength * 100)}%`}
+                  >
+                    <Slider
+                      min={0}
+                      max={100}
+                      value={Math.round(floorAnchor.correctionStrength * 100)}
+                      onChange={(v) => setCorrectionStrength(v / 100)}
+                      label="Correction Strength"
+                    />
+                  </SettingRow>
+                  <SettingRow
+                    label="Foot plant lock"
+                    description="Keeps planted feet from sliding"
+                  >
+                    <Toggle
+                      checked={floorAnchor.footPlant}
+                      onChange={setFootPlant}
+                      label="Toggle Foot Plant Lock"
+                    />
+                  </SettingRow>
+                </>
+              ) : (
+                <>
+                  <SettingRow
+                    label="Battery status in chatbox"
+                    description="Share tracker battery levels in VRChat"
+                  >
+                    <button
+                      type="button"
+                      onClick={handleSendChatbox}
+                      className={chatboxSent ? sentButton : ghostButton}
+                      title="Broadcast current tracker battery levels into VRChat chatbox now"
                     >
-                      <Toggle
-                        checked={floorAnchor.chatboxOnlyMode}
-                        onChange={setChatboxOnlyMode}
-                        label="Toggle Chat-Only Mode"
-                        title="Toggle Chat-Only Mode (Mutes tracker OSC, keeps chatbox active)"
-                      />
-                    </SettingRow>
-                  </>
-                )}
-              </SettingGroup>
-            </div>
+                      {chatboxSent ? '✓ Sent' : 'Send now'}
+                    </button>
+                    <Toggle
+                      checked={floorAnchor.chatboxEnabled}
+                      onChange={setChatboxEnabled}
+                      label="Toggle VRChat Chatbox Battery HUD"
+                      title="Toggle automatic periodic chatbox battery updates"
+                    />
+                  </SettingRow>
+                  <SettingRow
+                    label="Chat-only mode"
+                    description={
+                      floorAnchor.chatboxOnlyMode
+                        ? 'Tracker OSC muted; chat bubble stays active'
+                        : 'Mutes tracker OSC; chat bubble stays active'
+                    }
+                  >
+                    <Toggle
+                      checked={floorAnchor.chatboxOnlyMode}
+                      onChange={setChatboxOnlyMode}
+                      label="Toggle Chat-Only Mode"
+                      title="Toggle Chat-Only Mode (Mutes tracker OSC, keeps chatbox active)"
+                    />
+                  </SettingRow>
+                </>
+              )}
+            </SettingGroup>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

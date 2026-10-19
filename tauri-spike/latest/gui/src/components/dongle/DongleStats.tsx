@@ -69,6 +69,16 @@ export function DonglePill() {
   const snap = useDongleStats();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [top, setTop] = useState(58);
+
+  // Sits just under the pill, which moves down when the top bar wraps in narrow windows.
+  useEffect(() => {
+    if (!open) return;
+    const place = () => setTop((rootRef.current?.getBoundingClientRect().bottom ?? 50) + 8);
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,7 +130,15 @@ export function DonglePill() {
           role="dialog"
           aria-label="ESP32 dongle stats"
           className="chatbox-panel chatbox-panel--open"
-          style={{ width: 'min(560px, calc(100vw - 20px))' }}
+          style={{
+            // Pinned inside the window at any zoom; the body scrolls when it is taller.
+            position: 'fixed',
+            top,
+            right: 10,
+            left: 'auto',
+            width: 'min(560px, calc(100vw - 20px))',
+            maxHeight: `calc(100dvh - ${top + 10}px)`,
+          }}
         >
           <div className="chatbox-header flex items-center">
             <span className="chatbox-title text-background-10">
@@ -143,6 +161,17 @@ function Stat({ label, value, bad }: { label: string; value: string; bad?: boole
       <span className={classNames('tnum text-ui-md font-medium', bad ? 'text-status-critical' : 'text-background-10')}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function Metric({ label, value, tone }: { label: string; value: string; tone?: 'warning' | 'critical' }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-ui-2xs text-background-30">{label}</dt>
+      <dd className={classNames(tone === 'critical' && 'text-status-critical', tone === 'warning' && 'text-status-warning', !tone && 'text-background-10')}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -181,32 +210,23 @@ function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
         <Stat label="ESP32 free heap" value={esp.heap ? `${Math.round(Number(esp.heap) / 1024)} KB` : '–'} />
       </div>
 
-      <div className="overflow-x-auto rounded-[10px] bg-background-70">
-        <table className="tnum w-full text-left text-ui-xs text-background-10">
-          <thead className="text-background-30">
-            <tr>
-              {['Tracker', 'Packets/s', 'Last seen', 'Longest gap', 'RTT min/avg/max', 'Spikes >100ms', 'Hiccups >750ms'].map((h) => (
-                <th key={h} className="px-4 py-2 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {snap.trackers.map((t) => (
-              <tr key={t.ip} className="border-t border-background-60">
-                <td className="px-4 py-2">.{t.id}</td>
-                <td className="px-4 py-2">{t.pps}</td>
-                <td className={classNames('px-4 py-2', t.age_ms > 750 && 'text-status-critical')}>{ms(t.age_ms)} ago</td>
-                <td className={classNames('px-4 py-2', t.gap_max_ms > 750 && 'text-status-warning')}>{ms(t.gap_max_ms)}</td>
-                <td className="px-4 py-2">{t.rtt_avg === null ? '–' : `${t.rtt_min}/${t.rtt_avg}/${t.rtt_max} ms`}</td>
-                <td className="px-4 py-2">{t.spikes}</td>
-                <td className="px-4 py-2">{t.hiccups}</td>
-              </tr>
-            ))}
-            {snap.trackers.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-3 text-background-30">No tracker has sent a packet yet.</td></tr>
-            )}
-          </tbody>
-        </table>
+      <div className="flex flex-col gap-2">
+        {snap.trackers.map((t) => (
+          <div key={t.ip} className="rounded-[10px] bg-background-70 px-3 py-2.5">
+            <div className="mb-1.5 text-ui-xs font-medium text-background-10">Tracker .{t.id}</div>
+            <dl className="tnum grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-x-3 gap-y-1.5 text-ui-xs">
+              <Metric label="Packets/s" value={String(t.pps)} />
+              <Metric label="Last seen" value={`${ms(t.age_ms)} ago`} tone={t.age_ms > 750 ? 'critical' : undefined} />
+              <Metric label="Longest gap" value={ms(t.gap_max_ms)} tone={t.gap_max_ms > 750 ? 'warning' : undefined} />
+              <Metric label="RTT min/avg/max" value={t.rtt_avg === null ? '–' : `${t.rtt_min}/${t.rtt_avg}/${t.rtt_max} ms`} />
+              <Metric label="Spikes >100ms" value={String(t.spikes)} />
+              <Metric label="Hiccups >750ms" value={String(t.hiccups)} />
+            </dl>
+          </div>
+        ))}
+        {snap.trackers.length === 0 && (
+          <div className="rounded-[10px] bg-background-70 px-3 py-2.5 text-ui-xs text-background-30">No tracker has sent a packet yet.</div>
+        )}
       </div>
 
       <div className="rounded-[10px] bg-background-70 p-4">

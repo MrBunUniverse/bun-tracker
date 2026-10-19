@@ -2,14 +2,14 @@
   display: grid;
   position: relative;
   grid-template:
-    't t' var(--topbar-h)
-    's c' calc(100% - var(--topbar-h))
+    't t' auto
+    's c' minmax(0, 1fr)
     / max-content minmax(0, 1fr);
 
   @screen mobile {
     grid-template:
-      't' var(--topbar-h)
-      'c' calc(100% - var(--topbar-h))
+      't' auto
+      'c' minmax(0, 1fr)
       / 100%;
   }
 }
