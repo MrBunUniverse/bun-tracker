@@ -783,7 +783,10 @@ export function Home() {
               width: isSidebarVisible ? `${resolvedSidebarWidth}px` : 0,
             }}
             className={classNames(
-              'relative h-full shrink-0',
+              // Opening and closing eases the width. Dragging the edge doesn't, so the panel follows the pointer.
+              'panel-slide relative h-full shrink-0',
+              !isDragging &&
+                'transition-[width] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]',
               isSidebarVisible ? 'pointer-events-auto' : 'pointer-events-none'
             )}
             aria-hidden={!isSidebarVisible}

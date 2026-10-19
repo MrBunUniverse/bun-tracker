@@ -2796,16 +2796,17 @@ a,
    ------------------------------------------------------------------------ */
 /* Allowed exceptions: spinners, the two cheap compositor-only animations
    of the waiting-for-tracker state (.animate-search-pulse, .animate-found-pop),
-   and the live skeleton view's enter slide (.skeleton-slide). */
+   the live skeleton view's enter slide (.skeleton-slide), and the Home
+   inspector's open and close slide (.panel-slide). */
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide),
+  ):not(.skeleton-slide):not(.panel-slide),
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide)::before,
+  ):not(.skeleton-slide):not(.panel-slide)::before,
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide)::after {
+  ):not(.skeleton-slide):not(.panel-slide)::after {
   animation: none !important;
   transition: none !important;
   will-change: auto !important;
