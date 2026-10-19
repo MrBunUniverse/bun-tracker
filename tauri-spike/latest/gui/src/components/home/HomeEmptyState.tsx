@@ -408,7 +408,7 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   return (
     <section
       aria-labelledby="tracker-empty-title"
-      className="relative isolate flex w-full flex-col items-center overflow-hidden rounded-[14px] border border-[var(--material-border-subtle)] bg-background-70 px-6 py-10 text-center shadow-[inset_0_1px_0_0_rgba(250,249,245,0.04)] sm:py-12"
+      className="relative isolate flex w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-[14px] border border-[var(--material-border-subtle)] bg-background-70 px-6 py-10 text-center shadow-[inset_0_1px_0_0_rgba(250,249,245,0.04)] sm:py-12"
     >
       {/* Bun: the logo hops and lands every 4.2 s, and the water ripple starts at the landing (see tracker-logo-hop). */}
       {bun && <RippleDots originEl={logoRef} gapMin={4200} gapMax={4200} />}
@@ -625,13 +625,14 @@ export function HomeEmptyState({
       <div
         className={classNames(
           'home-tracker-surface w-full flex-grow flex flex-col justify-between items-center bg-background-80',
-          'py-10 sm:py-14 px-6'
+          // Empty: the same inset on all four sides, so the card fills the panel evenly.
+          allTrackers.length === 0 ? 'p-4' : 'py-10 sm:py-14 px-6'
         )}
       >
         <div
           className={classNames(
             'w-full max-w-[980px] flex flex-col items-center',
-            allTrackers.length === 0 && 'my-auto'
+            allTrackers.length === 0 && 'min-h-0 flex-1'
           )}
         >
           {/* Section Heading: "Trackers" with Live Count and Demo Switch */}
