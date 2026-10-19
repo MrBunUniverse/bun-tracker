@@ -14,7 +14,6 @@ import {
   PerspectiveCamera,
   Quaternion,
   Scene,
-  Sphere,
   Spherical,
   Vector2,
   Vector3,
@@ -216,14 +215,17 @@ function initializePreview(
   // it owns the zoom; the overlay's Auto-frame button turns it off.
   let autoFrame = true;
   const frameBox = new Box3();
-  const frameSphere = new Sphere();
+  const frameSize = new Vector3();
+  const frameTarget = new Vector3();
   const framePoint = new Vector3();
   const frameShift = new Vector3();
-  // Close-up, with only a thin margin around the bounding sphere.
+  // Close-up, with only a thin margin around the body.
   const FRAME_MARGIN = 1.1;
   const FRAME_PADDING = 0.08; // metres, so a swinging hand never touches the edge
   const MIN_FRAME_RADIUS = 0.5;
   const FRAME_LIFT = 0.22;
+  // Lying down: the body is long and flat, so the view turns to look straight down on it.
+  const LYING_RATIO = 0.5;
   // Spring times in seconds. The zoom opens fast so nothing is cut off and closes slowly, so
   // swinging limbs don't make it breathe in and out. The position glides slower still.
   const FRAME_MOVE_TIME = 0.7;
@@ -241,6 +243,8 @@ function initializePreview(
   // Eye level: the camera sits level with the aim point, looking straight at the body, not
   // down on it like a drone. The turn left or right stays whatever the user chose.
   const FRAME_EYE_LEVEL_PHI = Math.PI / 2 - 0.04;
+  // Looking straight down (the polar angle runs from the top, so near 0 is a top view).
+  const FRAME_TOP_PHI = 0.06;
   const FRAME_PITCH_TIME = 0.8;
   const frameSpherical = new Spherical();
   const frameOffset = new Vector3();
@@ -285,21 +289,29 @@ function initializePreview(
       return;
     }
     const dt = Math.min(Math.max(rawDt, 0.001), 0.05);
-    frameBox.getBoundingSphere(frameSphere);
-    const wantRadius =
-      Math.max(frameSphere.radius, MIN_FRAME_RADIUS) * FRAME_MARGIN +
-      FRAME_PADDING;
-    // Aim a little below the centre, so the body sits above the control strip at the bottom.
-    frameSphere.center.y -= wantRadius * FRAME_LIFT;
+    frameBox.getCenter(frameTarget);
+    frameBox.getSize(frameSize);
+    // Half-extents of the body: tall and narrow when standing, long and flat when lying.
+    const halfHeight = Math.max(frameSize.y / 2, MIN_FRAME_RADIUS);
+    const halfWide =
+      Math.max(frameSize.x, frameSize.z, 2 * MIN_FRAME_RADIUS) / 2;
+    const lying = halfHeight < LYING_RATIO * halfWide;
+    // Fit the body's height when standing, and its length when lying. The width is the other
+    // constraint: a narrow panel shows less of it, so that can push the zoom out.
+    const major = lying ? halfWide : halfHeight;
+    const needHeight = major * FRAME_MARGIN + FRAME_PADDING;
+    const needWidth = halfWide * FRAME_MARGIN + FRAME_PADDING;
+    const wantRadius = Math.max(needHeight, needWidth / Math.max(aspect, 0.01));
+    // Standing: aim a little below the centre, so the body sits above the control strip.
+    if (!lying) frameTarget.y -= wantRadius * FRAME_LIFT;
 
-    const halfFov = (v.camera.fov * Math.PI) / 360;
-    const fit = Math.tan(halfFov) * Math.min(1, aspect);
+    const tanHalf = Math.tan((v.camera.fov * Math.PI) / 360);
     if (!frameReady) {
       // Start from where the camera already is, so turning Auto-frame on glides in.
       frameCenter.copy(v.controls.target);
       frameVelocity.set(0, 0, 0);
       frameRadius =
-        (v.camera.position.distanceTo(v.controls.target) * fit) /
+        (v.camera.position.distanceTo(v.controls.target) * tanHalf) /
         Math.max(v.camera.zoom, 0.01);
       frameRadiusVelocity = 0;
       framePitchVelocity = 0;
@@ -309,7 +321,7 @@ function initializePreview(
     springVel.v = frameVelocity.x;
     frameCenter.x = smoothDamp(
       frameCenter.x,
-      frameSphere.center.x,
+      frameTarget.x,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -318,7 +330,7 @@ function initializePreview(
     springVel.v = frameVelocity.y;
     frameCenter.y = smoothDamp(
       frameCenter.y,
-      frameSphere.center.y,
+      frameTarget.y,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -327,7 +339,7 @@ function initializePreview(
     springVel.v = frameVelocity.z;
     frameCenter.z = smoothDamp(
       frameCenter.z,
-      frameSphere.center.z,
+      frameTarget.z,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -349,13 +361,13 @@ function initializePreview(
     v.controls.target.add(frameShift);
     v.camera.position.add(frameShift);
 
-    // Ease the camera down to eye level, keeping its distance and its heading.
+    // Ease the camera to eye level (or straight down when lying), keeping its distance and heading.
     frameOffset.subVectors(v.camera.position, v.controls.target);
     frameSpherical.setFromVector3(frameOffset);
     springVel.v = framePitchVelocity;
     const phi = smoothDamp(
       frameSpherical.phi,
-      FRAME_EYE_LEVEL_PHI,
+      lying ? FRAME_TOP_PHI : FRAME_EYE_LEVEL_PHI,
       springVel,
       FRAME_PITCH_TIME,
       dt
@@ -366,8 +378,9 @@ function initializePreview(
     frameOffset.setFromSpherical(frameSpherical);
     v.camera.position.copy(v.controls.target).add(frameOffset);
 
+    // frameRadius is the half-height in view, so the zoom is the view height that fits it.
     const distance = frameSpherical.radius;
-    v.camera.zoom = (distance * fit) / frameRadius;
+    v.camera.zoom = (distance * tanHalf) / frameRadius;
 
     // Keep drawing until the camera settles.
     frameMoving =
@@ -375,7 +388,7 @@ function initializePreview(
       frameVelocity.lengthSq() > 1e-6 ||
       Math.abs(frameRadiusVelocity) > 1e-3 ||
       Math.abs(wantRadius - frameRadius) > 1e-3 ||
-      frameCenter.distanceToSquared(frameSphere.center) > 1e-6;
+      frameCenter.distanceToSquared(frameTarget) > 1e-6;
     if (frameMoving) markDirty(2);
   };
 
