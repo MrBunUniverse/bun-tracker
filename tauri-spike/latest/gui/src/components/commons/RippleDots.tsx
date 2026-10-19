@@ -81,6 +81,23 @@ function buildWord(cols: number, rows: number) {
   return mask;
 }
 
+// Glyph tone: 0 (dot) to GLYPH_STEPS (fully up). Eased with smoothstep, so the fade has no steps you can see.
+const GLYPH_STEPS = 16;
+const GLYPH_PALETTE = Array.from({ length: GLYPH_STEPS + 1 }, (_, k) => {
+  const t = k / GLYPH_STEPS;
+  // Cream towards the Bun coral as the wave peaks, and more opaque with it.
+  const c = t * t;
+  const r = Math.round(239 + (224 - 239) * c);
+  const g = Math.round(230 + (144 - 230) * c);
+  const b = Math.round(214 + (126 - 214) * c);
+  return `rgba(${r}, ${g}, ${b}, ${(0.15 + 0.75 * t).toFixed(3)})`;
+});
+
+function glyphTone(height: number) {
+  const u = Math.min(1, Math.max(0, (Math.abs(height) - 0.02) / 0.28));
+  return Math.round(u * u * (3 - 2 * u) * GLYPH_STEPS);
+}
+
 function rippleLevel(height: number) {
   const a = Math.abs(height);
   if (a < 0.04) return 0;
@@ -218,7 +235,8 @@ export function RippleDots({
     };
 
     // Paints the grid (when asked) and the ripples over it. Returns the biggest height, to tell when the surface is still.
-    const draw = () => {
+    // `blend` picks a point between the previous wave step (0) and the latest one (1). Only glyph cells use it.
+    const draw = (blend = 1) => {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -279,6 +297,14 @@ export function RippleDots({
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
           const i = y * cols + x;
+          if (glyphs) {
+            // Glyph cells fade with the wave height, so a character eases in and out instead of popping.
+            const tone = glyphTone(prev[i] + (cur[i] - prev[i]) * blend);
+            if (tone === 0 && halo[i] === 0) continue;
+            ctx.fillStyle = tone > 0 ? GLYPH_PALETTE[tone] : HALO[halo[i] - 1];
+            paint(x, y, true);
+            continue;
+          }
           const level = rippleLevel(cur[i]);
           if (level === 0) {
             if (halo[i] === 0) continue;
@@ -299,6 +325,23 @@ export function RippleDots({
 
     const frame = (time: number) => {
       raf = 0;
+      if (glyphs) {
+        // The wave steps at FPS, but glyphs are drawn every display frame, blending the last two steps so they move smoothly.
+        const stepped = time - last >= 1000 / FPS;
+        if (stepped) {
+          last = time;
+          step();
+        }
+        const peak = draw(Math.min(1, (time - last) / (1000 / FPS)));
+        if (stepped && peak < IDLE) {
+          draw(1);
+          running = false;
+          drops = [];
+          return;
+        }
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       if (time - last >= 1000 / FPS) {
         last = time;
         step();
