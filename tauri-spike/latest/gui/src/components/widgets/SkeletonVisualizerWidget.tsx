@@ -306,13 +306,13 @@ function initializePreview(
     if (!lying) frameTarget.y -= wantRadius * FRAME_LIFT;
 
     const tanHalf = Math.tan((v.camera.fov * Math.PI) / 360);
-    if (!frameReady) {
-      // Start from where the camera already is, so turning Auto-frame on glides in.
-      frameCenter.copy(v.controls.target);
+    // The first framing of a view jumps straight to the framed pose. Gliding in from the default view
+    // took seconds to settle, so the skeleton looked unframed on open.
+    const firstFrame = !frameReady;
+    if (firstFrame) {
+      frameCenter.copy(frameTarget);
       frameVelocity.set(0, 0, 0);
-      frameRadius =
-        (v.camera.position.distanceTo(v.controls.target) * tanHalf) /
-        Math.max(v.camera.zoom, 0.01);
+      frameRadius = wantRadius;
       frameRadiusVelocity = 0;
       framePitchVelocity = 0;
       frameReady = true;
@@ -364,14 +364,17 @@ function initializePreview(
     // Ease the camera to eye level (or straight down when lying), keeping its distance and heading.
     frameOffset.subVectors(v.camera.position, v.controls.target);
     frameSpherical.setFromVector3(frameOffset);
+    const goalPhi = lying ? FRAME_TOP_PHI : FRAME_EYE_LEVEL_PHI;
     springVel.v = framePitchVelocity;
-    const phi = smoothDamp(
-      frameSpherical.phi,
-      lying ? FRAME_TOP_PHI : FRAME_EYE_LEVEL_PHI,
-      springVel,
-      FRAME_PITCH_TIME,
-      dt
-    );
+    const phi = firstFrame
+      ? goalPhi
+      : smoothDamp(
+          frameSpherical.phi,
+          goalPhi,
+          springVel,
+          FRAME_PITCH_TIME,
+          dt
+        );
     framePitchVelocity = springVel.v;
     const pitchMoving = Math.abs(phi - frameSpherical.phi) > 1e-5;
     frameSpherical.phi = phi;
