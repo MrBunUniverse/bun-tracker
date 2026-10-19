@@ -29,8 +29,8 @@ const RIPPLE = [
 ];
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
-// Wordmark mode: a cell stays a dot until a wave reaches it, then becomes a character from "slimevr" while the
-// wave passes, and goes back to a dot. The SlimeVR letter shape (5x7 dot font) lights up on top during the pulse.
+// Glyph mode: a cell stays a dot until a wave reaches it, then becomes a character from "slimevr" while the
+// wave passes, and goes back to a dot. Wordmark adds the SlimeVR letter shape (5x7 dot font) on top during the pulse.
 const GLYPHS = [...'slimevr'];
 const GLYPH_FONT = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
 const WORD = [
@@ -92,7 +92,7 @@ function rippleLevel(height: number) {
 export function RippleDots({
   dots = false,
   solid = false,
-  // Draws "SlimeVR" in dots instead of the grid, and lets the ripples light only those letters.
+  glyphs = false,
   wordmark = false,
   originEl,
   gapMin = 1500,
@@ -102,6 +102,9 @@ export function RippleDots({
   dots?: boolean;
   // Paints the grid over a page-coloured backdrop, so ripple dots replace body's dots instead of stacking on them.
   solid?: boolean;
+  // Each cell is a dot at rest and a character from "slimevr" where a wave passes.
+  glyphs?: boolean;
+  // Adds the SlimeVR letter shape on top of the pulse (welcome screen only). Needs `glyphs` to be on too.
   wordmark?: boolean;
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
@@ -196,9 +199,9 @@ export function RippleDots({
       [cur, prev] = [prev, cur];
     };
 
-    // One grid cell: a dot, or with `glyph` a character from "slimevr" (wordmark mode only). Centred on the grid point.
+    // One grid cell: a dot, or with `glyph` a character from "slimevr" (glyph mode only). Centred on the grid point.
     const paint = (x: number, y: number, glyph = false) => {
-      if (word && glyph) {
+      if (glyphs && glyph) {
         ctx.fillText(
           GLYPHS[(x + 3 * y) % GLYPHS.length],
           offX + x * CELL,
@@ -219,7 +222,7 @@ export function RippleDots({
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (word) {
+      if (glyphs) {
         ctx.font = GLYPH_FONT;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -361,7 +364,7 @@ export function RippleDots({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [shown, animate, dots, solid, wordmark, originEl, gapMin, gapMax]);
+  }, [shown, animate, dots, solid, glyphs, wordmark, originEl, gapMin, gapMax]);
 
   if (!shown) return null;
 

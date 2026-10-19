@@ -14,11 +14,12 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
   const { state, skipSetup } = useOnboarding();
   const [showWarning, setShowWarning] = useState(false);
   const { pathname } = useLocation();
+  const welcome = pathname === '/onboarding/home';
 
   // The water ripple sits behind every setup step, and stays mounted while the steps change. In Bun only.
   return !state.alonePage ? (
     <div className="onboarding-layout relative isolate h-full">
-      <RippleDots solid wordmark={pathname === '/onboarding/home'} />
+      <RippleDots solid glyphs={welcome} wordmark={welcome} />
       <div style={{ gridArea: 't' }}>
         {/* Setup shows only its own progress: no server/Broadcast/Dongle pills, and no bar on the welcome tab. */}
         <TopBar

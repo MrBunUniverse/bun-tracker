@@ -411,7 +411,9 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
       className="relative isolate flex w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-[14px] border border-[var(--material-border-subtle)] bg-background-70 px-6 py-10 text-center shadow-[inset_0_1px_0_0_rgba(250,249,245,0.04)] sm:py-12"
     >
       {/* Bun: the logo hops and lands every 4.2 s, and the water ripple starts at the landing (see tracker-logo-hop). */}
-      {bun && <RippleDots originEl={logoRef} gapMin={4200} gapMax={4200} />}
+      {bun && (
+        <RippleDots glyphs originEl={logoRef} gapMin={4200} gapMax={4200} />
+      )}
       <div className="relative flex h-14 w-14 items-center justify-center">
         {!bun && (
           <span
