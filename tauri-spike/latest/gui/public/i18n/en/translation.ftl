@@ -1064,7 +1064,7 @@ install-info_udev-rules_warning = Access rules via udev are required for serial 
 install-info_udev-rules_modal_button = Close
 install-info_udev-rules_modal-dont-show-again_checkbox = Don't show again
 ## Setup start
-onboarding-home = Welcome to SJ-SlimeVR
+onboarding-home = Welcome to MrBun-SlimeVR
 onboarding-home-start = Let's get set up!
 
 

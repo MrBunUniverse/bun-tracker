@@ -7,7 +7,7 @@ import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
 import { useSidebar } from '@/hooks/sidebar';
 import { NAV_ITEMS, NavItem } from './nav-items';
 
-export const APP_NAME = 'SirJameSlimeVR';
+export const APP_NAME = 'MrBun-SlimeVR';
 
 function SideNavLink({
   item,

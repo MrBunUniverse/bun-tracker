@@ -18,7 +18,7 @@ export function HomePage() {
   const bun = isPawTheme(config?.theme);
 
   const fullTitle =
-    l10n.getString('onboarding-home') || 'Welcome to SJ-SlimeVR';
+    l10n.getString('onboarding-home') || 'Welcome to MrBun-SlimeVR';
 
   const [typedChars, setTypedChars] = useState(0);
   const [cursorVisible, setCursorVisible] = useState(true);

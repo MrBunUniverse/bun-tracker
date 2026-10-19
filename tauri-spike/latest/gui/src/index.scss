@@ -938,7 +938,7 @@ body {
   outline-offset: 2px;
 }
 
-/* Big titles (SirJameSlimeVR wordmark, page titles) use PawPad's monospace. Body text stays sans for readability. */
+/* Big titles (MrBun-SlimeVR wordmark, page titles) use PawPad's monospace. Body text stays sans for readability. */
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .font-serif,
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-main-title {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
