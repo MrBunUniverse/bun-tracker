@@ -10,6 +10,7 @@ import {
 import { IconButton } from '@/components/commons/IconButton';
 import { StatusDot, StatusTone } from '@/components/commons/StatusDot';
 import { useOperatingMode } from '@/hooks/operating-mode';
+import { useTopBarPopover } from '@/hooks/top-bar-popover';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import { connectedIMUCountAtom } from '@/store/app-store';
 import { QuestTargetIPPill } from './QuestTargetIPPill';
@@ -47,6 +48,7 @@ export function StatusCluster() {
   const [localIp, setLocalIp] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const popover = useTopBarPopover(rootRef, open, 340);
   const panelId = useId();
 
   useEffect(() => {
@@ -149,7 +151,8 @@ export function StatusCluster() {
             null,
             'Connection details'
           )}
-          className="absolute left-0 top-[calc(100%+8px)] z-50 flex w-[340px] max-w-[calc(100vw-24px)] flex-col gap-3 rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          className="z-50 flex flex-col gap-3 rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          style={popover}
         >
           <h2 className="font-serif text-ui-md tracking-tight text-background-10">
             {l10n.getString('status-details-title', null, 'Connection details')}

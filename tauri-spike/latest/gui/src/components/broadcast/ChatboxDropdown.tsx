@@ -24,6 +24,7 @@ import { demoModeAtom, DEMO_TRACKERS_SET } from '@/store/demo-trackers';
 import { useElectron } from '@/hooks/electron';
 import { openUrl } from '@/hooks/crossplatform';
 import { useOperatingMode } from '@/hooks/operating-mode';
+import { useTopBarPopover } from '@/hooks/top-bar-popover';
 import { useFakeBpm } from '@/hooks/fake-bpm';
 import {
   useSpeechDictation,
@@ -279,6 +280,11 @@ export function ChatboxDropdown({
   }>({ running: false, playing: false });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const topPopover = useTopBarPopover(
+    dropdownRef,
+    isTop && isPanelMounted,
+    440
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const electron = useElectron();
   const { sendRPCPacket, useRPCPacket } = useWebsocketAPI();
@@ -758,7 +764,7 @@ export function ChatboxDropdown({
 
       {isPanelMounted && (
         <div
-          style={{ WebkitAppRegion: 'no-drag' } as any}
+          style={{ WebkitAppRegion: 'no-drag', ...topPopover } as any}
           className={classNames(
             'chatbox-panel',
             isOpen ? 'chatbox-panel--open' : 'chatbox-panel--closing'

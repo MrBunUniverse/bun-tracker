@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
 import { StatusDot } from '@/components/commons/StatusDot';
+import { useTopBarPopover } from '@/hooks/top-bar-popover';
 
 // The dongle bridge (tools/esp32-dongle/bridge.py) serves its stats here.
 const STATS_URL = 'http://127.0.0.1:6970';
@@ -69,16 +70,7 @@ export function DonglePill() {
   const snap = useDongleStats();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const [top, setTop] = useState(58);
-
-  // Sits just under the pill, which moves down when the top bar wraps in narrow windows.
-  useEffect(() => {
-    if (!open) return;
-    const place = () => setTop((rootRef.current?.getBoundingClientRect().bottom ?? 50) + 8);
-    place();
-    window.addEventListener('resize', place);
-    return () => window.removeEventListener('resize', place);
-  }, [open]);
+  const popover = useTopBarPopover(rootRef, open, 560);
 
   useEffect(() => {
     if (!open) return;
@@ -130,15 +122,7 @@ export function DonglePill() {
           role="dialog"
           aria-label="ESP32 dongle stats"
           className="chatbox-panel chatbox-panel--open"
-          style={{
-            // Pinned inside the window at any zoom; the body scrolls when it is taller.
-            position: 'fixed',
-            top,
-            right: 10,
-            left: 'auto',
-            width: 'min(560px, calc(100vw - 20px))',
-            maxHeight: `calc(100dvh - ${top + 10}px)`,
-          }}
+          style={popover}
         >
           <div className="chatbox-header flex items-center">
             <span className="chatbox-title text-background-10">

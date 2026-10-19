@@ -8,6 +8,7 @@ import { SegmentedControl } from '@/components/commons/SegmentedControl';
 import { SettingGroup, SettingRow } from '@/components/commons/SettingRow';
 import { Slider } from '@/components/commons/Slider';
 import { Toggle } from '@/components/commons/Toggle';
+import { useTopBarPopover } from '@/hooks/top-bar-popover';
 
 const buttonBase =
   'inline-flex h-8 items-center justify-center rounded-[8px] px-3 text-ui-xs font-medium transition-colors cursor-pointer select-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20/70';
@@ -110,17 +111,7 @@ export function QuestDiagnosticsCard() {
   const [open, setOpen] = useState(false);
   const [advancedTab, setAdvancedTab] = useState<'motion' | 'vrchat'>('motion');
   const rootRef = useRef<HTMLDivElement>(null);
-  const [top, setTop] = useState(58);
-
-  // Sits just under the pill, which moves down when the top bar wraps in narrow windows.
-  useEffect(() => {
-    if (!open) return;
-    const place = () =>
-      setTop((rootRef.current?.getBoundingClientRect().bottom ?? 50) + 8);
-    place();
-    window.addEventListener('resize', place);
-    return () => window.removeEventListener('resize', place);
-  }, [open]);
+  const popover = useTopBarPopover(rootRef, open, 760);
 
   // Closes on an outside click or Esc.
   useEffect(() => {
@@ -190,14 +181,7 @@ export function QuestDiagnosticsCard() {
           role="dialog"
           aria-label="Quest controls"
           className="z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
-          style={{
-            // Pinned inside the window at any zoom; scrolls when taller.
-            position: 'fixed',
-            top,
-            left: 10,
-            width: 'min(760px, calc(100vw - 20px))',
-            maxHeight: `calc(100dvh - ${top + 10}px)`,
-          }}
+          style={popover}
         >
           <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-x-10 gap-y-4">
             <SettingGroup title="Tracking">
