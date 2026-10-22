@@ -166,7 +166,9 @@ body {
     rgba(var(--warning), 0.14) 0 10px,
     transparent 10px 20px
   );
-  animation: demo-stripes-slide 1.2s linear infinite;
+  /* Four steps per stripe instead of a smooth slide: the page only changes at each step, so the
+     window can idle between them while demo mode is on. */
+  animation: demo-stripes-slide 2s steps(4) infinite;
 }
 
 .is-page-hidden .animate-demo-stripes::before {
