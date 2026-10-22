@@ -95,6 +95,11 @@ export function TopBar({
               </>
             )}
           </div>
+          {/* Fade over the status row's right edge, so a clipped pill reads as scrollable. */}
+          <div
+            aria-hidden
+            className="pointer-events-none -ml-9 h-[36px] w-6 shrink-0 bg-gradient-to-l from-background-80 to-transparent"
+          />
 
           <div
             style={{ WebkitAppRegion: 'no-drag' } as any}
