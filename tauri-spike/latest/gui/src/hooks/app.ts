@@ -22,6 +22,7 @@ import { useWebsocketAPI } from './websocket-api';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   bonesAtom,
+  bonesFeedCountAtom,
   datafeedAtom,
   devicesAtom,
   livePreviewCountAtom,
@@ -43,6 +44,7 @@ export function useProvideAppContext(): AppContext {
   const { changeLocales } = useContext(LangContext);
   const { config } = useConfig();
   const livePreviews = useAtomValue(livePreviewCountAtom) > 0;
+  const bonesWanted = useAtomValue(bonesFeedCountAtom) > 0;
   const { dataFeedConfig } = useDataFeedConfig(livePreviews);
   const bonesDataFeedConfig = useBonesDataFeedConfig();
   const setDatafeed = useSetAtom(datafeedAtom);
@@ -58,10 +60,19 @@ export function useProvideAppContext(): AppContext {
   useEffect(() => {
     if (isConnected) {
       const startDataFeed = new StartDataFeedT();
-      startDataFeed.dataFeeds = [dataFeedConfig, bonesDataFeedConfig];
+      // Index 0 is the device feed and index 1 the bones (see handleDataFeedUpdate).
+      startDataFeed.dataFeeds = bonesWanted
+        ? [dataFeedConfig, bonesDataFeedConfig]
+        : [dataFeedConfig];
       sendDataFeedPacket(DataFeedMessage.StartDataFeed, startDataFeed);
     }
-  }, [isConnected, config?.debug, config?.devSettings?.fastDataFeed, livePreviews]);
+  }, [
+    isConnected,
+    config?.debug,
+    config?.devSettings?.fastDataFeed,
+    livePreviews,
+    bonesWanted,
+  ]);
 
   const flushPendingFeed = useCallback(() => {
     flushTimerRef.current = null;

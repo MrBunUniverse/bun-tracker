@@ -1,9 +1,9 @@
-import { useAtom, useStore } from 'jotai';
+import { useAtom, useStore, createStore } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { useMemo, useCallback, useEffect } from 'react';
 import { Builder } from 'flatbuffers';
 import { useWebsocketAPI } from './websocket-api';
-import { bonesAtom } from '@/store/app-store';
+import { bonesAtom, bonesFeedCountAtom } from '@/store/app-store';
 import {
   RpcMessage,
   LegTweaksSettingsT,
@@ -15,6 +15,7 @@ import {
   BodyPart,
   VRCOSCSettingsT,
   OSCSettingsT,
+  BoneT,
 } from 'solarxr-protocol';
 
 /**
@@ -112,6 +113,22 @@ const pending = {
   changedAt: {} as Partial<Record<keyof QuestStandaloneState, number>>,
 };
 const RECENT_MS = 2000;
+
+// The bones feed only runs while something needs it. Ask for it, take the next update (or what is
+// there after 2 s), then let it stop again.
+function nextBones(store: ReturnType<typeof createStore>): Promise<BoneT[]> {
+  return new Promise((resolve) => {
+    store.set(bonesFeedCountAtom, (count) => count + 1);
+    const done = () => {
+      clearTimeout(timer);
+      unsubscribe();
+      store.set(bonesFeedCountAtom, (count) => Math.max(0, count - 1));
+      resolve(store.get(bonesAtom));
+    };
+    const unsubscribe = store.sub(bonesAtom, done);
+    const timer = setTimeout(done, 2000);
+  });
+}
 const recent = (key: keyof QuestStandaloneState) =>
   Date.now() - (pending.changedAt[key] ?? 0) < RECENT_MS;
 
@@ -304,9 +321,9 @@ export function useOperatingMode() {
     setFloorHeight(newOffset);
   };
 
-  const triggerFloorCalibration = () => {
+  const triggerFloorCalibration = async () => {
     let calculatedOffset = 0;
-    const bones = store.get(bonesAtom);
+    const bones = await nextBones(store);
     const leftFoot = bones.find(
       (b) => b.bodyPart === BodyPart.LEFT_FOOT || b.bodyPart === BodyPart.LEFT_LOWER_LEG
     );

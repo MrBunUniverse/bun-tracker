@@ -31,8 +31,8 @@ import classNames from 'classnames';
 import { useLocalization } from '@fluent/react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Typography } from '@/components/commons/Typography';
-import { useAtomValue } from 'jotai';
-import { bonesAtom } from '@/store/app-store';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { bonesAtom, bonesFeedCountAtom } from '@/store/app-store';
 import { useConfig } from '@/hooks/config';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import { Tween } from '@tweenjs/tween.js';
@@ -686,6 +686,14 @@ function SkeletonVisualizer({
     () => new ResizeObserver(([e]) => onResize(e))
   );
   const _bones = useAtomValue(bonesAtom);
+
+  // Ask the server for bones while this view is live.
+  const setBonesFeedCount = useSetAtom(bonesFeedCountAtom);
+  useEffect(() => {
+    if (disabled) return;
+    setBonesFeedCount((count) => count + 1);
+    return () => setBonesFeedCount((count) => Math.max(0, count - 1));
+  }, [disabled, setBonesFeedCount]);
 
   const bones = useMemo(() => {
     return new Map(_bones.map((b) => [b.bodyPart, b]));

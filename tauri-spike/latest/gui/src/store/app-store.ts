@@ -26,6 +26,9 @@ export const datafeedAtom = atom(new DataFeedUpdateT());
 export const livePreviewCountAtom = atom(0);
 
 export const bonesAtom = atom<BoneT[]>([]);
+// Number of places that need live bones (skeleton views, a floor calibration). The bones feed is
+// only requested from the server while this is above zero; otherwise bonesAtom keeps its last value.
+export const bonesFeedCountAtom = atom(0);
 
 export const devicesAtom = selectAtom(
   datafeedAtom,
