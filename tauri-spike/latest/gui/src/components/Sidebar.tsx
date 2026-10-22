@@ -370,8 +370,12 @@ type InspectorTab = 'preview' | 'checklist';
  */
 export function Sidebar({
   onResetPreviewWidth,
+  visible = true,
 }: {
   onResetPreviewWidth?: () => void;
+  // False while the docked inspector is collapsed but kept mounted: the skeleton then stops rendering
+  // and stops asking for bones.
+  visible?: boolean;
 }) {
   const { l10n } = useLocalization();
   const { completion } = useTrackingChecklist();
@@ -482,7 +486,10 @@ export function Sidebar({
         className="min-h-0 flex-1"
       >
         {tab === 'preview' && (
-          <PreviewSection open onResetPreviewWidth={onResetPreviewWidth} />
+          <PreviewSection
+            open={visible}
+            onResetPreviewWidth={onResetPreviewWidth}
+          />
         )}
       </div>
       <div

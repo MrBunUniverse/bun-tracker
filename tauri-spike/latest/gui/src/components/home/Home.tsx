@@ -853,7 +853,10 @@ export function Home() {
               className="flex h-full min-w-0 flex-col overflow-hidden border-l border-[var(--material-border-subtle)] bg-background-70"
             >
               {(hasBeenOpened || isSidebarVisible) && (
-                <Sidebar onResetPreviewWidth={handleDoubleClick} />
+                <Sidebar
+                  onResetPreviewWidth={handleDoubleClick}
+                  visible={isSidebarVisible}
+                />
               )}
             </div>
           </div>
