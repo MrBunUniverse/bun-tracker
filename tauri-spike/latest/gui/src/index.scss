@@ -956,8 +956,10 @@ body {
   font-size: max(14px, 0.9em);
 }
 
-/* Inputs and dropdowns: taller, rounder, and easier to hit. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout input,
+/* Inputs and dropdowns: taller, rounder, and easier to hit. Radios and checkboxes keep their own size and shape. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  input:not([type='radio']):not([type='checkbox']),
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout select {
   min-height: 46px;
   font-size: 16px;
