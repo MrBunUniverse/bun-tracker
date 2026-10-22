@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react';
 import { error, log } from './logging';
 import { useEffect } from 'react';
 import {
@@ -11,41 +10,59 @@ import { DeviceDataT } from 'solarxr-protocol';
 import { getDefaultStore } from 'jotai';
 import { devicesAtom } from '@/store/app-store';
 
-export function getSentryOrCompute(enabled = false, uuid: string, isSteam: boolean) {
+type SentryModule = typeof import('@sentry/react');
+// Sentry (with Replay and profiling) is a large share of the bundle and stays off in every build but a
+// clean tagged release, so it is only loaded once error reporting is actually turned on.
+let loadedSentry: SentryModule | null = null;
+
+// Counts a usage metric; a no-op until Sentry has been loaded.
+export function countMetric(...args: Parameters<SentryModule['metrics']['count']>) {
+  loadedSentry?.metrics.count(...args);
+}
+
+export async function getSentryOrCompute(
+  enabled = false,
+  uuid: string,
+  isSteam: boolean
+) {
   // to be considered prod it needs to be a proper version tag, non-dirty
   const isProd = import.meta.env.PROD && __GIT_CLEAN__ && __VERSION_TAG__;
 
   // We disable sentry for non prod environments
   if (!isProd) enabled = false;
 
-  Sentry.setUser({ id: uuid });
+  // Never loaded and not wanted: there is no client to set up or switch off.
+  if (!enabled && !loadedSentry) return;
+  const sentry = (loadedSentry ??= await import('@sentry/react'));
+
+  sentry.setUser({ id: uuid });
 
   // if sentry is already initialized - SKIP
-  if (enabled && Sentry.isInitialized()) {
+  if (enabled && sentry.isInitialized()) {
     log('Sentry already enabled, skipping initialization');
     return;
   }
 
-  const client = Sentry.getClient();
+  const client = sentry.getClient();
   if (client) {
-    log(`${enabled ? 'Enabled' : 'Disabled'} error logging with Sentry.`);
+    log(`${enabled ? 'Enabled' : 'Disabled'} error logging with sentry.`);
     client.getOptions().enabled = enabled;
     return client;
   }
   if (!enabled) return;
 
-  const newClient = Sentry.init({
+  const newClient = sentry.init({
     dsn: 'https://e9ef9f8541352c50cff8600ba520d348@o4507810483535872.ingest.de.sentry.io/4507810579284048',
     integrations: [
-      Sentry.reactRouterV6BrowserTracingIntegration({
+      sentry.reactRouterV6BrowserTracingIntegration({
         useEffect,
         useLocation,
         useNavigationType,
         createRoutesFromChildren,
         matchRoutes,
       }),
-      Sentry.browserProfilingIntegration(),
-      Sentry.replayIntegration({
+      sentry.browserProfilingIntegration(),
+      sentry.replayIntegration({
         maskAllText: false,
         maskAllInputs: true,
         blockAllMedia: false,

@@ -47,7 +47,6 @@ import { AppLayout } from './AppLayout';
 import { Preload } from './components/Preload';
 import { UnknownDeviceModal } from './components/UnknownDeviceModal';
 import { useDiscordPresence } from './hooks/discord-presence';
-import { withSentryReactRouterV6Routing } from '@sentry/react';
 import { audioFeedback } from './utils/audio-feedback';
 import { ResetRequestT, ResetType, RpcMessage } from 'solarxr-protocol';
 import { ScaledProportionsPage } from './components/onboarding/pages/body-proportions/ScaledProportions';
@@ -74,7 +73,6 @@ export const VersionContext = createContext('');
 export const DOCS_SITE = 'https://docs.slimevr.dev';
 export const SLIMEVR_DISCORD = 'https://discord.gg/slimevr';
 
-const SentryRoutes = withSentryReactRouterV6Routing(Routes);
 const FirmwareToolSettings = lazy(() =>
   import('./components/firmware-tool/FirmwareTool').then((module) => ({
     default: module.FirmwareToolSettings,
@@ -102,7 +100,7 @@ function Layout() {
       <UnknownDeviceModal />
       <UdevRulesModal />
       <Suspense fallback={null}>
-        <SentryRoutes>
+        <Routes>
           <Route element={<AppLayout />}>
             <Route
               path="/"
@@ -235,7 +233,7 @@ function Layout() {
             </Route>
             <Route path="*" element={<TopBar />} />
           </Route>
-        </SentryRoutes>
+        </Routes>
       </Suspense>
     </>
   );

@@ -14,7 +14,7 @@ import { Quaternion } from 'three';
 import { AssignMode, defaultConfig, useConfig } from '@/hooks/config';
 import { assignedTrackersAtom } from '@/store/app-store';
 import { useAtomValue } from 'jotai';
-import * as Sentry from '@sentry/react';
+import { countMetric } from '@/utils/sentry';
 import { useManualMountingTrackers } from '@/hooks/manual-mounting';
 
 export function ManualMountingPage() {
@@ -45,7 +45,7 @@ export function ManualMountingPage() {
         td.tracker.info?.allowDriftCompensation ?? false;
 
       sendRPCPacket(RpcMessage.AssignTrackerRequest, assignreq);
-      Sentry.metrics.count('manual_mounting_set', 1, {
+      countMetric('manual_mounting_set', 1, {
         attributes: {
           part: BodyPart[assignreq.bodyPosition],
           direction: assignreq.mountingOrientation,
@@ -135,7 +135,7 @@ export function ManualMountingPageStayAligned({
         td.tracker.info?.allowDriftCompensation ?? false;
 
       sendRPCPacket(RpcMessage.AssignTrackerRequest, assignreq);
-      Sentry.metrics.count('manual_mounting_set', 1, {
+      countMetric('manual_mounting_set', 1, {
         attributes: {
           part: BodyPart[assignreq.bodyPosition],
           direction: assignreq.mountingOrientation,

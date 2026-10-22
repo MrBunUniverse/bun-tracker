@@ -13,7 +13,7 @@ import { useWebsocketAPI } from './websocket-api';
 import { useLocalization } from '@fluent/react';
 import { log } from '@/utils/logging';
 import { useConfig } from './config';
-import * as Sentry from '@sentry/react';
+import { countMetric } from '@/utils/sentry';
 
 export enum ProcessStatus {
   PENDING,
@@ -82,7 +82,7 @@ export function useProvideAutobone(): AutoboneContext {
   const applyProcessing = () => {
     sendRPCPacket(RpcMessage.AutoBoneApplyRequest, new AutoBoneApplyRequestT());
     setConfig({ lastUsedProportions: 'autobone' });
-    Sentry.metrics.count('autobone', 1);
+    countMetric('autobone', 1);
   };
 
   useRPCPacket(

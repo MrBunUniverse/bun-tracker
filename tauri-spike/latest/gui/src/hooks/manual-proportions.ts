@@ -8,7 +8,7 @@ import {
 import { useWebsocketAPI } from './websocket-api';
 import { useEffect, useMemo, useState } from 'react';
 import { useConfig } from './config';
-import * as Sentry from '@sentry/react';
+import { countMetric } from '@/utils/sentry';
 
 type LabelBase = {
   value: number;
@@ -194,7 +194,7 @@ export function useManualProportions({ type }: { type: 'linear' | 'ratio' }): {
       }
       sendRPCPacket(RpcMessage.SkeletonConfigRequest, new SkeletonConfigRequestT());
       setConfig({ lastUsedProportions: 'manual' });
-      Sentry.metrics.count('manual_proportions_change', 1, { attributes: params });
+      countMetric('manual_proportions_change', 1, { attributes: params });
     },
   };
 }

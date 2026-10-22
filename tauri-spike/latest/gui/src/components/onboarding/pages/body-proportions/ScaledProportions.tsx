@@ -35,7 +35,7 @@ import { ProgressBar } from '@/components/commons/ProgressBar';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { useConfig } from '@/hooks/config';
 import { ProportionsResetModal } from './ProportionsResetModal';
-import * as Sentry from '@sentry/react';
+import { countMetric } from '@/utils/sentry';
 
 const statusSteps = [
   // Order matters be carefull
@@ -328,7 +328,7 @@ export function ScaledProportionsPage() {
 
   useEffect(() => {
     if (lastUsed !== null) {
-      Sentry.metrics.count('scaled_proportions', 1, {
+      countMetric('scaled_proportions', 1, {
         attributes: { calibration: lastUsed },
       });
     }
