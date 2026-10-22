@@ -174,6 +174,45 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: '
 
 const ms = (v: number | null) => (v === null ? '–' : `${v} ms`);
 
+/** Starts the bridge through the Spike shell; the popup's stats appear once the next poll reaches it. */
+function StartBridgeButton() {
+  const start = window.electronAPI?.startDongleBridge;
+  const [state, setState] = useState<'idle' | 'starting' | 'started'>('idle');
+  const [message, setMessage] = useState('');
+  if (!start) return null;
+
+  const onClick = async () => {
+    setState('starting');
+    setMessage('');
+    try {
+      const port = await start();
+      setState('started');
+      setMessage(`Started on ${port}. Stats appear in a moment.`);
+    } catch (e) {
+      setState('idle');
+      setMessage(String(e));
+    }
+  };
+
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={state !== 'idle'}
+        className="rounded-[8px] bg-accent-background-20 px-3 py-1.5 text-ui-xs font-medium text-white hover:bg-accent-background-10 disabled:cursor-default disabled:opacity-60 cursor-pointer"
+      >
+        {state === 'starting' ? 'Starting…' : 'Start bridge'}
+      </button>
+      {message && (
+        <span role="status" className="text-ui-xs text-background-30">
+          {message}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
   if (!snap)
     return (
@@ -182,6 +221,7 @@ function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
         <p className="mt-3 text-ui-xs">
           Start <code>tools/esp32-dongle/bridge.py</code>; it serves live stats on {STATS_URL}.
         </p>
+        <StartBridgeButton />
       </div>
     );
 

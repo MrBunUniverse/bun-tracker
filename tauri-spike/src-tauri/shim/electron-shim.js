@@ -60,6 +60,7 @@
     getInstallDir: () => invoke('get_folder', { kind: 'exe' }),
     isSteam: async () => false,
     restartServer: () => invoke('restart_server'),
+    startDongleBridge: () => invoke('start_dongle_bridge'),
     // Same result shape as Electron's GET_APPLE_MUSIC (gui/electron/main/index.ts).
     getAppleMusic: async () => {
       const out = await invoke('apple_music');

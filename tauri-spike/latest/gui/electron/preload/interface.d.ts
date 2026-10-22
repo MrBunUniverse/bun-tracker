@@ -166,6 +166,8 @@ export interface IElectronAPI {
   isSteam: () => Promise<boolean>;
   /** Spike only: stops the server and starts it again. */
   restartServer?: () => Promise<void>;
+  /** Spike only: starts the ESP32 dongle bridge; resolves to the serial port it uses. */
+  startDongleBridge?: () => Promise<string>;
   getAppleMusic?: () => Promise<{
     running: boolean;
     playing: boolean;

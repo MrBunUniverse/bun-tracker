@@ -158,6 +158,58 @@ async fn restart_server(app: AppHandle) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
+// ---- ESP32 dongle bridge (the Dongle popup's Start button) ----
+
+// Same as Start SlimeVR.command: the framework Python has pyserial.
+const BRIDGE_PYTHON: &str = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3";
+const BRIDGE_MATCH: &str = "esp32-dongle/bridge.py";
+
+/// Starts tools/esp32-dongle/bridge.py on the plugged-in dongle and returns its serial port.
+#[tauri::command]
+async fn start_dongle_bridge(app: AppHandle) -> Result<String, String> {
+    let log = app.path().app_log_dir().map_err(|e| e.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        use std::os::unix::process::CommandExt;
+        use std::process::{Command, Stdio};
+        let bridge = Path::new(SERVER_DIR).join("tools/esp32-dongle/bridge.py");
+        if !bridge.is_file() {
+            return Err(format!("No bridge at {}", bridge.display()));
+        }
+        let running = Command::new("pgrep").args(["-f", BRIDGE_MATCH]).stdout(Stdio::null()).status();
+        if matches!(running, Ok(s) if s.success()) {
+            return Err("The bridge is already running.".into());
+        }
+        // The ESP32's USB serial chip shows up as cu.usbserial* (CH340) or cu.usbmodem*.
+        let mut ports: Vec<String> = fs::read_dir("/dev")
+            .map_err(|e| e.to_string())?
+            .filter_map(|e| e.ok()?.file_name().into_string().ok())
+            .filter(|n| n.starts_with("cu.usbserial") || n.starts_with("cu.usbmodem"))
+            .map(|n| format!("/dev/{n}"))
+            .collect();
+        ports.sort();
+        let port = ports.into_iter().next().ok_or("Dongle not plugged in.")?;
+
+        fs::create_dir_all(&log).map_err(|e| e.to_string())?;
+        let out = fs::File::create(log.join("bridge.log")).map_err(|e| e.to_string())?;
+        let err = out.try_clone().map_err(|e| e.to_string())?;
+        Command::new(BRIDGE_PYTHON)
+            .arg("-u")
+            .arg(&bridge)
+            .args(["--port", &port])
+            .current_dir(SERVER_DIR)
+            .stdin(Stdio::null())
+            .stdout(out)
+            .stderr(err)
+            // Own process group, so quitting the Spike leaves the bridge running.
+            .process_group(0)
+            .spawn()
+            .map(|_| port)
+            .map_err(|e| format!("Couldn't start the bridge: {e}"))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 // ---- storage (replaces Electron's settings and cache stores) ----
 
 fn store_path(app: &AppHandle, kind: &str) -> Result<PathBuf, String> {
@@ -634,6 +686,7 @@ fn main() {
             save_dialog,
             apple_music,
             restart_server,
+            start_dongle_bridge,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the SlimeVR Tauri spike")
