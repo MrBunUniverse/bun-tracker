@@ -142,27 +142,42 @@ body {
   animation-play-state: paused;
 }
 
-/* Demo banner: hazard stripes slide right. 28.2843px = one 20px stripe period at 135deg, so the loop is seamless. */
+/* Demo banner: hazard stripes slide right. A compositor-only transform on an
+   oversized ::before; 28.2843px = one 20px stripe period at 135deg, so the loop is seamless. */
 @keyframes demo-stripes-slide {
   to {
-    background-position: 28.2843px 0;
+    transform: translateX(28.2843px);
   }
 }
 
 .animate-demo-stripes {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.animate-demo-stripes::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 -28.2843px;
+  z-index: -1;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(var(--warning), 0.14) 0 10px,
+    transparent 10px 20px
+  );
   animation: demo-stripes-slide 1.2s linear infinite;
 }
 
-.is-page-hidden .animate-demo-stripes {
+.is-page-hidden .animate-demo-stripes::before {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-demo-stripes {
+  .animate-demo-stripes::before {
     animation: none;
   }
 }
-
 
 /* One-shot nudge when the tracker count changes, e.g. a tracker was found. */
 @keyframes found-pop {
@@ -2819,16 +2834,16 @@ a,
 /* Allowed exceptions: spinners, the two cheap compositor-only animations
    of the waiting-for-tracker state (.animate-search-pulse, .animate-found-pop),
    the live skeleton view's enter slide (.skeleton-slide), and the Home
-   inspector's open and close slide (.panel-slide). */
+   inspector's open and close slide (.panel-slide):not(.animate-demo-stripes). */
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide):not(.panel-slide),
+  ):not(.skeleton-slide):not(.panel-slide):not(.animate-demo-stripes),
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide):not(.panel-slide)::before,
+  ):not(.skeleton-slide):not(.panel-slide):not(.animate-demo-stripes)::before,
 *:not(.animate-spin):not(.animate-spin-ccw):not(.animate-search-pulse):not(
     .animate-found-pop
-  ):not(.skeleton-slide):not(.panel-slide)::after {
+  ):not(.skeleton-slide):not(.panel-slide):not(.animate-demo-stripes)::after {
   animation: none !important;
   transition: none !important;
   will-change: auto !important;
