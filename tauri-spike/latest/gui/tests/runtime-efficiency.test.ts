@@ -152,8 +152,14 @@ test('feed configuration is reused until the rate changes; masks and rates stay 
   assert.equal(regular.feedMaxTps, 10);
   assert.equal(regular.dataFeedConfig.minimumTimeSinceLast, 100);
   assert.equal(regular.dataFeedConfig.dataMask.trackerData.rotation, true);
-  assert.equal(regular.dataFeedConfig.dataMask.trackerData.rawMagneticVector, true);
+  // Detail-only fields stay off until a screen that shows them asks (or debug is on).
+  assert.equal(regular.dataFeedConfig.dataMask.trackerData.rawMagneticVector, false);
   assert.equal(hooks.useDataFeedConfig(), regular);
+  const detail = hooks.useDataFeedConfig(false, true);
+  assert.equal(detail.dataFeedConfig.dataMask.trackerData.rawMagneticVector, true);
+  assert.equal(detail.dataFeedConfig.dataMask.trackerData.filterHealth, true);
+  previousDeps = [];
+  assert.equal(hooks.useDataFeedConfig().dataFeedConfig.stayAlignedPoseMask, false);
   config = { debug: true, devSettings: { fastDataFeed: true } };
   assert.equal(hooks.useDataFeedConfig().feedMaxTps, 90);
   assert.notEqual(hooks.useDataFeedConfig(), regular);

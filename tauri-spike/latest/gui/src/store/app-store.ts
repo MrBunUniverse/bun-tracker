@@ -24,6 +24,8 @@ export const datafeedAtom = atom(new DataFeedUpdateT());
 // Number of live (non-demo) 3D tracker previews on screen. While any exists the
 // data feed is requested at a higher rate so their motion reads as real time.
 export const livePreviewCountAtom = atom(0);
+// Number of open views that show the extra tracker fields (see useDataFeedConfig).
+export const trackerDetailCountAtom = atom(0);
 
 export const bonesAtom = atom<BoneT[]>([]);
 // Number of places that need live bones (skeleton views, a floor calibration). The bones feed is

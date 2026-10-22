@@ -2,11 +2,14 @@ import { useMemo } from 'react';
 import { DataFeedConfigT, DeviceDataMaskT, TrackerDataMaskT } from 'solarxr-protocol';
 import { useConfig } from './config';
 
-export function useDataFeedConfig(livePreview = false) {
+// `detail` (a screen that shows them is open) or debug mode also asks for the fields that only the
+// tracker settings, stay-aligned and table "more info" views read.
+export function useDataFeedConfig(livePreview = false, detail = false) {
   const { config } = useConfig();
 
   const fastDataFeed = config?.debug && config?.devSettings?.fastDataFeed;
   const feedMaxTps = fastDataFeed ? 90 : livePreview ? 30 : 10;
+  const fullMask = detail || !!config?.debug;
 
   return useMemo(() => {
     const trackerData = new TrackerDataMaskT();
@@ -19,11 +22,11 @@ export function useDataFeedConfig(livePreview = false) {
     trackerData.rotationReferenceAdjusted = true;
     trackerData.rotationIdentityAdjusted = true;
     trackerData.tps = true;
-    trackerData.rawMagneticVector = true;
-    trackerData.stayAligned = true;
     trackerData.recovery = true;
-    trackerData.adaptiveDrift = true;
-    trackerData.filterHealth = true;
+    trackerData.rawMagneticVector = fullMask;
+    trackerData.stayAligned = fullMask;
+    trackerData.adaptiveDrift = fullMask;
+    trackerData.filterHealth = fullMask;
 
     const dataMask = new DeviceDataMaskT();
     dataMask.deviceData = true;
@@ -34,11 +37,11 @@ export function useDataFeedConfig(livePreview = false) {
     dataFeedConfig.boneMask = false;
     dataFeedConfig.minimumTimeSinceLast = 1000 / feedMaxTps;
     dataFeedConfig.syntheticTrackersMask = trackerData;
-    dataFeedConfig.stayAlignedPoseMask = true;
+    dataFeedConfig.stayAlignedPoseMask = fullMask;
     dataFeedConfig.serverGuardsMask = true;
 
     return { dataFeedConfig, feedMaxTps };
-  }, [feedMaxTps]);
+  }, [feedMaxTps, fullMask]);
 }
 
 export function useBonesDataFeedConfig() {

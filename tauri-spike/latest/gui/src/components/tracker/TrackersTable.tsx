@@ -10,7 +10,8 @@ import { formatVector3 } from '@/utils/formatting';
 import { TrackerBattery } from './TrackerBattery';
 import { TrackerStatus } from './TrackerStatus';
 import { TrackerWifi } from './TrackerWifi';
-import { FlatDeviceTracker } from '@/store/app-store';
+import { FlatDeviceTracker, trackerDetailCountAtom } from '@/store/app-store';
+import { useFeedDemand } from '@/hooks/feed-demand';
 import { StayAlignedInfo } from '@/components/stay-aligned/StayAlignedInfo';
 import { Tooltip } from '@/components/commons/Tooltip';
 import { WarningIcon } from '@/components/commons/icon/WarningIcon';
@@ -345,6 +346,8 @@ export function TrackersTable({
   }, [flatTrackers, filteringEnabled, sortingEnabled]);
 
   const moreInfo = config?.devSettings?.moreInfo;
+  // The "more info" columns show stay-aligned data.
+  useFeedDemand(trackerDetailCountAtom, !!moreInfo);
 
   // Columns no tracker has data for (often Type and Temp) are left out.
   const showType = filteredSortedTrackers.some(

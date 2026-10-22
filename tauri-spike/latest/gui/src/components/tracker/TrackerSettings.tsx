@@ -43,7 +43,8 @@ import { Quaternion } from 'three';
 import { useAppContext } from '@/hooks/app';
 import { MagnetometerToggleSetting } from '@/components/settings/pages/MagnetometerToggleSetting';
 import { useSetAtom } from 'jotai';
-import { ignoredTrackersAtom } from '@/store/app-store';
+import { ignoredTrackersAtom, trackerDetailCountAtom } from '@/store/app-store';
+import { useFeedDemand } from '@/hooks/feed-demand';
 import { checkForUpdate } from '@/hooks/firmware-update';
 import { Tooltip } from '@/components/commons/Tooltip';
 
@@ -68,6 +69,8 @@ const rotationsLabels: [Quaternion, string][] = [
 
 export function TrackerSettingsPage() {
   const { l10n } = useLocalization();
+  // Drift, filter health, magnetometer and stay-aligned readouts.
+  useFeedDemand(trackerDetailCountAtom);
 
   const { sendRPCPacket } = useWebsocketAPI();
   const [selectRotation, setSelectRotation] = useState<boolean>(false);

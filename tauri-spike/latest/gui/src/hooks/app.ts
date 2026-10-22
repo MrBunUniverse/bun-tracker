@@ -26,6 +26,7 @@ import {
   datafeedAtom,
   devicesAtom,
   livePreviewCountAtom,
+  trackerDetailCountAtom,
 } from '@/store/app-store';
 import { getSentryOrCompute, updateSentryContext } from '@/utils/sentry';
 import { fetchCurrentFirmwareRelease, FirmwareRelease } from './firmware-update';
@@ -45,7 +46,8 @@ export function useProvideAppContext(): AppContext {
   const { config } = useConfig();
   const livePreviews = useAtomValue(livePreviewCountAtom) > 0;
   const bonesWanted = useAtomValue(bonesFeedCountAtom) > 0;
-  const { dataFeedConfig } = useDataFeedConfig(livePreviews);
+  const trackerDetail = useAtomValue(trackerDetailCountAtom) > 0;
+  const { dataFeedConfig } = useDataFeedConfig(livePreviews, trackerDetail);
   const bonesDataFeedConfig = useBonesDataFeedConfig();
   const setDatafeed = useSetAtom(datafeedAtom);
   const setBones = useSetAtom(bonesAtom);
@@ -71,6 +73,7 @@ export function useProvideAppContext(): AppContext {
     config?.debug,
     config?.devSettings?.fastDataFeed,
     livePreviews,
+    trackerDetail,
     bonesWanted,
   ]);
 

@@ -8,7 +8,11 @@ import { Typography } from '@/components/commons/Typography';
 import { SettingsPagePaneLayout } from '@/components/settings/SettingsPageLayout';
 import { Localized, useLocalization } from '@fluent/react';
 import { useAtomValue } from 'jotai';
-import { connectedIMUTrackersAtom } from '@/store/app-store';
+import {
+  connectedIMUTrackersAtom,
+  trackerDetailCountAtom,
+} from '@/store/app-store';
+import { useFeedDemand } from '@/hooks/feed-demand';
 import { bodypartToString } from '@/utils/formatting';
 import { useLocaleConfig } from '@/i18n/config';
 import {
@@ -153,6 +157,8 @@ export function StayAlignedSettings({
   control: Control<SettingsForm, any>;
 }) {
   const { l10n } = useLocalization();
+  // The debug summary reads each tracker's stay-aligned state.
+  useFeedDemand(trackerDetailCountAtom);
 
   const config = values.stayAligned;
   const hasStandingPose =
