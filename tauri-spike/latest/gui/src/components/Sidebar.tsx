@@ -33,8 +33,11 @@ export function PreviewControls({
   onToggleOrbit,
   isFraming = false,
   onToggleFrame,
+  docked = false,
 }: {
   open: boolean;
+  /** Docked: a solid bar under the 3D view instead of floating over it. */
+  docked?: boolean;
   isOrbiting?: boolean;
   onToggleOrbit?: () => void;
   isFraming?: boolean;
@@ -102,8 +105,15 @@ export function PreviewControls({
           </Typography>
         </div>
       </Tooltip>
-      <div className="absolute bottom-0 w-full px-2 pb-3 flex justify-center">
-        <div className="flex max-w-full flex-wrap justify-center bg-background-80 bg-opacity-70 rounded-lg gap-1 px-2 py-1.5 items-center fill-background-10">
+      <div
+        className={classNames(
+          'flex w-full justify-center px-2',
+          docked
+            ? 'shrink-0 border-t border-background-10/[0.08] bg-background-80 py-2'
+            : 'absolute bottom-0 pb-3'
+        )}
+      >
+        <div className="flex max-w-full flex-wrap justify-center bg-background-80 rounded-lg gap-1 px-2 py-1.5 items-center fill-background-10">
           {bvhAvailable && (
             <button
               type="button"
@@ -285,32 +295,35 @@ function PreviewSection({
   return (
     <div
       className={classNames(
-        'transition-opacity duration-500 delay-500 h-full relative',
+        'transition-opacity duration-500 delay-500 h-full relative flex flex-col',
         {
           'opacity-0': !open,
           'opacity-100': open,
         }
       )}
     >
-      <SkeletonVisualizerWidget
-        disabled={disabledRender}
-        toggleDisabled={() => toggleRender()}
-        onInit={(context) => {
-          previewContextRef.current = context;
-          context.addView({
-            left: 0,
-            bottom: 0,
-            width: 1,
-            height: 1,
-            position: new Vector3(3, 2.5, -3),
-            onHeightChange(v, newHeight) {
-              v.controls.target.set(0, newHeight / 2.2, 0.1);
-              const scale = Math.max(1, newHeight) / 1.3;
-              v.camera.zoom = 1 / scale;
-            },
-          });
-        }}
-      />
+      {/* The 3D view ends above the controls, so auto-frame fits the body in the visible part. */}
+      <div className="relative min-h-0 flex-1">
+        <SkeletonVisualizerWidget
+          disabled={disabledRender}
+          toggleDisabled={() => toggleRender()}
+          onInit={(context) => {
+            previewContextRef.current = context;
+            context.addView({
+              left: 0,
+              bottom: 0,
+              width: 1,
+              height: 1,
+              position: new Vector3(3, 2.5, -3),
+              onHeightChange(v, newHeight) {
+                v.controls.target.set(0, newHeight / 2.2, 0.1);
+                const scale = Math.max(1, newHeight) / 1.3;
+                v.camera.zoom = 1 / scale;
+              },
+            });
+          }}
+        />
+      </div>
       <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
         <button
           type="button"
@@ -357,6 +370,7 @@ function PreviewSection({
         onToggleOrbit={handleToggleOrbit}
         isFraming={isFraming}
         onToggleFrame={handleToggleFrame}
+        docked
       />
     </div>
   );
