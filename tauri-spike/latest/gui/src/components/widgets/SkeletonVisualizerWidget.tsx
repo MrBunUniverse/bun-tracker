@@ -1,6 +1,6 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-import { useMemo, useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import {
   BoneKind,
   createChildren,
@@ -31,7 +31,7 @@ import classNames from 'classnames';
 import { useLocalization } from '@fluent/react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Typography } from '@/components/commons/Typography';
-import { useAtomValue } from 'jotai';
+import { useStore } from 'jotai';
 import { bonesAtom, bonesFeedCountAtom } from '@/store/app-store';
 import { useFeedDemand } from '@/hooks/feed-demand';
 import { useConfig } from '@/hooks/config';
@@ -95,6 +95,7 @@ function initializePreview(
 
   let dirtyFrames = 20;
   let animationFrameId: number | null = null;
+  let waitTimer: number | null = null;
 
   const scheduleAnimationFrame = () => {
     if (animationFrameId === null) {
@@ -471,10 +472,6 @@ function initializePreview(
   function animate() {
     animationFrameId = null;
 
-    // ResizeObserver can miss the final frame of the drawer width transition.
-    // Sync here so reopening a zero-width preview always restores rendering.
-    syncCanvasSize();
-
     if (autoOrbit) {
       markDirty(2);
     }
@@ -504,7 +501,13 @@ function initializePreview(
     const now = performance.now();
     const elapsed = now - lastRenderTimeRef;
     if (elapsed < effectiveInterval) {
-      scheduleAnimationFrame();
+      // Wait out the frame interval with one timer instead of a rAF on every display frame.
+      if (waitTimer === null) {
+        waitTimer = window.setTimeout(() => {
+          waitTimer = null;
+          scheduleAnimationFrame();
+        }, effectiveInterval - elapsed);
+      }
       return;
     }
     if (dirtyFrames <= 0) {
@@ -544,6 +547,9 @@ function initializePreview(
     });
   };
   canvas.addEventListener('pointermove', handlePointerMove);
+  // ResizeObserver can miss the final frame of the drawer width transition, so check the size once it
+  // ends; reopening a zero-width preview then always restores rendering.
+  document.addEventListener('transitionend', syncCanvasSize);
 
   return {
     resize: (width: number, height: number) => {
@@ -586,7 +592,12 @@ function initializePreview(
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
       }
+      if (waitTimer !== null) {
+        window.clearTimeout(waitTimer);
+        waitTimer = null;
+      }
       canvas.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('transitionend', syncCanvasSize);
       views.forEach((view) => view.controls.dispose());
       views.length = 0;
       skeletonHelper.dispose();
@@ -664,6 +675,9 @@ function initializePreview(
   };
 }
 
+const boneMap = (bones: BoneT[]) =>
+  new Map(bones.map((bone) => [bone.bodyPart, bone]));
+
 const BASE_FRAMERATE = 60;
 const LOW_FRAMERATE = 30;
 // Auto-frame's camera glide draws at the base rate, not the low one.
@@ -686,21 +700,11 @@ function SkeletonVisualizer({
   const [resizeObserver] = useState(
     () => new ResizeObserver(([e]) => onResize(e))
   );
-  const _bones = useAtomValue(bonesAtom);
+  // Bones go straight from the store into the scene (see the init effect), without a React render.
+  const store = useStore();
 
   // Ask the server for bones while this view is live.
   useFeedDemand(bonesFeedCountAtom, !disabled);
-
-  const bones = useMemo(() => {
-    return new Map(_bones.map((b) => [b.bodyPart, b]));
-  }, [_bones]);
-
-  useEffect(() => {
-    if (bones.size === 0) return;
-    const context = previewContext.current;
-    if (!context || disabled) return;
-    context.rebuildSkeleton(createChildren(bones, BoneKind.root), bones);
-  }, [bones.size, disabled]);
 
   // A reset changes the reference heading; pick it up from the bones that
   // arrive once the reset has finished.
@@ -709,16 +713,6 @@ function SkeletonVisualizer({
   useRPCPacket(RpcMessage.ResetResponse, ({ status }: ResetResponseT) => {
     if (status === ResetStatus.FINISHED) headingStale.current = true;
   });
-
-  useEffect(() => {
-    const context = previewContext.current;
-    if (!context || disabled) return;
-    if (headingStale.current) {
-      headingStale.current = false;
-      context.syncHeading(bones);
-    }
-    context.updatesBones(bones);
-  }, [bones, disabled]);
 
   const onResize = (e: ResizeObserverEntry) => {
     const context = previewContext.current;
@@ -746,9 +740,10 @@ function SkeletonVisualizer({
       throw 'invalid state - no canvas or container';
     resizeObserver.observe(containerRef.current);
 
+    const initialBones = boneMap(store.get(bonesAtom));
     previewContext.current = initializePreview(
       canvasRef.current,
-      createChildren(bones, BoneKind.root)
+      createChildren(initialBones, BoneKind.root)
     );
     if (!config?.devSettings.fastDataFeed)
       previewContext.current.setFrameInterval(1000 / LOW_FRAMERATE);
@@ -761,7 +756,28 @@ function SkeletonVisualizer({
 
     onInit(previewContext.current);
 
+    // Rebuild on the first bones (which also syncs the heading) and whenever the set of bones changes;
+    // otherwise just move them.
+    let boneCount = -1;
+    const applyBones = () => {
+      const context = previewContext.current;
+      const bones = boneMap(store.get(bonesAtom));
+      if (!context || bones.size === 0) return;
+      if (bones.size !== boneCount) {
+        boneCount = bones.size;
+        context.rebuildSkeleton(createChildren(bones, BoneKind.root), bones);
+      }
+      if (headingStale.current) {
+        headingStale.current = false;
+        context.syncHeading(bones);
+      }
+      context.updatesBones(bones);
+    };
+    applyBones();
+    const unsubscribeBones = store.sub(bonesAtom, applyBones);
+
     return () => {
+      unsubscribeBones();
       if (!previewContext.current || !containerRef.current) return;
       resizeObserver.unobserve(containerRef.current);
       previewContext.current.destroy();
