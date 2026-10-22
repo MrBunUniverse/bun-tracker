@@ -73,8 +73,8 @@ export function TopBar({
       <header className="relative z-[65] flex flex-col">
         <div
           className={classNames(
-            // The right group (GUI reset, full reset, window controls) never wraps, so it stays top right at every zoom. Only the status items on the left wrap.
-            'z-40 flex min-h-[46px] select-none flex-nowrap items-start gap-x-3 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
+            // One line at every width and zoom: the right group (GUI reset, full reset, window controls) stays put, and the status items on the left scroll sideways instead of wrapping.
+            'z-40 flex min-h-[46px] select-none flex-nowrap items-center gap-x-3 border-b border-[var(--material-border-subtle)] bg-background-80 py-1.5 pr-3',
             'pl-4'
           )}
           style={{ WebkitAppRegion: 'drag' } as any}
@@ -82,7 +82,7 @@ export function TopBar({
           data-topbar-row
         >
           <div
-            className="flex min-h-[36px] min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5"
+            className="no-scrollbar flex min-h-[36px] min-w-0 flex-1 flex-nowrap items-center gap-x-3 overflow-x-auto whitespace-nowrap [&>*]:shrink-0"
             style={{ WebkitAppRegion: 'drag' } as any}
             data-electron-drag-region
           >
