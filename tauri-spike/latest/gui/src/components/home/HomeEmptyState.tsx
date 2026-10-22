@@ -39,10 +39,10 @@ export function ClaudeTrackerWindowCard({
   device?: DeviceDataT;
   onClick?: (origin: CardMorphOrigin) => void;
 }) {
-  const { useName, useVelocity, useIdentAdjRotationEulerDegrees } =
+  const { useName, useIsMoving, useIdentAdjRotationEulerDegrees } =
     useTracker(tracker);
   const trackerName = useName();
-  const velocity = useVelocity();
+  const moving = useIsMoving();
   // The icon leans with the tracker's roll (after reset), capped so it stays readable.
   const roll = useIdentAdjRotationEulerDegrees()?.z ?? 0;
   const tilt = Math.max(-25, Math.min(25, roll));
@@ -100,7 +100,7 @@ export function ClaudeTrackerWindowCard({
     };
   }, [isDemo, tracker.status, tracker.trackerId?.deviceId?.id, batteryPct]);
 
-  const isMoving = velocity > 0.18 || demoMoving;
+  const isMoving = moving || demoMoving;
   const isDisconnected = tracker.status === TrackerStatusEnum.DISCONNECTED;
 
   const ping = device?.hardwareStatus?.ping;

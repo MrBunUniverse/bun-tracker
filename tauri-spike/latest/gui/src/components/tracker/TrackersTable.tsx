@@ -183,10 +183,9 @@ function Row({
   const moreInfo = config?.devSettings?.moreInfo;
 
   const { tracker, device } = data;
-  const { useVelocity } = useTracker(tracker);
-  const velocity = useVelocity();
-  const isMoving =
-    tracker.status !== TrackerStatusEnum.DISCONNECTED && velocity > 0.18;
+  const { useIsMoving } = useTracker(tracker);
+  const moving = useIsMoving();
+  const isMoving = tracker.status !== TrackerStatusEnum.DISCONNECTED && moving;
 
   const warning =
     !!highlightedTrackers?.trackers.find(

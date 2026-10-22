@@ -14,6 +14,50 @@ export function getTrackerName(l10n: ReactLocalization, info: TrackerInfoT | nul
   return info?.displayName || 'NONE';
 }
 
+// Motion level above which a tracker counts as moving.
+const MOVING = 0.18;
+
+// Reports a 0-1 motion level for each new rotation sample: the summed rotation and acceleration
+// change over the last half second, for smooth detection of slow movement.
+function useMotionLevel(
+  tracker: TrackerDataT,
+  feedMaxTps: number,
+  report: (level: number) => void
+) {
+  const previousRot = useRef<Quaternion>(QuaternionFromQuatT(tracker.rotation));
+  const previousAcc = useRef<Vector3>(Vector3FromVec3fT(tracker.linearAcceleration));
+  const deltas = useRef<number[]>([]);
+
+  useEffect(() => {
+    if (!tracker.rotation) return;
+    const rot = QuaternionFromQuatT(tracker.rotation).multiply(
+      previousRot.current.clone().invert()
+    );
+    const acc = Vector3FromVec3fT(tracker.linearAcceleration).sub(previousAcc.current);
+    const dif = Math.min(
+      1,
+      (rot.x ** 2 + rot.y ** 2 + rot.z ** 2) * 50 +
+        (acc.x ** 2 + acc.y ** 2 + acc.z ** 2) / 1000
+    );
+    if (deltas.current.length >= 0.5 * feedMaxTps) {
+      deltas.current.shift();
+    }
+    deltas.current.push(dif);
+    report(
+      Math.min(
+        1,
+        Math.max(
+          0,
+          deltas.current.reduce((a, b) => a + b)
+        )
+      )
+    );
+
+    previousRot.current = QuaternionFromQuatT(tracker.rotation);
+    previousAcc.current = Vector3FromVec3fT(tracker.linearAcceleration);
+  }, [tracker.rotation]);
+}
+
 export function useTracker(tracker: TrackerDataT) {
   const { l10n } = useLocalization();
   const { feedMaxTps } = useDataFeedConfig();
@@ -38,56 +82,27 @@ export function useTracker(tracker: TrackerDataT) {
         [tracker.rotationIdentityAdjusted]
       ),
     useVelocity: () => {
-      const previousRot = useRef<Quaternion>(QuaternionFromQuatT(tracker.rotation));
-      const previousAcc = useRef<Vector3>(
-        Vector3FromVec3fT(tracker.linearAcceleration)
-      );
       const [velocity, setVelocity] = useState<number>(0);
-      const [deltas] = useState<number[]>([]);
+      const shownRef = useRef(0);
       const lastUpdateRef = useRef<number>(0);
-
-      useEffect(() => {
-        if (tracker.rotation) {
-          const rot = QuaternionFromQuatT(tracker.rotation).multiply(
-            previousRot.current.clone().invert()
-          );
-          const acc = Vector3FromVec3fT(tracker.linearAcceleration).sub(
-            previousAcc.current
-          );
-          const dif = Math.min(
-            1,
-            (rot.x ** 2 + rot.y ** 2 + rot.z ** 2) * 50 +
-              (acc.x ** 2 + acc.y ** 2 + acc.z ** 2) / 1000
-          );
-          // Use sum of the rotation and acceleration delta vector lengths over 0.3sec
-          // for smoother movement and better detection of slow movement.
-          if (deltas.length >= 0.5 * feedMaxTps) {
-            deltas.shift();
-          }
-          deltas.push(dif);
-          const newV = Math.min(
-            1,
-            Math.max(
-              0,
-              deltas.reduce((a, b) => a + b)
-            )
-          );
-
-          const now = performance.now();
-          const thresholdCrossed =
-            (newV > 0.18 && velocity <= 0.18) || (newV <= 0.18 && velocity > 0.18);
-
-          if (thresholdCrossed || now - lastUpdateRef.current > 33) {
-            lastUpdateRef.current = now;
-            setVelocity(newV);
-          }
-
-          previousRot.current = QuaternionFromQuatT(tracker.rotation);
-          previousAcc.current = Vector3FromVec3fT(tracker.linearAcceleration);
+      useMotionLevel(tracker, feedMaxTps, (newV) => {
+        const shown = shownRef.current;
+        const now = performance.now();
+        const thresholdCrossed =
+          (newV > MOVING && shown <= MOVING) || (newV <= MOVING && shown > MOVING);
+        if (thresholdCrossed || now - lastUpdateRef.current > 33) {
+          lastUpdateRef.current = now;
+          shownRef.current = newV;
+          setVelocity(newV);
         }
-      }, [tracker.rotation]);
-
+      });
       return velocity;
+    },
+    // Same motion measure as useVelocity, but it only re-renders when the tracker starts or stops moving.
+    useIsMoving: () => {
+      const [moving, setMoving] = useState(false);
+      useMotionLevel(tracker, feedMaxTps, (newV) => setMoving(newV > MOVING));
+      return moving;
     },
   };
 }
