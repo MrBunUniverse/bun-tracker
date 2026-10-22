@@ -786,6 +786,16 @@ body {
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-md'] {
   font-size: 18px;
 }
+/* The top bar is the same on every tab, so it keeps its usual size inside settings. */
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] {
+  line-height: 1.5;
+}
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] [class*='text-ui-2xs'] {
+  font-size: calc(var(--font-size) / 12 * 0.75);
+}
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] [class*='text-ui-xs'] {
+  font-size: calc(var(--font-size) / 12 * 0.8125);
+}
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-standard,
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-description {
   font-size: 16px;
