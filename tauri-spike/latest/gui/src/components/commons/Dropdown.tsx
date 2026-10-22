@@ -285,8 +285,17 @@ export function DropdownInside({
     );
   };
   useLayoutEffect(updateFieldBoundingRect, [ref.current]);
-  window.addEventListener('scroll', updateFieldBoundingRect, true);
-  window.addEventListener('resize', updateFieldBoundingRect, true);
+  // Follow the field only while the list is open.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updateFieldBoundingRect();
+    window.addEventListener('scroll', updateFieldBoundingRect, true);
+    window.addEventListener('resize', updateFieldBoundingRect, true);
+    return () => {
+      window.removeEventListener('scroll', updateFieldBoundingRect, true);
+      window.removeEventListener('resize', updateFieldBoundingRect, true);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
