@@ -50,6 +50,8 @@ export function DotRain({
     let drops: Drop[] = [];
     let spawnTimer = 0;
     let stepTimer = 0;
+    // The resting dot grid, painted once per size and copied in on each step.
+    const base = document.createElement('canvas');
 
     // Sizes the canvas and its grid. Drops reset on resize, which is fine for a background.
     const size = () => {
@@ -58,17 +60,19 @@ export function DotRain({
       canvas.height = Math.round(canvas.clientHeight * dpr);
       cols = Math.floor(canvas.clientWidth / CELL);
       rows = Math.floor(canvas.clientHeight / CELL);
+      paintBase();
     };
 
-    // Paints the base dots, then the drops over them.
-    const draw = () => {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = BASE;
+    const paintBase = () => {
+      base.width = canvas.width;
+      base.height = canvas.height;
+      const baseCtx = base.getContext('2d');
+      if (!baseCtx) return;
+      baseCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      baseCtx.fillStyle = BASE;
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
-          ctx.fillRect(
+          baseCtx.fillRect(
             x * CELL + (CELL - DOT) / 2,
             y * CELL + (CELL - DOT) / 2,
             DOT,
@@ -76,6 +80,14 @@ export function DotRain({
           );
         }
       }
+    };
+
+    // Copies in the base dots, then paints the drops over them.
+    const draw = () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (base.width > 0 && base.height > 0) ctx.drawImage(base, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       for (const d of drops) {
         for (let k = 0; k < d.len; k++) {
           const row = d.y - k;

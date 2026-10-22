@@ -181,6 +181,9 @@ export function RippleDots({
     let drops: { x: number; y: number; age: number }[] = [];
     // The page colour behind the canvas, read from body; empty when body is see-through.
     let backdrop = '';
+    // The backdrop and resting grid, painted once per size and copied in each frame.
+    const base = document.createElement('canvas');
+    let halo = new Uint8Array(0);
     let raf = 0;
     let last = 0;
     let running = false;
@@ -210,6 +213,8 @@ export function RippleDots({
       prev = new Float32Array(cols * rows);
       word = wordmark ? buildWord(cols, rows, wordmark) : null;
       drops = [];
+      halo = new Uint8Array(cols * rows);
+      paintBase();
     };
 
     // One wave step. Interior cells only, so the edges stay flat.
@@ -222,8 +227,9 @@ export function RippleDots({
           const avg =
             (cur[i - 1] + cur[i + 1] + cur[i - cols] + cur[i + cols]) / 2;
           // Farther from the nearest drop, the wider the random kick: the rings break up as they travel.
+          // The kick scales with |cur[i]|, so flat cells skip the distance search.
           let t = 0;
-          if (drops.length) {
+          if (drops.length && Math.abs(cur[i]) > 1e-4) {
             let d2 = Infinity;
             for (const d of drops) {
               d2 = Math.min(d2, (x - d.x) ** 2 + (y - d.y) ** 2);
@@ -257,9 +263,35 @@ export function RippleDots({
       );
     };
 
-    // Paints the grid (when asked) and the ripples over it. Returns the biggest height, to tell when the surface is still.
-    // `blend` picks a point between the previous wave step (0) and the latest one (1). Only glyph cells use it.
-    const draw = (blend = 1) => {
+    // The canvas paints the whole grid over a backdrop in the page colour, hiding body's own dots here.
+    // Ripple dots then replace grid dots instead of stacking on them (which showed as doubled dots whenever the two grids were a pixel off).
+    const paintBase = () => {
+      base.width = canvas.width;
+      base.height = canvas.height;
+      const baseCtx = base.getContext('2d');
+      if (!baseCtx) return;
+      baseCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (backdrop) {
+        baseCtx.fillStyle = backdrop;
+        baseCtx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      }
+      if (dots || solid) {
+        baseCtx.fillStyle = BASE;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            baseCtx.fillRect(
+              offX + x * CELL - DOT / 2,
+              offY + y * CELL - DOT / 2,
+              DOT,
+              DOT
+            );
+          }
+        }
+      }
+    };
+
+    // Copies in the grid and paints the ripples over it. Returns the biggest height, to tell when the surface is still.
+    const draw = () => {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -268,20 +300,13 @@ export function RippleDots({
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
       }
-      // The canvas paints the whole grid over a backdrop in the page colour, hiding body's own dots here.
-      // Ripple dots then replace grid dots instead of stacking on them (which showed as doubled dots whenever the two grids were a pixel off).
-      if (backdrop) {
-        ctx.fillStyle = backdrop;
-        ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-      }
-      if (dots || solid) {
-        ctx.fillStyle = BASE;
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) paint(x, y);
-        }
+      if (base.width > 0 && base.height > 0) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(base, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       // Halo: 2 for cells next to a wave, 1 for cells two out.
-      const halo = new Uint8Array(cols * rows);
+      halo.fill(0);
       let peak = 0;
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
@@ -320,7 +345,7 @@ export function RippleDots({
           const i = y * cols + x;
           if (glyphs) {
             // Glyph cells fade with the wave height, so a character eases in and out instead of popping.
-            const tone = glyphTone(prev[i] + (cur[i] - prev[i]) * blend);
+            const tone = glyphTone(cur[i]);
             if (tone === 0 && halo[i] === 0) continue;
             ctx.fillStyle = tone > 0 ? GLYPH_PALETTE[tone] : HALO[halo[i] - 1];
             paint(x, y, true);
@@ -346,23 +371,7 @@ export function RippleDots({
 
     const frame = (time: number) => {
       raf = 0;
-      if (glyphs) {
-        // The wave steps at FPS, but glyphs are drawn every display frame, blending the last two steps so they move smoothly.
-        const stepped = time - last >= 1000 / FPS;
-        if (stepped) {
-          last = time;
-          step();
-        }
-        const peak = draw(Math.min(1, (time - last) / (1000 / FPS)));
-        if (stepped && peak < IDLE) {
-          draw(1);
-          running = false;
-          drops = [];
-          return;
-        }
-        raf = requestAnimationFrame(frame);
-        return;
-      }
+      // Glyphs included, everything is drawn once per wave step, at FPS.
       if (time - last >= 1000 / FPS) {
         last = time;
         step();
