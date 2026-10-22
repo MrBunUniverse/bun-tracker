@@ -1770,6 +1770,24 @@ body {
   height: 100%;
 }
 
+/* Compact top bar: pill labels stay readable to screen readers but take no space. */
+[data-topbar-compact] .topbar-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.topbar-compact-only {
+  display: none;
+}
+
+[data-topbar-compact] .topbar-compact-only {
+  display: block;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

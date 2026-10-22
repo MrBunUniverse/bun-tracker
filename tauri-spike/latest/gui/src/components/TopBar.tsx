@@ -1,4 +1,10 @@
-import { ReactNode, useContext, useState } from 'react';
+import {
+  ReactNode,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useLocalization } from '@fluent/react';
 import { useAtomValue } from 'jotai';
@@ -45,6 +51,29 @@ export function TopBar({
   const [showConnectedTrackersWarning, setConnectedTrackerWarning] =
     useState(false);
 
+  // When the status pills don't fit on one line, drop to icon-only pills. The full width is
+  // remembered at the moment it overflowed, so the labels come back only once they fit again.
+  const statusRef = useRef<HTMLDivElement>(null);
+  const fullStatusWidth = useRef(0);
+  const [compactStatus, setCompactStatus] = useState(false);
+  useLayoutEffect(() => {
+    const row = statusRef.current;
+    if (!row) return;
+    const check = () => {
+      if (!compactStatus && row.scrollWidth > row.clientWidth) {
+        fullStatusWidth.current = row.scrollWidth;
+        setCompactStatus(true);
+      } else if (compactStatus && row.clientWidth >= fullStatusWidth.current) {
+        setCompactStatus(false);
+      }
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(row);
+    for (const pill of row.children) observer.observe(pill);
+    return () => observer.disconnect();
+  }, [compactStatus, hideStatus]);
+
   const closeApp = async () => {
     if (!electron.isElectron) return;
     await saveConfig();
@@ -82,6 +111,8 @@ export function TopBar({
           data-topbar-row
         >
           <div
+            ref={statusRef}
+            data-topbar-compact={compactStatus || undefined}
             className="no-scrollbar flex min-h-[36px] min-w-0 flex-1 flex-nowrap items-center gap-x-3 overflow-x-auto whitespace-nowrap [&>*]:shrink-0"
             style={{ WebkitAppRegion: 'drag' } as any}
             data-electron-drag-region

@@ -151,8 +151,21 @@ export function QuestDiagnosticsCard() {
             : 'text-background-10 hover:bg-background-10/[0.06]'
         )}
       >
-        <span className="whitespace-nowrap">Quest controls</span>
-        <span className="tnum whitespace-nowrap text-ui-2xs text-background-30">
+        {/* Headset icon, shown only when the top bar is compact and the label is hidden. */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="topbar-compact-only h-4 w-4 shrink-0"
+        >
+          <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4l-2-3h-2l-2 3H5a2 2 0 0 1-2-2z" />
+        </svg>
+        <span className="topbar-label whitespace-nowrap">Quest controls</span>
+        <span className="topbar-label tnum whitespace-nowrap text-ui-2xs text-background-30">
           {floorAnchor.floorOffset >= 0 ? '+' : ''}
           {(floorAnchor.floorOffset * 100).toFixed(0)}cm · {floorAnchor.oscRate}
           Hz

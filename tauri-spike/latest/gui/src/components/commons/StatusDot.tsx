@@ -37,7 +37,7 @@ export function StatusDot({
           tone === 'critical' ? 'rounded-[2px] rotate-45' : 'rounded-full'
         )}
       />
-      <span>{label}</span>
+      <span className="topbar-label">{label}</span>
     </span>
   );
 }

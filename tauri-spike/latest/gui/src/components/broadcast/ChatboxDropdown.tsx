@@ -720,7 +720,9 @@ export function ChatboxDropdown({
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
 
-        {(!collapsed || isTop) && <span>Broadcast</span>}
+        {(!collapsed || isTop) && (
+          <span className="topbar-label">Broadcast</span>
+        )}
 
         {/* Live broadcasting / chat-only indicator (always has a text name). */}
         {floorAnchor.chatboxOnlyMode ? (
