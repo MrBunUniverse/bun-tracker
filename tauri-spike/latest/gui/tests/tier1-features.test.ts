@@ -146,7 +146,7 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.match(scssContent, /animation:\s*none\s*!important/);
       assert.match(scssContent, /transition:\s*none\s*!important/);
       assert.match(scssContent, /will-change:\s*auto\s*!important/);
-      assert.match(scssContent, /:not\(\.animate-spin\)/);
+      assert.match(scssContent, /:not\(\s*\.animate-spin,/);
       assert.match(scssContent, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 
       const emptyStateFile = fs.readFileSync(
