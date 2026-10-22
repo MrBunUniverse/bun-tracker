@@ -8,6 +8,8 @@ import {
   useNavigationType,
 } from 'react-router-dom';
 import { DeviceDataT } from 'solarxr-protocol';
+import { getDefaultStore } from 'jotai';
+import { devicesAtom } from '@/store/app-store';
 
 export function getSentryOrCompute(enabled = false, uuid: string, isSteam: boolean) {
   // to be considered prod it needs to be a proper version tag, non-dirty
@@ -49,7 +51,15 @@ export function getSentryOrCompute(enabled = false, uuid: string, isSteam: boole
         blockAllMedia: false,
       }),
     ],
-    beforeSend: (ev) => (newClient?.getOptions().enabled ? ev : null),
+    beforeSend: (ev) => {
+      if (!newClient?.getOptions().enabled) return null;
+      // Built only when an event is sent, not on every data update.
+      ev.contexts = {
+        ...ev.contexts,
+        trackers: trackersContext(getDefaultStore().get(devicesAtom)),
+      };
+      return ev;
+    },
     environment: isSteam ? 'steam' : 'production',
     release: (__VERSION_TAG__ || __COMMIT_HASH__) + (__GIT_CLEAN__ ? '' : '-dirty'),
     // Tracing
@@ -76,7 +86,7 @@ export function getSentryOrCompute(enabled = false, uuid: string, isSteam: boole
   return newClient;
 }
 
-export function updateSentryContext(devices: DeviceDataT[]) {
+function trackersContext(devices: DeviceDataT[]) {
   // We filter out the shit we dont want. We dont need rotation data or ip addresses
   const trackers = (devices || []).map(({ hardwareInfo, trackers, id }) => ({
     id: id?.id,
@@ -90,8 +100,5 @@ export function updateSentryContext(devices: DeviceDataT[]) {
     })),
   }));
 
-  // Will send the latest context to sentry when an error happens
-  Sentry.setContext('trackers', {
-    trackers,
-  });
+  return { trackers };
 }
