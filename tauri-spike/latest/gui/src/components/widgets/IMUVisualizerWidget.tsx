@@ -9,17 +9,18 @@ import {
   AmbientLight,
   ArrowHelper,
   AxesHelper,
+  DirectionalLight,
   DoubleSide,
   Euler,
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Quaternion,
   Scene,
-  SpotLight,
   Vector3,
   WebGLRenderer,
 } from 'three';
@@ -84,6 +85,41 @@ const CANVAS_HEIGHT = 200;
 const MAX_RENDER_PIXEL_RATIO = 1.25;
 const DEMO_FRAME_INTERVAL = 1000 / 30;
 
+// All demo previews animate from one shared loop at 30 fps, paused while the window is hidden.
+const demoTickers = new Set<(now: number) => void>();
+let demoFrame = 0;
+let lastDemoTick = 0;
+function runDemoTickers() {
+  demoFrame = requestAnimationFrame(runDemoTickers);
+  const now = performance.now();
+  if (document.hidden || now - lastDemoTick < DEMO_FRAME_INTERVAL) return;
+  lastDemoTick = now;
+  demoTickers.forEach((tick) => tick(now));
+}
+function addDemoTicker(tick: (now: number) => void) {
+  demoTickers.add(tick);
+  if (!demoFrame) demoFrame = requestAnimationFrame(runDemoTickers);
+  return () => {
+    demoTickers.delete(tick);
+    if (demoTickers.size === 0) {
+      cancelAnimationFrame(demoFrame);
+      demoFrame = 0;
+    }
+  };
+}
+
+// Each model file is fetched and parsed once; every preview clones its scene graph.
+const modelCache = new Map<string, Promise<Group>>();
+function loadModel(path: string) {
+  let model = modelCache.get(path);
+  if (!model) {
+    model = new GLTFLoader().loadAsync(path).then((gltf) => gltf.scene);
+    model.catch(() => modelCache.delete(path));
+    modelCache.set(path, model);
+  }
+  return model;
+}
+
 // Three.js context - isolated from React
 type IMUVisualizerContext = {
   scene: Scene;
@@ -129,32 +165,34 @@ async function initializeIMUVisualizer(
   const ambientLight = new AmbientLight(0xffffff, palette.ambient * Math.PI);
   scene.add(ambientLight);
 
-  const spotLight = new SpotLight(0xffffff, 4000);
-  spotLight.position.set(20, 20, 20);
-  spotLight.angle = 0.09;
-  spotLight.penumbra = 1;
-  scene.add(spotLight);
+  // A plain directional light where the old spot light stood, at the strength the spot gave the model.
+  const keyLight = new DirectionalLight(0xffffff, 3.3);
+  keyLight.position.set(20, 20, 20);
+  scene.add(keyLight);
 
   const trackerGroup = new Group();
   scene.add(trackerGroup);
 
-  const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync(modelPath);
+  const model = (await loadModel(modelPath)).clone(true);
+  // Geometry is shared with the cached model and every other preview, so dispose() leaves it alone.
+  const sharedGeometry = new Set<unknown>();
   const modelGroup = new Group();
   modelGroup.scale.setScalar(
     height < 150 ? palette.smallModelScale : MODEL_SCALE
   );
   modelGroup.rotation.x = Math.PI / 2;
-  modelGroup.add(gltf.scene);
-  if (palette.model != null) {
-    gltf.scene.traverse((node) => {
-      if (node instanceof Mesh && !Array.isArray(node.material)) {
-        const material = (node.material as MeshStandardMaterial).clone();
-        material.color.setHex(palette.model as number);
-        node.material = material;
-      }
-    });
-  }
+  modelGroup.add(model);
+  // Lambert shading is cheaper than the model's PBR material and looks the same on this matte case.
+  model.traverse((node) => {
+    if (node instanceof Mesh && !Array.isArray(node.material)) {
+      sharedGeometry.add(node.geometry);
+      const source = node.material as MeshStandardMaterial;
+      node.material = new MeshLambertMaterial({
+        color: palette.model ?? source.color,
+        side: source.side,
+      });
+    }
+  });
   trackerGroup.add(modelGroup);
 
   const axesHelper = new AxesHelper(height < 150 ? 3.2 : 10);
@@ -236,7 +274,11 @@ async function initializeIMUVisualizer(
 
   const dispose = () => {
     trackerGroup.traverse((child) => {
-      if ('geometry' in child && child.geometry)
+      if (
+        'geometry' in child &&
+        child.geometry &&
+        !sharedGeometry.has(child.geometry)
+      )
         (child.geometry as any).dispose();
       if ('material' in child && child.material) {
         const mat = child.material as any;
@@ -415,24 +457,12 @@ export function IMUVisualizerCanvas({
   useEffect(() => {
     if (!animateDemo) return;
 
-    let animId: number;
     const euler = new Euler();
     const demoQuat = new Quaternion();
     const accelVec = new Vector3();
-    let previousRenderTime = 0;
 
-    const loop = () => {
-      animId = requestAnimationFrame(loop);
-      if (
-        !isVisibleRef.current ||
-        (typeof document !== 'undefined' && document.hidden)
-      ) {
-        return;
-      }
-
-      const now = performance.now();
-      if (now - previousRenderTime < DEMO_FRAME_INTERVAL) return;
-      previousRenderTime = now;
+    const tick = (now: number) => {
+      if (!isVisibleRef.current) return;
 
       const ctx = contextRef.current;
       if (ctx) {
@@ -494,9 +524,9 @@ export function IMUVisualizerCanvas({
       }
     };
 
-    animId = requestAnimationFrame(loop);
+    const removeTicker = addDemoTicker(tick);
     return () => {
-      cancelAnimationFrame(animId);
+      removeTicker();
       if (contextRef.current?.trackerGroup) {
         contextRef.current.trackerGroup.position.set(0, 0, 0);
       }
