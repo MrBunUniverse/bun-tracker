@@ -418,7 +418,7 @@ export function Home() {
       {isDemo && (
         <div
           role="status"
-          className="shrink-0 border-b border-status-warning/30 py-1 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-status-warning"
+          className="animate-demo-stripes shrink-0 border-b border-status-warning/30 py-1 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-status-warning"
           style={{
             backgroundImage:
               'repeating-linear-gradient(135deg, rgba(var(--warning), 0.14) 0 10px, transparent 10px 20px)',

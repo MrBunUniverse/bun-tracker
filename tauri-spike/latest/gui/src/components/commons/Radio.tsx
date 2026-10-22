@@ -44,6 +44,7 @@ export function Radio<T extends FieldValues = FieldValues>({
             type="radio"
             className={classNames(
               'accent-accent-background-20 text-accent-background-10 focus:ring-transparent mt-0.5',
+              'self-start shrink-0 size-4 rounded-full',
               'focus:ring-offset-transparent focus:outline-transparent'
             )}
             name={name}

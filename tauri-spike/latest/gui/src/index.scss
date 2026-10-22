@@ -142,6 +142,28 @@ body {
   animation-play-state: paused;
 }
 
+/* Demo banner: hazard stripes slide right. 28.2843px = one 20px stripe period at 135deg, so the loop is seamless. */
+@keyframes demo-stripes-slide {
+  to {
+    background-position: 28.2843px 0;
+  }
+}
+
+.animate-demo-stripes {
+  animation: demo-stripes-slide 1.2s linear infinite;
+}
+
+.is-page-hidden .animate-demo-stripes {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-demo-stripes {
+    animation: none;
+  }
+}
+
+
 /* One-shot nudge when the tracker count changes, e.g. a tracker was found. */
 @keyframes found-pop {
   0% {
