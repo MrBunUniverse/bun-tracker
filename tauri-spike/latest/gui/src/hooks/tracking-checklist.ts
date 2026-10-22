@@ -9,7 +9,16 @@ import {
   TrackerIdT,
 } from 'solarxr-protocol';
 import { useWebsocketAPI } from './websocket-api';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { isEqual } from '@react-hookz/deep-equal';
 import * as Sentry from '@sentry/react';
 
 export const trackingchecklistIdtoLabel: Record<TrackingChecklistStepId, string> = {
@@ -112,9 +121,19 @@ export function provideTrackingChecklist() {
     ignoredSteps: [],
   });
 
+  // The server repeats the same response about once a second. Skip it unless it or the
+  // session-ignored steps changed, so consumers don't re-render for nothing.
+  const lastInput = useRef<unknown>(null);
   useRPCPacket(
     RpcMessage.TrackingChecklistResponse,
     (data: TrackingChecklistResponseT) => {
+      const input = {
+        steps: data.steps,
+        ignoredSteps: data.ignoredSteps,
+        session: [...sessionIgnoredSteps],
+      };
+      if (isEqual(input, lastInput.current)) return;
+      lastInput.current = input;
       const activeSteps = data.steps.filter(
         filterActive([...data.ignoredSteps, ...sessionIgnoredSteps])
       );
@@ -173,49 +192,67 @@ export function provideTrackingChecklist() {
     [steps]
   );
 
-  const ignoreStep = (
-    step: TrackingChecklistStepId,
-    ignore: boolean,
-    session = true
-  ) => {
-    setSessionIgnoredSteps((curr) => {
-      if (ignore && !curr.includes(step)) return [...curr, step];
-      if (!ignore && curr.includes(step)) {
-        curr.splice(curr.indexOf(step), 1);
+  const ignoreStep = useCallback(
+    (step: TrackingChecklistStepId, ignore: boolean, session = true) => {
+      setSessionIgnoredSteps((curr) => {
+        if (ignore && !curr.includes(step)) return [...curr, step];
+        if (!ignore && curr.includes(step)) return curr.filter((s) => s !== step);
         return curr;
-      }
-      return curr;
-    });
-    Sentry.metrics.count(ignore ? 'mute_checklist_step' : 'unmute_checklist_step', 1, {
-      attributes: { step: TrackingChecklistStepId[step], session },
-    });
-    if (session) {
-      // Force refresh of the flightlist when ignoring a step as the filtering
-      // is done only in one place to simplify the data flow
-      sendRPCPacket(
-        RpcMessage.TrackingChecklistRequest,
-        new TrackingChecklistRequestT()
+      });
+      Sentry.metrics.count(
+        ignore ? 'mute_checklist_step' : 'unmute_checklist_step',
+        1,
+        {
+          attributes: { step: TrackingChecklistStepId[step], session },
+        }
       );
-    } else {
-      const res = new IgnoreTrackingChecklistStepRequestT();
-      res.stepId = step;
-      res.ignore = ignore;
-      sendRPCPacket(RpcMessage.IgnoreTrackingChecklistStepRequest, res);
-    }
-  };
+      if (session) {
+        // Force refresh of the flightlist when ignoring a step as the filtering
+        // is done only in one place to simplify the data flow
+        sendRPCPacket(
+          RpcMessage.TrackingChecklistRequest,
+          new TrackingChecklistRequestT()
+        );
+      } else {
+        const res = new IgnoreTrackingChecklistStepRequestT();
+        res.stepId = step;
+        res.ignore = ignore;
+        sendRPCPacket(RpcMessage.IgnoreTrackingChecklistStepRequest, res);
+      }
+    },
+    [sendRPCPacket]
+  );
 
-  return {
-    ...steps,
-    sessionIgnoredSteps,
-    firstRequired,
-    highlightedTrackers,
-    progress,
-    completion,
-    warnings,
-    ignoreStep,
-    toggleSession: (step: TrackingChecklistStepId) =>
+  const toggleSession = useCallback(
+    (step: TrackingChecklistStepId) =>
       ignoreStep(step, !sessionIgnoredSteps.includes(step)),
-  };
+    [ignoreStep, sessionIgnoredSteps]
+  );
+
+  return useMemo(
+    () => ({
+      ...steps,
+      sessionIgnoredSteps,
+      firstRequired,
+      highlightedTrackers,
+      progress,
+      completion,
+      warnings,
+      ignoreStep,
+      toggleSession,
+    }),
+    [
+      steps,
+      sessionIgnoredSteps,
+      firstRequired,
+      highlightedTrackers,
+      progress,
+      completion,
+      warnings,
+      ignoreStep,
+      toggleSession,
+    ]
+  );
 }
 
 export const TrackingChecklistContectC = createContext<TrackingChecklistContext>(
