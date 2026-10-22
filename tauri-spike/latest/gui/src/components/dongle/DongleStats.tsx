@@ -40,35 +40,47 @@ interface DongleSnapshot {
   events: DongleEvent[];
 }
 
-/** Polls the bridge twice a second; null when the bridge is not running. */
-export function useDongleStats() {
+/** Polls the bridge twice a second while `fast`, every 5 s otherwise, and not while the window is hidden.
+ *  null when the bridge is not running. Only a new snapshot (a new `time`) re-renders. */
+export function useDongleStats(fast: boolean) {
   const [snap, setSnap] = useState<DongleSnapshot | null>(null);
   useEffect(() => {
     let alive = true;
+    let lastTime: number | undefined;
     const poll = async () => {
+      if (document.hidden) return;
+      let next: DongleSnapshot | null = null;
       try {
         const res = await fetch(STATS_URL, { cache: 'no-store' });
         const data = await res.json();
-        if (alive) setSnap(data.time ? data : null);
+        next = data.time ? data : null;
       } catch {
-        if (alive) setSnap(null);
+        // bridge not running
       }
+      if (!alive || next?.time === lastTime) return;
+      lastTime = next?.time;
+      setSnap(next);
+    };
+    const onVisibility = () => {
+      if (!document.hidden) poll();
     };
     poll();
-    const id = setInterval(poll, 500);
+    const id = setInterval(poll, fast ? 500 : 5000);
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       alive = false;
       clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, []);
+  }, [fast]);
   return snap;
 }
 
 /** Header pill that opens the dongle stats as a popup, like Broadcast (same classes, so the same look and placement).
  *  The dot shows whether the bridge is reachable. Closes on an outside click or Esc. */
 export function DonglePill() {
-  const snap = useDongleStats();
   const [open, setOpen] = useState(false);
+  const snap = useDongleStats(open);
   const rootRef = useRef<HTMLDivElement>(null);
   const popover = useTopBarPopover(rootRef, open, 560);
 
