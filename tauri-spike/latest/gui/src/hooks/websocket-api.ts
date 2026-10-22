@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   DataFeedMessage,
@@ -33,6 +40,25 @@ export const WebSocketApiContext = createContext<WebSocketApi>(undefined as neve
 export type RPCPacketType = RpcMessageHeaderT['message'];
 export type PubSubPacketType = PubSubHeaderT['u'];
 export type DataFeedPacketType = DataFeedMessageHeaderT['message'];
+
+// Calls `callback` for every `type` event on `target`. The latest callback is kept in a ref, so
+// callers passing a new inline function each render don't unsubscribe and resubscribe each time.
+function usePacketListener<T>(
+  target: EventTarget,
+  type: string,
+  callback: (packet: T) => void
+) {
+  const saved = useRef(callback);
+  useLayoutEffect(() => {
+    saved.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    const onEvent = (event: CustomEventInit) => saved.current(event.detail);
+    target.addEventListener(type, onEvent);
+    return () => target.removeEventListener(type, onEvent);
+  }, [target, type]);
+}
 
 export function useProvideWebsocketApi(): WebSocketApi {
   const webSocketRef = useRef<WebSocket | null>(null);
@@ -192,42 +218,12 @@ export function useProvideWebsocketApi(): WebSocketApi {
     isFirstConnection,
     timedOut,
     reconnect,
-    useDataFeedPacket: <T>(type: DataFeedMessage, callback: (packet: T) => void) => {
-      useEffect(() => {
-        const onEvent = (event: CustomEventInit) => {
-          callback(event.detail);
-        };
-        datafeedlistenerRef.current.addEventListener(DataFeedMessage[type], onEvent);
-        return () => {
-          datafeedlistenerRef.current.removeEventListener(
-            DataFeedMessage[type],
-            onEvent
-          );
-        };
-      }, [callback, type]);
-    },
-    useRPCPacket: <T>(type: RpcMessage, callback: (packet: T) => void) => {
-      useEffect(() => {
-        const onEvent = (event: CustomEventInit) => {
-          callback(event.detail);
-        };
-        rpclistenerRef.current.addEventListener(RpcMessage[type], onEvent);
-        return () => {
-          rpclistenerRef.current.removeEventListener(RpcMessage[type], onEvent);
-        };
-      }, [callback, type]);
-    },
-    usePubSubPacket: <T>(type: PubSubUnion, callback: (packet: T) => void) => {
-      useEffect(() => {
-        const onEvent = (event: CustomEventInit) => {
-          callback(event.detail);
-        };
-        pubsublistenerRef.current.addEventListener(PubSubUnion[type], onEvent);
-        return () => {
-          pubsublistenerRef.current.removeEventListener(PubSubUnion[type], onEvent);
-        };
-      }, [callback, type]);
-    },
+    useDataFeedPacket: <T>(type: DataFeedMessage, callback: (packet: T) => void) =>
+      usePacketListener(datafeedlistenerRef.current, DataFeedMessage[type], callback),
+    useRPCPacket: <T>(type: RpcMessage, callback: (packet: T) => void) =>
+      usePacketListener(rpclistenerRef.current, RpcMessage[type], callback),
+    usePubSubPacket: <T>(type: PubSubUnion, callback: (packet: T) => void) =>
+      usePacketListener(pubsublistenerRef.current, PubSubUnion[type], callback),
     sendRPCPacket,
     sendDataFeedPacket,
     sendPubSubPacket,
