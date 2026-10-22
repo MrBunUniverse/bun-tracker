@@ -4,14 +4,17 @@ import { TrackerDataT } from 'solarxr-protocol';
 import { useConfig } from '@/hooks/config';
 import { Typography } from '@/components/commons/Typography';
 import { TrackersTable } from '@/components/tracker/TrackersTable';
-import { useAtomValue, useAtom } from 'jotai';
+import { Atom, useAtomValue, useAtom } from 'jotai';
 import {
   assignedTrackersAtom,
+  assignedTrackerSetAtom,
   unassignedTrackersAtom,
+  unassignedTrackerSetAtom,
   showSidebarAtom,
-  connectedIMUTrackersAtom,
+  connectedIMUCountAtom,
   sidebarAnimationAtom,
   hasRealTrackersAtom,
+  FlatDeviceTracker,
 } from '@/store/app-store';
 import { demoModeAtom } from '@/store/demo-trackers';
 import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
@@ -98,11 +101,28 @@ function SkeletonViewIcon({ className }: { className?: string }) {
   );
 }
 
+// The table shows live readings, so it subscribes to the live list itself; Home only follows the tracker set.
+function LiveTrackersTable({
+  listAtom,
+  clickedTracker,
+}: {
+  listAtom: Atom<FlatDeviceTracker[]>;
+  clickedTracker: (tracker: TrackerDataT) => void;
+}) {
+  const flatTrackers = useAtomValue(listAtom);
+  return (
+    <TrackersTable
+      flatTrackers={flatTrackers}
+      clickedTracker={clickedTracker}
+    />
+  );
+}
+
 export function Home() {
   const { l10n } = useLocalization();
   const { config, setConfig } = useConfig();
-  const trackers = useAtomValue(assignedTrackersAtom);
-  const unassignedTrackers = useAtomValue(unassignedTrackersAtom);
+  const trackers = useAtomValue(assignedTrackerSetAtom);
+  const unassignedTrackers = useAtomValue(unassignedTrackerSetAtom);
   const navigate = useNavigate();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -274,8 +294,8 @@ export function Home() {
   const { activePreset, presets, activePresetId, setActivePresetId } =
     useTrackerPresets();
   const { isConnected } = useWebsocketAPI();
-  const connectedTrackers = useAtomValue(connectedIMUTrackersAtom);
-  const isHealthy = isConnected && connectedTrackers.length > 0;
+  const connectedTrackerCount = useAtomValue(connectedIMUCountAtom);
+  const isHealthy = isConnected && connectedTrackerCount > 0;
   const demoMode = useAtomValue(demoModeAtom);
   const hasRealTrackers = useAtomValue(hasRealTrackersAtom);
   const isDemo = demoMode && !hasRealTrackers;
@@ -450,7 +470,7 @@ export function Home() {
               'flex min-h-9 flex-nowrap items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1 text-ui-2xs text-background-20 transition-colors cursor-pointer select-none hover:bg-background-60 hover:text-background-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
               collapseAnim.className
             )}
-            aria-label={`${l10n.getString('home-tracker-target')} ${activePreset?.targetCount ?? 5}, ${l10n.getString('home-tracker-connected')} ${connectedTrackers.length}. ${l10n.getString('home-tracker-setup')}.`}
+            aria-label={`${l10n.getString('home-tracker-target')} ${activePreset?.targetCount ?? 5}, ${l10n.getString('home-tracker-connected')} ${connectedTrackerCount}. ${l10n.getString('home-tracker-setup')}.`}
             aria-expanded={isTrackerSetupOpen}
             aria-controls="home-tracker-setup-popover"
           >
@@ -467,7 +487,7 @@ export function Home() {
             />
             {/* The one tracker count on screen: connected out of the preset's target. */}
             <span className="font-mono font-semibold text-background-10">
-              {connectedTrackers.length}/{activePreset?.targetCount ?? 5}
+              {connectedTrackerCount}/{activePreset?.targetCount ?? 5}
             </span>
             <span className="home-tracker-count__label lowercase">
               {l10n.getString('home-tracker-connected')}
@@ -715,8 +735,8 @@ export function Home() {
                         tableContainerAnim.className
                       )}
                     >
-                      <TrackersTable
-                        flatTrackers={trackers}
+                      <LiveTrackersTable
+                        listAtom={assignedTrackersAtom}
                         clickedTracker={(tracker) => sendToSettings(tracker)}
                       />
                     </div>
@@ -740,8 +760,8 @@ export function Home() {
                         tableContainerAnim.className
                       )}
                     >
-                      <TrackersTable
-                        flatTrackers={unassignedTrackers}
+                      <LiveTrackersTable
+                        listAtom={unassignedTrackersAtom}
                         clickedTracker={(tracker) => sendToSettings(tracker)}
                       />
                     </div>

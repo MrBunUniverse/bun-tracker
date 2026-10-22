@@ -1,4 +1,4 @@
-import { atom } from 'jotai';
+import { Atom, atom } from 'jotai';
 import {
   BodyPart,
   BoneT,
@@ -91,6 +91,48 @@ export const connectedIMUCountAtom = selectAtom(
   connectedIMUTrackersAtom,
   (trackers) => trackers.length
 );
+
+// Device and tracker number: what tells trackers apart.
+export const trackerKey = ({ tracker, device }: FlatDeviceTracker) =>
+  `${tracker.trackerId?.deviceId?.id ?? device?.id?.id ?? 'd'}:${tracker.trackerId?.trackerNum ?? 0}`;
+
+const setKey = (item: FlatDeviceTracker) =>
+  `${trackerKey(item)}:${item.tracker.info?.bodyPart}:${item.tracker.status}:${item.tracker.info?.isImu}`;
+const sameTrackerSet = (a: FlatDeviceTracker[], b: FlatDeviceTracker[]) =>
+  a === b ||
+  (a.length === b.length && a.every((item, i) => setKey(item) === setKey(b[i])));
+
+// The same lists, but they only change when a tracker joins, leaves, is reassigned or changes status,
+// not on every data update. Their tracker objects can hold old readings: use them for counts, body
+// parts and status, and read live values (rotation, battery, ping) through liveTrackerAtom.
+export const assignedTrackerSetAtom = selectAtom(
+  assignedTrackersAtom,
+  (trackers) => trackers,
+  sameTrackerSet
+);
+export const unassignedTrackerSetAtom = selectAtom(
+  unassignedTrackersAtom,
+  (trackers) => trackers,
+  sameTrackerSet
+);
+export const connectedIMUTrackerSetAtom = selectAtom(
+  connectedIMUTrackersAtom,
+  (trackers) => trackers,
+  sameTrackerSet
+);
+
+// One tracker's live data, by trackerKey. Only components showing that tracker re-render on its updates.
+const liveTrackerAtoms = new Map<string, Atom<FlatDeviceTracker | undefined>>();
+export function liveTrackerAtom(key: string) {
+  let liveAtom = liveTrackerAtoms.get(key);
+  if (!liveAtom) {
+    liveAtom = atom((get) =>
+      get(flatTrackersAtom).find((item) => trackerKey(item) === key)
+    );
+    liveTrackerAtoms.set(key, liveAtom);
+  }
+  return liveAtom;
+}
 
 export const computedTrackersAtom = selectAtom(
   datafeedAtom,

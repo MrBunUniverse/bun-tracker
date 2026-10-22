@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import { useAtomValue } from 'jotai';
 import {
-  assignedTrackersAtom,
-  connectedIMUTrackersAtom,
+  assignedTrackerSetAtom,
+  connectedIMUTrackerSetAtom,
 } from '@/store/app-store';
 import { Typography } from '@/components/commons/Typography';
 import { NavLink } from 'react-router-dom';
@@ -11,8 +11,8 @@ import classNames from 'classnames';
 
 export function QuestDiagnosticsPill() {
   const { isConnected } = useWebsocketAPI();
-  const assignedTrackers = useAtomValue(assignedTrackersAtom);
-  const connectedTrackers = useAtomValue(connectedIMUTrackersAtom);
+  const assignedTrackers = useAtomValue(assignedTrackerSetAtom);
+  const connectedTrackers = useAtomValue(connectedIMUTrackerSetAtom);
   const [isOpen, setIsOpen] = useState(false);
 
   const isHealthy = isConnected && connectedTrackers.length > 0;

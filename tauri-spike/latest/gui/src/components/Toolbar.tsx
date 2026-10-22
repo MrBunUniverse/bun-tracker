@@ -11,8 +11,8 @@ import {
 import { Tooltip } from './commons/Tooltip';
 import { useAtomValue } from 'jotai';
 import {
-  assignedTrackersAtom,
-  connectedIMUTrackersAtom,
+  assignedTrackerSetAtom,
+  connectedIMUCountAtom,
   sidebarAnimationAtom,
 } from '@/store/app-store';
 import { useBreakpoint } from '@/hooks/breakpoint';
@@ -63,7 +63,7 @@ export function BasicResetButton(
     duration,
     error,
   } = useReset(options);
-  const noTrackers = useAtomValue(connectedIMUTrackersAtom).length === 0;
+  const noTrackers = useAtomValue(connectedIMUCountAtom) === 0;
   const disabled = resetDisabled || noTrackers;
 
   const progress = status === 'counting' ? resetProress / duration : 0;
@@ -169,7 +169,7 @@ export function BasicResetButton(
 }
 
 export function ResetActionsGroup() {
-  const assignedTrackers = useAtomValue(assignedTrackersAtom);
+  const assignedTrackers = useAtomValue(assignedTrackerSetAtom);
 
   const { groupVisibility } = useMemo(() => {
     const groupVisibility = Object.keys(BODY_PARTS_GROUPS)

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { AssignMode, useConfig } from './config';
 import { useLocalization } from '@fluent/react';
 import { useAtomValue } from 'jotai';
-import { connectedIMUTrackersAtom } from '@/store/app-store';
+import { connectedIMUCountAtom } from '@/store/app-store';
 
 export interface TrackerPreset {
   id: string;
@@ -59,7 +59,7 @@ export const PRESET_DEFINITIONS: {
 export function useTrackerPresets() {
   const { config, setConfig } = useConfig();
   const { l10n } = useLocalization();
-  const connectedTrackers = useAtomValue(connectedIMUTrackersAtom);
+  const connectedTrackerCount = useAtomValue(connectedIMUCountAtom);
 
   const presets: TrackerPreset[] = useMemo(() => {
     return PRESET_DEFINITIONS.map((def) => {
@@ -88,11 +88,9 @@ export function useTrackerPresets() {
   // If config.assignMode is set, use it; otherwise pick preferred based on connected tracker count or fallback to LowerBody
   const activeMode: AssignMode = useMemo(() => {
     if (config?.assignMode) return config.assignMode;
-    const found = PRESET_DEFINITIONS.find(
-      (def) => def.count >= connectedTrackers.length
-    );
+    const found = PRESET_DEFINITIONS.find((def) => def.count >= connectedTrackerCount);
     return found ? found.mode : AssignMode.LowerBody;
-  }, [config?.assignMode, connectedTrackers.length]);
+  }, [config?.assignMode, connectedTrackerCount]);
 
   const activePreset = useMemo(() => {
     return presets.find((p) => p.mode === activeMode) || presets[0];

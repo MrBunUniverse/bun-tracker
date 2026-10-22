@@ -19,6 +19,8 @@ import {
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
+import { selectAtom } from 'jotai/utils';
+import { isEqual } from '@react-hookz/deep-equal';
 import { flatTrackersAtom } from '@/store/app-store';
 import { demoModeAtom, DEMO_TRACKERS_SET } from '@/store/demo-trackers';
 import { useElectron } from '@/hooks/electron';
@@ -245,6 +247,47 @@ type BroadcastMode = 'pinned' | 'music' | 'bpm' | 'dictate';
 const broadcastModes: BroadcastMode[] = ['dictate', 'pinned', 'music', 'bpm'];
 const CHATBOX_PANEL_EXIT_MS = 240;
 
+// Per-tracker battery lines for the chatbox. Selected with deep equality, so the panel does not
+// re-render on every tracker data update.
+const trackerSummariesAtom = selectAtom(
+  flatTrackersAtom,
+  (flatTrackers) => ({
+    // The sample trackers shown in demo mode must never be announced to other players.
+    demo: flatTrackers === DEMO_TRACKERS_SET,
+    trackers: flatTrackers.map(({ tracker, device }) => {
+      const isConnected =
+        tracker.status === TrackerStatusEnum.OK ||
+        tracker.status === TrackerStatusEnum.BUSY;
+      const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
+      const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
+
+      let displayBattery = '—';
+      if (!isConnected) {
+        displayBattery = 'Offline';
+      } else if (batteryPct != null) {
+        displayBattery = `${Math.round(batteryPct)}%`;
+      } else if (batteryVoltage != null && batteryVoltage > 0) {
+        displayBattery = `${batteryVoltage.toFixed(1)}V`;
+      } else {
+        displayBattery = 'Active';
+      }
+
+      return {
+        id: tracker.trackerId?.trackerNum ?? 0,
+        name:
+          tracker.info?.customName?.toString() ||
+          tracker.info?.displayName?.toString() ||
+          'Tracker',
+        bodyPart: tracker.info?.bodyPart,
+        isConnected,
+        batteryPct,
+        displayBattery,
+      };
+    }),
+  }),
+  isEqual
+);
+
 /**
  * Broadcast control. `side` is a sidebar row (`collapsed` shows the icon
  * only); `top` is a compact pill for the top bar, next to the status cluster.
@@ -361,41 +404,9 @@ export function ChatboxDropdown({
   floorAnchorTextRef.current = floorAnchor.chatboxCustomPinnedText;
 
   const isDemoMode = useAtomValue(demoModeAtom);
-  const flatTrackers = useAtomValue(flatTrackersAtom);
-
-  // Connected active trackers count & list
-  const trackerSummaries = useMemo(() => {
-    return flatTrackers.map(({ tracker, device }) => {
-      const isConnected =
-        tracker.status === TrackerStatusEnum.OK ||
-        tracker.status === TrackerStatusEnum.BUSY;
-      const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
-      const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
-
-      let displayBattery = '—';
-      if (!isConnected) {
-        displayBattery = 'Offline';
-      } else if (batteryPct != null) {
-        displayBattery = `${Math.round(batteryPct)}%`;
-      } else if (batteryVoltage != null && batteryVoltage > 0) {
-        displayBattery = `${batteryVoltage.toFixed(1)}V`;
-      } else {
-        displayBattery = 'Active';
-      }
-
-      return {
-        id: tracker.trackerId?.trackerNum ?? 0,
-        name:
-          tracker.info?.customName?.toString() ||
-          tracker.info?.displayName?.toString() ||
-          'Tracker',
-        bodyPart: tracker.info?.bodyPart,
-        isConnected,
-        batteryPct,
-        displayBattery,
-      };
-    });
-  }, [flatTrackers]);
+  // Re-renders only when a tracker connects, disconnects or its battery changes.
+  const { demo: showingDemoTrackers, trackers: trackerSummaries } =
+    useAtomValue(trackerSummariesAtom);
 
   const connectedCount = trackerSummaries.filter((t) => t.isConnected).length;
   const avgBattery = useMemo(() => {
@@ -412,7 +423,6 @@ export function ChatboxDropdown({
   // The home screen shows sample trackers in demo mode when none are
   // connected. Those are for looking at the interface only and must never be
   // announced to other players.
-  const showingDemoTrackers = flatTrackers === DEMO_TRACKERS_SET;
   const getBatterySummaryText = useCallback(
     (compact = false) => {
       if (showingDemoTrackers) return '';

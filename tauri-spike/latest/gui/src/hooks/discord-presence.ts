@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useConfig } from './config';
 import { useLocalization } from '@fluent/react';
-import { connectedIMUTrackersAtom } from '@/store/app-store';
+import { connectedIMUCountAtom } from '@/store/app-store';
 import { useAtomValue } from 'jotai';
 import { useElectron } from './electron';
 
@@ -11,8 +11,7 @@ export function useDiscordPresence() {
 
   const { config } = useConfig();
   const { l10n } = useLocalization();
-  const imuTrackers = useAtomValue(connectedIMUTrackersAtom);
-  const imuTrackersCount = useMemo(() => imuTrackers.length, [imuTrackers.length]);
+  const imuTrackersCount = useAtomValue(connectedIMUCountAtom);
 
   useEffect(() => {
     if (config?.discordPresence === false) {

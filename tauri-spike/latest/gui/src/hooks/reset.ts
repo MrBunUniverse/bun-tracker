@@ -9,7 +9,7 @@ import {
 } from 'solarxr-protocol';
 import { useWebsocketAPI } from './websocket-api';
 import { useAtomValue } from 'jotai';
-import { assignedTrackersAtom, serverGuardsAtom } from '@/store/app-store';
+import { assignedTrackerSetAtom, serverGuardsAtom } from '@/store/app-store';
 import { FEET_BODY_PARTS, FINGER_BODY_PARTS } from './body-parts';
 import { useLocaleConfig } from '@/i18n/config';
 import * as Sentry from '@sentry/react';
@@ -128,7 +128,7 @@ export function useReset(
   let disabled = status === 'counting';
   let error = null;
   if (options.type === ResetType.Mounting && options.group !== 'default') {
-    const assignedTrackers = useAtomValue(assignedTrackersAtom);
+    const assignedTrackers = useAtomValue(assignedTrackerSetAtom);
 
     if (
       !assignedTrackers.some(

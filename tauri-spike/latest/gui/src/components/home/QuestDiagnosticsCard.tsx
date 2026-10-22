@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
-import { assignedTrackersAtom } from '@/store/app-store';
+import { assignedTrackerSetAtom } from '@/store/app-store';
 import { useOperatingMode } from '@/hooks/operating-mode';
 import { useTrackerPresets } from '@/hooks/presets';
 import { useState, useEffect, useRef } from 'react';
@@ -85,7 +85,7 @@ export function QuestDiagnosticsCard() {
       window.removeEventListener('tray-elevation-reset-event', onReset);
     };
   }, [adjustFloorHeight, setFloorHeight]);
-  const assignedTrackers = useAtomValue(assignedTrackersAtom);
+  const assignedTrackers = useAtomValue(assignedTrackerSetAtom);
   const { activePreset } = useTrackerPresets();
   const [calibrating, setCalibrating] = useState(false);
   const [chatboxSent, setChatboxSent] = useState(false);

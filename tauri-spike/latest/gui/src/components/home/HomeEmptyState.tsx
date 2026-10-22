@@ -3,10 +3,12 @@ import { RippleDots } from '@/components/commons/RippleDots';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAtomValue, useAtom } from 'jotai';
 import {
-  assignedTrackersAtom,
-  unassignedTrackersAtom,
+  assignedTrackerSetAtom,
+  unassignedTrackerSetAtom,
   hasRealTrackersAtom,
-  connectedIMUTrackersAtom,
+  connectedIMUCountAtom,
+  liveTrackerAtom,
+  trackerKey,
   active3DTrackerKeysAtom,
   cardMorphOriginAtom,
   CardMorphOrigin,
@@ -401,7 +403,7 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   const { config } = useConfig();
   const { activePreset } = useTrackerPresets();
   const expected = activePreset?.targetCount ?? 5;
-  const connected = useAtomValue(connectedIMUTrackersAtom).length;
+  const connected = useAtomValue(connectedIMUCountAtom);
   const bun = isPawTheme(config?.theme);
   const animate = config?.animations !== false;
   const logoRef = useRef<HTMLSpanElement>(null);
@@ -523,6 +525,24 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   );
 }
 
+function LiveTrackerCard({
+  trackerKey,
+  onClick,
+}: {
+  trackerKey: string;
+  onClick: (tracker: TrackerDataT, origin: CardMorphOrigin) => void;
+}) {
+  const live = useAtomValue(liveTrackerAtom(trackerKey));
+  if (!live) return null;
+  return (
+    <ClaudeTrackerWindowCard
+      tracker={live.tracker}
+      device={live.device}
+      onClick={(origin) => onClick(live.tracker, origin)}
+    />
+  );
+}
+
 export function HomeEmptyState({
   viewSwitchKey = null,
   cardLayoutTransitionKey = null,
@@ -532,8 +552,9 @@ export function HomeEmptyState({
   cardLayoutTransitionKey?: number | null;
   suppressGridEntrance?: boolean;
 }) {
-  const assignedTrackers = useAtomValue(assignedTrackersAtom);
-  const unassignedTrackers = useAtomValue(unassignedTrackersAtom);
+  // The grid follows the tracker set only; each card subscribes to its own live data.
+  const assignedTrackers = useAtomValue(assignedTrackerSetAtom);
+  const unassignedTrackers = useAtomValue(unassignedTrackerSetAtom);
   const demoMode = useAtomValue(demoModeAtom);
   const hasRealTrackers = useAtomValue(hasRealTrackersAtom);
   const [, toggleDemoMode] = useAtom(toggleDemoModeAtom);
@@ -692,7 +713,8 @@ export function HomeEmptyState({
               // Always two columns, whatever the zoom; the rows grow with the tracker count.
               className="grid w-full max-w-[980px] grid-cols-2 gap-3"
             >
-              {allTrackers.map(({ tracker, device }, idx) => {
+              {allTrackers.map((item, idx) => {
+                const { tracker, device } = item;
                 const cols = 3;
                 const col = idx % cols;
                 const row = Math.floor(idx / cols);
@@ -717,10 +739,9 @@ export function HomeEmptyState({
                     style={animStyle}
                     className={classNames('w-full', animClass)}
                   >
-                    <ClaudeTrackerWindowCard
-                      tracker={tracker}
-                      device={device}
-                      onClick={(origin) => sendToSettings(tracker, origin)}
+                    <LiveTrackerCard
+                      trackerKey={trackerKey(item)}
+                      onClick={sendToSettings}
                     />
                   </div>
                 );
