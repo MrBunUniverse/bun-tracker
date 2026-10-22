@@ -21,6 +21,16 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  // Welcome (the Setup Wizard's home) comes first.
+  {
+    to: '/onboarding/home',
+    match: '/onboarding/*',
+    exclude: '/onboarding/body-proportions/*',
+    labelId: 'navbar-onboarding',
+    fallback: 'Setup Wizard',
+    icon: <HumanIcon />,
+    shortcut: '3',
+  },
   {
     to: '/',
     labelId: 'navbar-home',
@@ -34,15 +44,6 @@ export const NAV_ITEMS: NavItem[] = [
     fallback: 'Remote',
     icon: <RemoteIcon />,
     shortcut: '2',
-  },
-  {
-    to: '/onboarding/home',
-    match: '/onboarding/*',
-    exclude: '/onboarding/body-proportions/*',
-    labelId: 'navbar-onboarding',
-    fallback: 'Setup Wizard',
-    icon: <HumanIcon />,
-    shortcut: '3',
   },
   {
     to: '/onboarding/body-proportions/scaled',
