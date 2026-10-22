@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 import {
   DataFeedMessage,
@@ -49,7 +42,7 @@ function usePacketListener<T>(
   callback: (packet: T) => void
 ) {
   const saved = useRef(callback);
-  useLayoutEffect(() => {
+  useEffect(() => {
     saved.current = callback;
   }, [callback]);
 
