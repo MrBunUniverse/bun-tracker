@@ -29,11 +29,11 @@ export function BodyInteractions({
   const personRef = useRef<HTMLDivElement | null>(null);
   const leftContainerRef = useRef<HTMLDivElement | null>(null);
   const rightContainerRef = useRef<HTMLDivElement | null>(null);
-  const mutationObserverRef = useRef<MutationObserver>(
-    new MutationObserver(() => updateSlots())
+  const [mutationObserver] = useState(
+    () => new MutationObserver(() => updateSlots())
   );
-  const resizeObserverRef = useRef<ResizeObserver>(
-    new ResizeObserver(() => updateSlots())
+  const [resizeObserver] = useState(
+    () => new ResizeObserver(() => updateSlots())
   );
   const canvasRefRef = useRef<HTMLCanvasElement | null>(null);
   const [slotsButtonsPos, setSlotsButtonPos] = useState<
@@ -165,14 +165,14 @@ export function BodyInteractions({
     )
       return;
 
-    resizeObserverRef.current.observe(personRef.current);
+    resizeObserver.observe(personRef.current);
 
-    mutationObserverRef.current.observe(rightContainerRef.current, {
+    mutationObserver.observe(rightContainerRef.current, {
       attributes: true,
       childList: true,
       subtree: true,
     });
-    mutationObserverRef.current.observe(leftContainerRef.current, {
+    mutationObserver.observe(leftContainerRef.current, {
       attributes: true,
       childList: true,
       subtree: true,
@@ -185,8 +185,8 @@ export function BodyInteractions({
         !personRef.current
       )
         return;
-      mutationObserverRef.current.takeRecords();
-      resizeObserverRef.current.unobserve(personRef.current);
+      mutationObserver.takeRecords();
+      resizeObserver.unobserve(personRef.current);
     };
   }, []);
 

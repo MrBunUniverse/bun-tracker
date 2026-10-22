@@ -109,8 +109,8 @@ export function BodyDisplay({
   hideUnassigned: boolean;
 }) {
   const personRef = useRef<HTMLDivElement | null>(null);
-  const resizeObserverRef = useRef<ResizeObserver>(
-    new ResizeObserver(() => updateSlots())
+  const [resizeObserver] = useState(
+    () => new ResizeObserver(() => updateSlots())
   );
   const [slotsButtonsPos, setSlotsButtonPos] = useState<SlotDot[]>([]);
 
@@ -155,13 +155,13 @@ export function BodyDisplay({
   useEffect(() => {
     if (!personRef.current) return;
 
-    resizeObserverRef.current.observe(personRef.current);
+    resizeObserver.observe(personRef.current);
 
     updateSlots();
 
     return () => {
       if (!personRef.current) return;
-      resizeObserverRef.current.unobserve(personRef.current);
+      resizeObserver.unobserve(personRef.current);
     };
   }, []);
 

@@ -316,10 +316,20 @@ export function Home() {
   const resolvedSidebarWidth = Math.min(sidebarWidth || 360, maxSidebarWidth);
 
   useEffect(() => {
-    const updateWindowSize = () =>
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    // At most one update per frame while the window is being dragged.
+    let frame = 0;
+    const updateWindowSize = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+      });
+    };
     window.addEventListener('resize', updateWindowSize);
-    return () => window.removeEventListener('resize', updateWindowSize);
+    return () => {
+      window.removeEventListener('resize', updateWindowSize);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {

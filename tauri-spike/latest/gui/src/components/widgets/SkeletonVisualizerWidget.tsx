@@ -682,7 +682,9 @@ function SkeletonVisualizer({
   const previewContext = useRef<PreviewContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const resizeObserver = useRef(new ResizeObserver(([e]) => onResize(e)));
+  const [resizeObserver] = useState(
+    () => new ResizeObserver(([e]) => onResize(e))
+  );
   const _bones = useAtomValue(bonesAtom);
 
   const bones = useMemo(() => {
@@ -738,7 +740,7 @@ function SkeletonVisualizer({
     if (disabled) return;
     if (!canvasRef.current || !containerRef.current)
       throw 'invalid state - no canvas or container';
-    resizeObserver.current.observe(containerRef.current);
+    resizeObserver.observe(containerRef.current);
 
     previewContext.current = initializePreview(
       canvasRef.current,
@@ -757,7 +759,7 @@ function SkeletonVisualizer({
 
     return () => {
       if (!previewContext.current || !containerRef.current) return;
-      resizeObserver.current.unobserve(containerRef.current);
+      resizeObserver.unobserve(containerRef.current);
       previewContext.current.destroy();
       previewContext.current = null;
 

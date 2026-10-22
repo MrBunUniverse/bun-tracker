@@ -156,17 +156,16 @@ export function Serial() {
       return;
     }
 
-    consoleRef.current.addEventListener('scroll', () => {
-      if (!consoleRef.current) {
-        return;
-      }
+    const el = consoleRef.current;
+    const onScroll = () => {
       const bottomAllowance = 10;
       setPaused(
-        consoleRef.current.scrollTop +
-          consoleRef.current.getBoundingClientRect().height <
-          consoleRef.current.scrollHeight - bottomAllowance
+        el.scrollTop + el.getBoundingClientRect().height <
+          el.scrollHeight - bottomAllowance
       );
-    });
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
   }, [consoleRef.current]);
 
   useEffect(() => {
