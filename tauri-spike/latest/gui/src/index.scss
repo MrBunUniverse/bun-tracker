@@ -2867,7 +2867,7 @@ a,
    of the waiting-for-tracker state (.animate-search-pulse, .animate-found-pop),
    the live skeleton view's enter slide (.skeleton-slide), the Home
    inspector's open and close slide (.panel-slide) and the demo banner's stripes
-   (.animate-demo-stripes).
+   (.animate-demo-stripes) and the demo tracker icons' sway (.demo-icon-sway).
    One :not() list per selector instead of seven chained :not()s: the same elements, matched with
    less work on every style recalc. */
 :not(
@@ -2877,7 +2877,8 @@ a,
   .animate-found-pop,
   .skeleton-slide,
   .panel-slide,
-  .animate-demo-stripes
+  .animate-demo-stripes,
+  .demo-icon-sway
 ),
 :not(
   .animate-spin,
@@ -2886,7 +2887,8 @@ a,
   .animate-found-pop,
   .skeleton-slide,
   .panel-slide,
-  .animate-demo-stripes
+  .animate-demo-stripes,
+  .demo-icon-sway
 )::before,
 :not(
   .animate-spin,
@@ -2895,7 +2897,8 @@ a,
   .animate-found-pop,
   .skeleton-slide,
   .panel-slide,
-  .animate-demo-stripes
+  .animate-demo-stripes,
+  .demo-icon-sway
 )::after {
   animation: none !important;
   transition: none !important;
@@ -3036,6 +3039,29 @@ a,
   }
 }
 
+/* Demo mode: tracker icons sway left and right so you can see how they follow a tracker's roll.
+   Compositor-only rotate, paused while the window is hidden. */
+@keyframes demo-icon-sway {
+  0%,
+  100% {
+    rotate: -25deg;
+  }
+  50% {
+    rotate: 25deg;
+  }
+}
+.demo-icon-sway {
+  animation: demo-icon-sway 5s ease-in-out infinite;
+}
+.is-page-hidden .demo-icon-sway {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-icon-sway {
+    animation: none;
+  }
+}
+
 /* Raised surfaces: a faint top highlight and soft shadow give depth without
    heavier borders. */
 .home-tracker-card {
@@ -3054,9 +3080,6 @@ a,
   container-type: inline-size;
 }
 @container (max-width: 190px) {
-  .home-tracker-card .card-mode {
-    display: none;
-  }
   .home-tracker-card .card-problems {
     inset-inline: 0.25rem;
     justify-content: center;

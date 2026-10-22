@@ -102,6 +102,10 @@ export function ClaudeTrackerWindowCard({
 
   const isMoving = moving || demoMoving;
   const isDisconnected = tracker.status === TrackerStatusEnum.DISCONNECTED;
+  // Demo trackers report no rotation, so their icon sways left and right instead, each at its own phase.
+  const demoSway =
+    isDemo && !isDisconnected && !(batteryPct != null && batteryPct <= 0);
+  const swayDelay = `-${(Number(tracker.trackerId?.deviceId?.id ?? 1) * 1300) % 5000}ms`;
 
   const ping = device?.hardwareStatus?.ping;
   const problems = trackerProblems({ isDisconnected, batteryPct, ping });
@@ -138,38 +142,6 @@ export function ClaudeTrackerWindowCard({
       )}
     >
       <div className="home-tracker-card__banner relative flex h-28 items-center justify-center bg-background-80">
-        <div
-          role="group"
-          aria-label="Preview mode"
-          onClick={(e) => e.stopPropagation()}
-          className="card-mode absolute left-2 top-2 z-10 flex gap-0.5 rounded-[6px] border border-background-10/[0.1] bg-background-80/70 p-0.5"
-        >
-          {(['2D', '3D'] as const).map((mode) => {
-            const active = mode === '3D' ? show3D : !show3D;
-            return (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={active}
-                title={
-                  mode === '3D' ? 'Show the live 3D view' : 'Show the body icon'
-                }
-                onClick={(e) => {
-                  if (!active) toggle3D(e);
-                  else e.stopPropagation();
-                }}
-                className={classNames(
-                  'rounded-[4px] px-1.5 py-0.5 font-mono text-[11px] leading-none transition-colors cursor-pointer',
-                  active
-                    ? 'bg-accent-background-20 text-white'
-                    : 'text-background-30 hover:text-background-10'
-                )}
-              >
-                {mode}
-              </button>
-            );
-          })}
-        </div>
         {problems.length > 0 && (
           <div className="card-problems absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
             {problems.map((problem) => (
@@ -203,17 +175,42 @@ export function ClaudeTrackerWindowCard({
           </div>
         ) : (
           <span
-            style={{ rotate: `${tilt.toFixed(0)}deg` }}
+            style={
+              demoSway
+                ? { animationDelay: swayDelay }
+                : { rotate: `${tilt.toFixed(0)}deg` }
+            }
             className={classNames(
               'tracker-accent flex items-center justify-center transition-[rotate] duration-200',
+              demoSway && 'demo-icon-sway',
               isMoving
-                ? 'tracker-moving tracker-wiggle text-motion fill-motion'
+                ? classNames(
+                    'tracker-moving text-motion fill-motion',
+                    !demoSway && 'tracker-wiggle'
+                  )
                 : 'text-background-20 fill-background-20'
             )}
           >
             <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={52} />
           </span>
         )}
+        {/* One small toggle per card: the live 3D view or the body icon. Bottom right, so it fits beside
+            the problem badges at every card width. */}
+        <button
+          type="button"
+          aria-pressed={show3D}
+          aria-label={show3D ? 'Show the body icon' : 'Show the live 3D view'}
+          title={show3D ? 'Show the body icon' : 'Show the live 3D view'}
+          onClick={toggle3D}
+          className={classNames(
+            'absolute bottom-2 right-2 z-10 rounded-[5px] border px-1.5 py-0.5 font-mono text-[11px] leading-none cursor-pointer',
+            show3D
+              ? 'border-transparent bg-accent-background-20 text-white'
+              : 'border-background-10/[0.12] bg-background-80/70 text-background-30 hover:text-background-10'
+          )}
+        >
+          3D
+        </button>
       </div>
 
       <div className="flex flex-col gap-2 px-3 py-2.5">
