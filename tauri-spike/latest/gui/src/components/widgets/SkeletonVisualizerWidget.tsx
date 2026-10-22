@@ -225,7 +225,9 @@ function initializePreview(
   const FRAME_MARGIN = 1.1;
   const FRAME_PADDING = 0.08; // metres, so a swinging hand never touches the edge
   const MIN_FRAME_RADIUS = 0.5;
-  const FRAME_LIFT = 0.22;
+  // Standing: aim this share of the half-height above the body's centre (the hips), so the view
+  // centres on the upper body, above the waist.
+  const FRAME_LIFT = 0.25;
   // The narrowest panel shape the framing fits (width over height).
   const FRAME_MIN_ASPECT = 0.5;
   // Lying down: the body is long and flat, so the view turns to look straight down on it.
@@ -307,12 +309,13 @@ function initializePreview(
     const needWidth = halfWide * FRAME_MARGIN + FRAME_PADDING;
     // A panel that is still opening is nearly zero wide, which would zoom the camera far out. Clamp the
     // shape the width can ask for; standing bodies are height-limited, so normal panels don't change.
+    // Raising the aim leaves less room below it, so the zoom grows by the same amount and the feet stay in view.
+    const lift = lying ? 0 : halfHeight * FRAME_LIFT;
     const wantRadius = Math.max(
-      needHeight,
+      needHeight + lift,
       needWidth / Math.max(aspect, FRAME_MIN_ASPECT)
     );
-    // Standing: aim a little below the centre, so the body sits above the control strip.
-    if (!lying) frameTarget.y -= wantRadius * FRAME_LIFT;
+    frameTarget.y += lift;
 
     const tanHalf = Math.tan((v.camera.fov * Math.PI) / 360);
     // The first framing of a view jumps straight to the framed pose. Gliding in from the default view
