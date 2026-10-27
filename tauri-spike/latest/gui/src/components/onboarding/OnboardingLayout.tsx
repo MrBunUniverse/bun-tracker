@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { TopBar } from '@/components/TopBar';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { RippleDots } from '@/components/commons/RippleDots';
+import { ContourDots } from '@/components/commons/ContourDots';
 import { SkipSetupButton } from './SkipSetupButton';
 import { SkipSetupWarningModal } from './SkipSetupWarningModal';
 import './OnboardingLayout.scss';
@@ -16,10 +17,10 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const welcome = pathname === '/onboarding/home';
 
-  // The water ripple sits behind every setup step, and stays mounted while the steps change. In Bun only.
+  // Slow contour lines behind the welcome tab, and the water ripple behind the other setup steps. In Bun only.
   return !state.alonePage ? (
     <div className="onboarding-layout relative isolate h-full">
-      <RippleDots solid glyphs={welcome} dotSize={welcome ? 3 : undefined} />
+      {welcome ? <ContourDots /> : <RippleDots solid />}
       <div style={{ gridArea: 't' }}>
         {/* Setup shows only its own progress: no server/Broadcast/Dongle pills, and no bar on the welcome tab. */}
         <TopBar

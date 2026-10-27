@@ -65,7 +65,6 @@ export function RippleDots({
   dots = false,
   solid = false,
   glyphs = false,
-  dotSize = DOT,
   originEl,
   gapMin = 1500,
   gapMax = 4000,
@@ -76,8 +75,6 @@ export function RippleDots({
   solid?: boolean;
   // Each cell is a dot at rest and a character from "slimevr" where a wave passes.
   glyphs?: boolean;
-  // Dot size in px. Only change it with `solid` or `dots`, where the canvas draws its own grid instead of matching body's.
-  dotSize?: number;
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
@@ -185,10 +182,10 @@ export function RippleDots({
         return;
       }
       ctx.fillRect(
-        offX + x * CELL - dotSize / 2,
-        offY + y * CELL - dotSize / 2,
-        dotSize,
-        dotSize
+        offX + x * CELL - DOT / 2,
+        offY + y * CELL - DOT / 2,
+        DOT,
+        DOT
       );
     };
 
@@ -209,10 +206,10 @@ export function RippleDots({
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
             baseCtx.fillRect(
-              offX + x * CELL - dotSize / 2,
-              offY + y * CELL - dotSize / 2,
-              dotSize,
-              dotSize
+              offX + x * CELL - DOT / 2,
+              offY + y * CELL - DOT / 2,
+              DOT,
+              DOT
             );
           }
         }
@@ -355,7 +352,7 @@ export function RippleDots({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [shown, animate, dots, solid, glyphs, dotSize, originEl, gapMin, gapMax]);
+  }, [shown, animate, dots, solid, glyphs, originEl, gapMin, gapMax]);
 
   if (!shown) return null;
 
