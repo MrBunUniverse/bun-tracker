@@ -9,12 +9,12 @@ const CELL = 12; // matches the dot grid on body
 const DOT = 3;
 const FPS = 15;
 // Contour lines per unit of height. Higher packs the lines closer together.
-const DENSITY = 2.2;
+const DENSITY = 1.1;
 // How much of each band, around the contour, lights up (0..1).
-const LINE_WIDTH = 0.4;
+const LINE_WIDTH = 0.22;
 // Dot brightness: QUIET at rest, up to QUIET + LINE on a contour line.
 const QUIET = 0.06;
-const LINE = 0.24;
+const LINE = 0.28;
 const STEPS = 16;
 const PALETTE = Array.from(
   { length: STEPS + 1 },
@@ -28,9 +28,9 @@ function smooth(u: number) {
 // Brightness step for a cell at grid position (x, y), time t in seconds.
 function level(x: number, y: number, t: number) {
   const h =
-    Math.sin(x * 0.012 + t * 0.05) +
-    Math.sin(y * 0.017 - t * 0.04) +
-    Math.sin((x + y) * 0.008 + t * 0.03);
+    Math.sin(x * 0.007 + t * 0.05) +
+    Math.sin(y * 0.009 - t * 0.04) +
+    Math.sin((x + y) * 0.005 + t * 0.03);
   const f = (((h * DENSITY) % 1) + 1) % 1;
   const k = smooth((1 - Math.abs(f - 0.5) * 2 - (1 - LINE_WIDTH)) / LINE_WIDTH);
   return Math.round(k * STEPS);
