@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { isPawTheme, useConfig } from '@/hooks/config';
 
-// Welcome background in Bun: faint topographic contour lines drawn on the dot grid, drifting very slowly.
+// Welcome background in Bun: faint topographic contour lines drawn on the dot grid, drifting slowly.
 // The height field is three crossed sine waves, so it never repeats visibly and costs a few sines per cell.
-// Paints over a backdrop in the page colour, so it replaces body's dots. Runs at 15 fps (the drift is slow enough),
+// Paints over a backdrop in the page colour, so it replaces body's dots. Runs at 24 fps,
 // and draws one still frame when the animations setting is off or with reduced motion. Nothing is drawn outside Bun.
 const CELL = 12; // matches the dot grid on body
 const DOT = 3;
-const FPS = 15;
+const FPS = 24;
+// Drift speed. 1 is a barely-there crawl; around 3 the lines visibly flow without drawing the eye.
+const SPEED = 3;
 // Contour lines per unit of height. Higher packs the lines closer together.
 const DENSITY = 1.1;
 // How much of each band, around the contour, lights up (0..1).
@@ -25,8 +27,9 @@ function smooth(u: number) {
   return u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
 }
 
-// Brightness step for a cell at grid position (x, y), time t in seconds.
-function level(x: number, y: number, t: number) {
+// Brightness step for a cell at grid position (x, y), time in seconds.
+function level(x: number, y: number, time: number) {
+  const t = time * SPEED;
   const h =
     Math.sin(x * 0.007 + t * 0.05) +
     Math.sin(y * 0.009 - t * 0.04) +
