@@ -14,7 +14,7 @@ const DENSITY = 1.1;
 const LINE_WIDTH = 0.22;
 // Dot brightness: QUIET at rest, up to QUIET + LINE on a contour line.
 const QUIET = 0.06;
-const LINE = 0.28;
+const LINE = 0.13;
 const STEPS = 16;
 const PALETTE = Array.from(
   { length: STEPS + 1 },
