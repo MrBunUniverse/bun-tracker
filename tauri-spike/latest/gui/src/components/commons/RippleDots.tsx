@@ -30,93 +30,26 @@ const RIPPLE = [
 // Grid dots around a wave: 1 two cells out (faint), 2 next to the wave.
 const HALO = ['rgba(239, 230, 214, 0.05)', 'rgba(239, 230, 214, 0.1)'];
 // Glyph mode: a cell stays a dot until a wave reaches it, then becomes a character from "slimevr" while the
-// wave passes, and goes back to a dot. Wordmark adds the SlimeVR letter shape (5x7 dot font) on top during the pulse.
+// wave passes, and goes back to a dot.
 const GLYPHS = [...'slimevr'];
 const GLYPH_FONT = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
-const WORD = [
-  'rgba(239, 230, 214, 0.5)',
-  'rgba(239, 230, 214, 0.62)',
-  'rgba(239, 230, 214, 0.8)',
-];
-// Wave height at which the letters are fully lit.
-const WORD_PEAK = 0.3;
-const FONT: Record<string, string[]> = {
-  S: ['01110', '10001', '10000', '01110', '00001', '10001', '01110'],
-  l: ['01100', '00100', '00100', '00100', '00100', '00100', '01110'],
-  i: ['00100', '00000', '01100', '00100', '00100', '00100', '01110'],
-  m: ['00000', '00000', '11010', '10101', '10101', '10101', '10101'],
-  e: ['00000', '00000', '01110', '10001', '11111', '10000', '01110'],
-  V: ['10001', '10001', '10001', '10001', '01010', '01010', '00100'],
-  R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'],
-  W: ['10001', '10001', '10001', '10101', '10101', '11011', '10001'],
-  c: ['00000', '00000', '01110', '10001', '10000', '10001', '01110'],
-  o: ['00000', '00000', '01110', '10001', '10001', '10001', '01110'],
-  t: ['01000', '01000', '11100', '01000', '01000', '01001', '00110'],
-  M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'],
-  r: ['00000', '00000', '10110', '11001', '10000', '10000', '10000'],
-  B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'],
-  u: ['00000', '00000', '10001', '10001', '10001', '10011', '01101'],
-  n: ['00000', '00000', '10110', '11001', '10001', '10001', '10001'],
-  '-': ['00000', '00000', '00000', '01110', '00000', '00000', '00000'],
-  ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
-};
-
-const ADVANCE = 6; // a 5-wide glyph and a one-cell gap
-const LINE_STEP = 9; // 7 rows of glyph and 2 rows between lines
-
-// Width in cells of the widest line at this scale.
-function lineWidth(lines: string[], scale: number) {
-  return Math.max(...lines.map((line) => (line.length * ADVANCE - 1) * scale));
-}
-
-// Cell mask for the wordmark: the first layout that fits the width, each line centred across, in the upper part so
-// the welcome card sits below it. Scales up to 2x per font pixel on wide windows. Null when nothing fits.
-function buildWord(cols: number, rows: number, layouts: string[][]) {
-  const lines = layouts.find((set) => lineWidth(set, 1) + 2 <= cols);
-  if (!lines) return null;
-  const scale = Math.max(
-    1,
-    Math.min(2, Math.floor(cols / (lineWidth(lines, 1) + 4)))
-  );
-  const y0 = Math.round(rows * 0.08);
-  const mask = new Uint8Array(cols * rows);
-  lines.forEach((line, li) => {
-    const left = Math.floor((cols - lineWidth([line], scale)) / 2);
-    [...line].forEach((ch, n) => {
-      const glyph = FONT[ch];
-      if (!glyph) return;
-      glyph.forEach((bits, r) => {
-        [...bits].forEach((bit, c) => {
-          if (bit !== '1') return;
-          for (let dy = 0; dy < scale; dy++) {
-            for (let dx = 0; dx < scale; dx++) {
-              const x = left + (n * ADVANCE + c) * scale + dx;
-              const y = y0 + (li * LINE_STEP + r) * scale + dy;
-              if (x >= 0 && y >= 0 && x < cols && y < rows)
-                mask[y * cols + x] = 1;
-            }
-          }
-        });
-      });
-    });
-  });
-  return mask;
-}
+// Glyph drops are shallower than plain ripples, so the character pulse stays soft.
+const GLYPH_DROP = 0.45;
 
 // Glyph tone: 0 (dot) to GLYPH_STEPS (fully up). Eased with smoothstep, so the fade has no steps you can see.
 const GLYPH_STEPS = 16;
 const GLYPH_PALETTE = Array.from({ length: GLYPH_STEPS + 1 }, (_, k) => {
   const t = k / GLYPH_STEPS;
-  // Cream towards the Bun coral as the wave peaks, and more opaque with it.
-  const c = t * t;
+  // Cream towards the Bun coral as the wave peaks, and more opaque with it. Kept faint, so the pulse stays gentle.
+  const c = 0.5 * t * t;
   const r = Math.round(239 + (224 - 239) * c);
   const g = Math.round(230 + (144 - 230) * c);
   const b = Math.round(214 + (126 - 214) * c);
-  return `rgba(${r}, ${g}, ${b}, ${(0.15 + 0.75 * t).toFixed(3)})`;
+  return `rgba(${r}, ${g}, ${b}, ${(0.12 + 0.43 * t).toFixed(3)})`;
 });
 
 function glyphTone(height: number) {
-  const u = Math.min(1, Math.max(0, (Math.abs(height) - 0.02) / 0.28));
+  const u = Math.min(1, Math.max(0, (Math.abs(height) - 0.02) / 0.4));
   return Math.round(u * u * (3 - 2 * u) * GLYPH_STEPS);
 }
 
@@ -132,7 +65,7 @@ export function RippleDots({
   dots = false,
   solid = false,
   glyphs = false,
-  wordmark,
+  dotSize = DOT,
   originEl,
   gapMin = 1500,
   gapMax = 4000,
@@ -143,9 +76,8 @@ export function RippleDots({
   solid?: boolean;
   // Each cell is a dot at rest and a character from "slimevr" where a wave passes.
   glyphs?: boolean;
-  // Title layouts for the dot font above the grid (the welcome title), widest first. The first one that fits the window is
-  // drawn. Only characters in FONT can be used.
-  wordmark?: string[][];
+  // Dot size in px. Only change it with `solid` or `dots`, where the canvas draws its own grid instead of matching body's.
+  dotSize?: number;
   originEl?: RefObject<HTMLElement | null>;
   // How long between drops, in ms: a random time in this range.
   gapMin?: number;
@@ -175,8 +107,6 @@ export function RippleDots({
     // Two height buffers: the current frame and the one before it.
     let cur = new Float32Array(0);
     let prev = new Float32Array(0);
-    // Wordmark cells (null when the grid is drawn instead).
-    let word: Uint8Array | null = null;
     // Drops still in play, with their age in frames. Turbulence grows with the distance to the nearest one.
     let drops: { x: number; y: number; age: number }[] = [];
     // The page colour behind the canvas, read from body; empty when body is see-through.
@@ -211,7 +141,6 @@ export function RippleDots({
       rows = Math.floor((h - offY) / CELL) + 1;
       cur = new Float32Array(cols * rows);
       prev = new Float32Array(cols * rows);
-      word = wordmark ? buildWord(cols, rows, wordmark) : null;
       drops = [];
       halo = new Uint8Array(cols * rows);
       paintBase();
@@ -256,10 +185,10 @@ export function RippleDots({
         return;
       }
       ctx.fillRect(
-        offX + x * CELL - DOT / 2,
-        offY + y * CELL - DOT / 2,
-        DOT,
-        DOT
+        offX + x * CELL - dotSize / 2,
+        offY + y * CELL - dotSize / 2,
+        dotSize,
+        dotSize
       );
     };
 
@@ -280,10 +209,10 @@ export function RippleDots({
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
             baseCtx.fillRect(
-              offX + x * CELL - DOT / 2,
-              offY + y * CELL - DOT / 2,
-              DOT,
-              DOT
+              offX + x * CELL - dotSize / 2,
+              offY + y * CELL - dotSize / 2,
+              dotSize,
+              dotSize
             );
           }
         }
@@ -325,18 +254,6 @@ export function RippleDots({
               );
             }
           }
-        }
-      }
-      // Wordmark: the title's cells stay visible at rest. A wave brightens them, and while one passes they become characters.
-      if (word) {
-        const pulse = moving
-          ? Math.min(1, Math.max(0, (peak - IDLE) / WORD_PEAK))
-          : 1;
-        ctx.fillStyle =
-          WORD[Math.min(WORD.length - 1, Math.floor(pulse * WORD.length))];
-        for (let i = 0; i < word.length; i++) {
-          if (!word[i]) continue;
-          paint(i % cols, Math.floor(i / cols), pulse > 0);
         }
       }
       let lastLevel = -1;
@@ -411,7 +328,8 @@ export function RippleDots({
         return;
       }
       const [x, y] = dropCell();
-      cur[y * cols + x] -= 0.6 + Math.random() * 0.4;
+      cur[y * cols + x] -=
+        (glyphs ? GLYPH_DROP : 1) * (0.6 + Math.random() * 0.4);
       drops.push({ x, y, age: 0 });
       wake();
     };
@@ -437,7 +355,7 @@ export function RippleDots({
       cancelAnimationFrame(raf);
       window.clearTimeout(timer);
     };
-  }, [shown, animate, dots, solid, glyphs, wordmark, originEl, gapMin, gapMax]);
+  }, [shown, animate, dots, solid, glyphs, dotSize, originEl, gapMin, gapMax]);
 
   if (!shown) return null;
 

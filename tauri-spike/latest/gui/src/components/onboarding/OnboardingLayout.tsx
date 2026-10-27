@@ -9,14 +9,6 @@ import { SkipSetupButton } from './SkipSetupButton';
 import { SkipSetupWarningModal } from './SkipSetupWarningModal';
 import './OnboardingLayout.scss';
 
-// The welcome title, drawn in the dot font above the card in Bun (the font only has these letters). Widest layout first;
-// narrower windows fall back to a split that fits.
-const WELCOME_TITLE = [
-  ['Welcome to', 'MrBun-SlimeVR'],
-  ['Welcome to', 'MrBun-', 'SlimeVR'],
-  ['Welcome', 'to', 'MrBun-', 'SlimeVR'],
-];
-
 export function OnboardingLayout({ children }: { children: ReactNode }) {
   const { isMobile } = useBreakpoint('mobile');
   const { state, skipSetup } = useOnboarding();
@@ -27,15 +19,13 @@ export function OnboardingLayout({ children }: { children: ReactNode }) {
   // The water ripple sits behind every setup step, and stays mounted while the steps change. In Bun only.
   return !state.alonePage ? (
     <div className="onboarding-layout relative isolate h-full">
-      <RippleDots
-        solid
-        glyphs={welcome}
-        wordmark={welcome ? WELCOME_TITLE : undefined}
-      />
+      <RippleDots solid glyphs={welcome} dotSize={welcome ? 3 : undefined} />
       <div style={{ gridArea: 't' }}>
         {/* Setup shows only its own progress: no server/Broadcast/Dongle pills, and no bar on the welcome tab. */}
         <TopBar
-          progress={pathname === '/onboarding/home' ? undefined : state.progress}
+          progress={
+            pathname === '/onboarding/home' ? undefined : state.progress
+          }
           hideStatus
         />
       </div>
