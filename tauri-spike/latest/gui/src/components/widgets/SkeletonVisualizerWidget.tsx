@@ -255,6 +255,16 @@ function initializePreview(
   const frameSpherical = new Spherical();
   const frameOffset = new Vector3();
   let framePitchVelocity = 0;
+  // While the user turns the camera, auto-frame leaves the tilt to them: easing it back to eye level under their drag
+  // made the camera jitter. Once they let go it waits this long, then eases back.
+  const PITCH_RESUME_DELAY = 1200; // ms
+  let userTurning = false;
+  let userTurnEnd = 0;
+  // The raw bounds jump with every bone packet and every swinging hand. They're low-passed over this many seconds
+  // before the springs follow them, so the camera glides instead of twitching.
+  const FRAME_FILTER_TIME = 0.3;
+  const frameGoal = new Vector3();
+  let radiusGoal = 1;
 
   // Critically damped spring: velocity stays continuous, so there is no stutter when the
   // target jumps. Returns the new value and updates `vel.v`.
@@ -322,6 +332,8 @@ function initializePreview(
     // took seconds to settle, so the skeleton looked unframed on open.
     const firstFrame = !frameReady;
     if (firstFrame) {
+      frameGoal.copy(frameTarget);
+      radiusGoal = wantRadius;
       frameCenter.copy(frameTarget);
       frameVelocity.set(0, 0, 0);
       frameRadius = wantRadius;
@@ -329,11 +341,14 @@ function initializePreview(
       framePitchVelocity = 0;
       frameReady = true;
     }
+    const filter = 1 - Math.exp(-dt / FRAME_FILTER_TIME);
+    frameGoal.lerp(frameTarget, filter);
+    radiusGoal += (wantRadius - radiusGoal) * filter;
 
     springVel.v = frameVelocity.x;
     frameCenter.x = smoothDamp(
       frameCenter.x,
-      frameTarget.x,
+      frameGoal.x,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -342,7 +357,7 @@ function initializePreview(
     springVel.v = frameVelocity.y;
     frameCenter.y = smoothDamp(
       frameCenter.y,
-      frameTarget.y,
+      frameGoal.y,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -351,7 +366,7 @@ function initializePreview(
     springVel.v = frameVelocity.z;
     frameCenter.z = smoothDamp(
       frameCenter.z,
-      frameTarget.z,
+      frameGoal.z,
       springVel,
       FRAME_MOVE_TIME,
       dt
@@ -361,9 +376,9 @@ function initializePreview(
     springVel.v = frameRadiusVelocity;
     frameRadius = smoothDamp(
       frameRadius,
-      wantRadius,
+      radiusGoal,
       springVel,
-      wantRadius > frameRadius ? FRAME_OPEN_TIME : FRAME_CLOSE_TIME,
+      radiusGoal > frameRadius ? FRAME_OPEN_TIME : FRAME_CLOSE_TIME,
       dt
     );
     frameRadiusVelocity = springVel.v;
@@ -377,18 +392,26 @@ function initializePreview(
     frameOffset.subVectors(v.camera.position, v.controls.target);
     frameSpherical.setFromVector3(frameOffset);
     const goalPhi = lying ? FRAME_TOP_PHI : FRAME_EYE_LEVEL_PHI;
+    const holdPitch =
+      !firstFrame &&
+      (userTurning || performance.now() - userTurnEnd < PITCH_RESUME_DELAY);
+    if (holdPitch) framePitchVelocity = 0;
     springVel.v = framePitchVelocity;
     const phi = firstFrame
       ? goalPhi
-      : smoothDamp(
-          frameSpherical.phi,
-          goalPhi,
-          springVel,
-          FRAME_PITCH_TIME,
-          dt
-        );
+      : holdPitch
+        ? frameSpherical.phi
+        : smoothDamp(
+            frameSpherical.phi,
+            goalPhi,
+            springVel,
+            FRAME_PITCH_TIME,
+            dt
+          );
     framePitchVelocity = springVel.v;
-    const pitchMoving = Math.abs(phi - frameSpherical.phi) > 1e-5;
+    // After the user lets go, keep drawing through the wait so the tilt can ease back.
+    const pitchMoving =
+      (holdPitch && !userTurning) || Math.abs(phi - frameSpherical.phi) > 1e-5;
     frameSpherical.phi = phi;
     frameOffset.setFromSpherical(frameSpherical);
     v.camera.position.copy(v.controls.target).add(frameOffset);
@@ -656,6 +679,14 @@ function initializePreview(
       controls.dampingFactor = 0.2;
       controls.enableDamping = true;
       controls.addEventListener('change', () => markDirty(4));
+      controls.addEventListener('start', () => {
+        userTurning = true;
+      });
+      controls.addEventListener('end', () => {
+        userTurning = false;
+        userTurnEnd = performance.now();
+        markDirty(4);
+      });
 
       const tween = new Tween(position)
         .onUpdate(() => {
@@ -699,7 +730,7 @@ const boneMap = (bones: BoneT[]) =>
 const BASE_FRAMERATE = 60;
 const LOW_FRAMERATE = 30;
 // Seconds for a bone to cover most of the way to a new pose. Higher is smoother and more cinematic, and lags more.
-const BONE_SMOOTH_TIME = 0.08;
+const BONE_SMOOTH_TIME = 0.04;
 // Auto-frame's camera glide draws at the base rate, not the low one.
 const SMOOTH_FRAME_INTERVAL = 1000 / BASE_FRAMERATE;
 
