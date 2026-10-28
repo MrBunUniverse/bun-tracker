@@ -455,6 +455,19 @@ function initializePreview(
 
   let previousFrameTime = 0;
 
+  // Bones glide to each new pose instead of snapping to it, which reads as jitter between 40 Hz bone packets.
+  // Frame-rate independent, so it eases the same at 60 fps and at the 10 fps used while the window is in the background.
+  let bonesMoving = false;
+  const easeBones = (deltaSeconds: number) => {
+    const alpha = 1 - Math.exp(-deltaSeconds / BONE_SMOOTH_TIME);
+    let moving = false;
+    skeleton.forEach((bone) => {
+      if (bone instanceof BoneKind && bone.ease(alpha)) moving = true;
+    });
+    bonesMoving = moving;
+    if (moving) markDirty(2);
+  };
+
   const syncCanvasSize = () => {
     if (!renderer) return;
     const width = canvas.clientWidth;
@@ -494,9 +507,10 @@ function initializePreview(
         : autoOrbit
           ? 33.3
           : 16.6;
-    // While auto-frame is gliding, draw every display frame: the 30 fps cap made it stutter.
+    // While bones or auto-frame are gliding, draw every display frame: the 30 fps cap made them stutter.
     // Still scenes, unfocused windows and hidden tabs keep the lighter rates.
-    const smoothFrame = autoFrame && frameMoving && isFocused && !isHidden;
+    const smoothFrame =
+      ((autoFrame && frameMoving) || bonesMoving) && isFocused && !isHidden;
     const effectiveInterval = smoothFrame
       ? SMOOTH_FRAME_INTERVAL
       : Math.max(adaptiveBaseInterval, autoOrbit ? 0 : frameInterval);
@@ -525,6 +539,7 @@ function initializePreview(
         : 0.016;
     previousFrameTime = now;
 
+    easeBones(deltaSeconds);
     render(deltaSeconds);
     lastRenderTimeRef = now - (elapsed % effectiveInterval);
     if (dirtyFrames > 0 || autoOrbit) scheduleAnimationFrame();
@@ -683,6 +698,8 @@ const boneMap = (bones: BoneT[]) =>
 
 const BASE_FRAMERATE = 60;
 const LOW_FRAMERATE = 30;
+// Seconds for a bone to cover most of the way to a new pose. Higher is smoother and more cinematic, and lags more.
+const BONE_SMOOTH_TIME = 0.08;
 // Auto-frame's camera glide draws at the base rate, not the low one.
 const SMOOTH_FRAME_INTERVAL = 1000 / BASE_FRAMERATE;
 

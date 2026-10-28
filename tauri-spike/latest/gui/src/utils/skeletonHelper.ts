@@ -128,6 +128,10 @@ function getBoneList(object: Object3D): Bone[] {
 export class BoneKind extends Bone {
   boneT: BoneT;
   tail: boolean;
+  // Where the latest bone data puts this bone. ease() glides the drawn position there, so the preview moves smoothly
+  // between bone packets. The first update places it straight away.
+  target = new Vector3();
+  private placed = false;
 
   constructor(bones: Map<BodyPart, BoneT>, bodyPart: BodyPart, tail: boolean) {
     super();
@@ -142,11 +146,27 @@ export class BoneKind extends Bone {
   }
 
   updateData(bones: Map<BodyPart, BoneT>) {
+    this.setTarget(bones);
+    if (!this.placed) {
+      this.position.copy(this.target);
+      this.placed = true;
+    }
+  }
+
+  // Moves the drawn bone `alpha` (0..1) of the way to its target. Tails keep their length, so a limb swings rather than
+  // shrinking mid-move. Returns whether it is still moving.
+  ease(alpha: number) {
+    this.position.lerp(this.target, alpha);
+    if (this.tail) this.position.setLength(this.boneT.boneLength);
+    return this.position.distanceToSquared(this.target) > 1e-8;
+  }
+
+  private setTarget(bones: Map<BodyPart, BoneT>) {
     this.boneT = bones.get(this.boneT.bodyPart) ?? this.boneT;
     const parent = BoneKind.parent(this.boneT.bodyPart);
     const parentBone = parent === null ? undefined : bones.get(parent);
     if (this.boneT.bodyPart === BoneKind.root) {
-      this.position.set(0, this.boneT.headPositionG?.y ?? 0, 0);
+      this.target.set(0, this.boneT.headPositionG?.y ?? 0, 0);
       return;
     }
 
@@ -158,7 +178,7 @@ export class BoneKind extends Bone {
             : Vector3FromVec3fT(parentBone.headPositionG)
         )
       );
-      this.position.copy(localPosition);
+      this.target.copy(localPosition);
       return;
     }
 
@@ -178,9 +198,8 @@ export class BoneKind extends Bone {
     //     : Vector3FromVec3fT(parentBone.headPositionG),
     //   Vector3FromVec3fT(this.boneT.headPositionG)
     // );
-    this.position.set(0, -this.boneT.boneLength, 0);
-    this.position.applyQuaternion(quat);
-    // console.log(this.position);
+    this.target.set(0, -this.boneT.boneLength, 0);
+    this.target.applyQuaternion(quat);
   }
 
   get boneColor(): Color {
