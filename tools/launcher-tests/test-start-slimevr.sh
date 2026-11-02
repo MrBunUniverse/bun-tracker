@@ -171,6 +171,8 @@ make_checkout
 out="$WORK/case1.out"
 launch "$out"
 check "case 1: launcher reports running" wait_text "$out" "Running." 60
+# "Running." prints as soon as Tauri is backgrounded, which can be before it logs its call.
+check "case 1: Tauri CLI called" wait_text "$CALLS" '"beforeDevCommand":null' 10
 server_pid=$(call_pid java)
 spike_pid=$(call_pid tauri)
 vite_pid=$(call_pid pnpm)
