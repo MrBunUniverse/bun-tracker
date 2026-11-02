@@ -35,10 +35,9 @@ be at `server/desktop/build/libs/slimevr.jar` (you can ignore `server.jar`).
 ### Tauri and React (desktop interface)
 
 - Install the Rust toolchain and enable Corepack for pnpm.
-- Install app tools with `(cd tauri-spike && npm ci)`.
-- Install frontend dependencies with `(cd tauri-spike/latest && pnpm install --frozen-lockfile)`.
+- Install all JavaScript dependencies once, from the repository root, with `pnpm install --frozen-lockfile`.
 - Run `pnpm start` from the repository root for the server, optional dongle bridge, and Tauri app with hot reload.
-- Run `pnpm build` from the repository root to build the Tauri app. On macOS, the bundle is in `tauri-spike/src-tauri/target/release/bundle/macos/`.
+- Run `pnpm build` from the repository root to build the Tauri app. On macOS, the bundle is in `gui/tauri/target/release/bundle/macos/`.
 
 ## Code style
 
@@ -87,7 +86,7 @@ Eclipse will only do a subset of the checks in `spotless`, so you may still want
 ### Tauri and React (desktop interface)
 
 We use ESLint and Prettier to format GUI code.
-- First, go into the GUI's directory with your terminal by running `cd tauri-spike/latest/gui`.
+- First, go into the GUI's directory with your terminal by running `cd gui/app`.
 - To check code formatting, run `pnpm run lint`.
 - To fix code formatting, run `pnpm run lint:fix` and `pnpm run format`
 

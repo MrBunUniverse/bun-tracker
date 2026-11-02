@@ -1,6 +1,6 @@
 # UI Map
 
-Locator for GUI work. Paths are relative to `gui/`. Entries name files and symbols, not line numbers: open the file and `rg` the symbol. Update this map when a component moves, is renamed, or changes responsibility.
+Locator for GUI work. Paths are relative to `gui/app/`. Entries name files and symbols, not line numbers: open the file and `rg` the symbol. Update this map when a component moves, is renamed, or changes responsibility.
 
 Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`.
 

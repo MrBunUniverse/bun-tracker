@@ -12,7 +12,7 @@ WORK="$(cd "$WORK" && pwd)" # the launcher reports paths as pwd spells them, not
 CHECKOUT="$WORK/with space/checkout"
 BIN="$WORK/bin"
 CALLS="$WORK/calls.log"
-APP="$CHECKOUT/tauri-spike/src-tauri/target/debug/slimevr-tauri-spike"
+APP="$CHECKOUT/gui/tauri/target/debug/slimevr-tauri-spike"
 SERVER_PORT=21911
 SPIKE_PORT=5911
 TEST_PATH="$BIN:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -115,8 +115,8 @@ EOF
 make_checkout() {
 	rm -rf "$WORK/with space" "$WORK/home"
 	mkdir -p "$CHECKOUT/server/core/src" "$CHECKOUT/server/desktop/src" \
-		"$CHECKOUT/server/desktop/build/libs" "$CHECKOUT/tauri-spike/node_modules/.bin" \
-		"$CHECKOUT/tauri-spike/latest/gui/node_modules" "$CHECKOUT/tauri-spike/src-tauri/target/debug" \
+		"$CHECKOUT/server/desktop/build/libs" "$CHECKOUT/gui/tauri/node_modules/.bin" \
+		"$CHECKOUT/gui/app/node_modules" "$CHECKOUT/gui/tauri/target/debug" \
 		"$CHECKOUT/tools/esp32-dongle" "$WORK/home"
 	cp "$LAUNCHER" "$CHECKOUT/"
 	touch "$CHECKOUT/tools/esp32-dongle/bridge.py"
@@ -129,12 +129,12 @@ make_checkout() {
 echo "gradle $*" >>"$CALLS"
 touch "$(dirname "$0")/server/desktop/build/libs/slimevr.jar"
 EOF
-	cat >"$CHECKOUT/tauri-spike/node_modules/.bin/tauri" <<'EOF'
+	cat >"$CHECKOUT/gui/tauri/node_modules/.bin/tauri" <<'EOF'
 #!/bin/bash
 echo "tauri $$ $*" >>"$CALLS"
 exec sleep 300
 EOF
-	chmod +x "$CHECKOUT/gradlew" "$CHECKOUT/tauri-spike/node_modules/.bin/tauri" "$CHECKOUT/Start SlimeVR.command"
+	chmod +x "$CHECKOUT/gradlew" "$CHECKOUT/gui/tauri/node_modules/.bin/tauri" "$CHECKOUT/Start SlimeVR.command"
 	: >"$CALLS"
 }
 

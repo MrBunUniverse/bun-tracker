@@ -1,5 +1,7 @@
 packages:
   - "solarxr-protocol"
+  - "gui/app"
+  - "gui/tauri"
   - "!solarxr-protocol/lib/flatbuffers/**"
 
 onlyBuiltDependencies:

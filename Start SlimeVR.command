@@ -5,10 +5,10 @@
 # Launcher tests: tools/launcher-tests/test-start-slimevr.sh
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-SPIKE="$ROOT/tauri-spike"
-GUI="$SPIKE/latest/gui"
+GUI="$ROOT/gui/app"
+TAURI="$ROOT/gui/tauri"
 JAR="$ROOT/server/desktop/build/libs/slimevr.jar"
-APP="$SPIKE/src-tauri/target/debug/slimevr-tauri-spike"
+APP="$TAURI/target/debug/slimevr-tauri-spike"
 BRIDGE="$ROOT/tools/esp32-dongle/bridge.py"
 SERVER_PORT="${SERVER_PORT:-21110}"
 SPIKE_PORT="${SPIKE_PORT:-5173}"
@@ -151,13 +151,9 @@ start_spike() {
 		return 1
 	fi
 	# Storage cleanups have deleted these before; reinstall instead of failing silently.
-	if [ ! -d "$SPIKE/node_modules" ]; then
-		echo "Spike: installing app tools..."
-		(cd "$SPIKE" && npm ci) >"$LOGS/spike-install.log" 2>&1 || { echo "Spike: npm ci failed, see $LOGS/spike-install.log"; return 1; }
-	fi
-	if [ ! -d "$GUI/node_modules" ]; then
-		echo "Spike: installing GUI packages..."
-		(cd "$GUI" && pnpm install --frozen-lockfile) >>"$LOGS/spike-install.log" 2>&1 || { echo "Spike: pnpm install failed, see $LOGS/spike-install.log"; return 1; }
+	if [ ! -x "$TAURI/node_modules/.bin/tauri" ] || [ ! -d "$GUI/node_modules" ]; then
+		echo "Spike: installing packages..."
+		(cd "$ROOT" && pnpm install --frozen-lockfile) >"$LOGS/spike-install.log" 2>&1 || { echo "Spike: pnpm install failed, see $LOGS/spike-install.log"; return 1; }
 	fi
 	owner="$(listener_pid "$SPIKE_PORT")"
 	if [ -n "$owner" ] && ! runs_in "$owner" "$GUI"; then
@@ -178,15 +174,15 @@ start_spike() {
 		echo " up."
 	fi
 	tauri_config="{\"build\":{\"devUrl\":\"http://localhost:$SPIKE_PORT\",\"beforeDevCommand\":null},\"app\":{\"security\":{\"devCsp\":null}}}"
-	(cd "$SPIKE" && exec ./node_modules/.bin/tauri dev --config "$tauri_config") >"$LOGS/spike.log" 2>&1 &
+	(cd "$TAURI" && exec ./node_modules/.bin/tauri dev --config "$tauri_config") >"$LOGS/spike.log" 2>&1 &
 	started+=("$!")
 	components+=("$!")
 	echo "Spike: opening (first start after a reboot can take a minute)."
 }
 if [ -n "$(owned_pids "$APP")" ]; then
 	echo "Spike: already open."
-elif [ ! -d "$SPIKE" ]; then
-	echo "Spike: not found at $SPIKE, skipping."
+elif [ ! -d "$TAURI" ]; then
+	echo "Spike: not found at $TAURI, skipping."
 	problems=$((problems + 1))
 else
 	start_spike || problems=$((problems + 1))

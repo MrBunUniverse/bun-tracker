@@ -19,12 +19,12 @@
 local.properties
 
 # JavaScript dependencies and package-manager caches
-/node_modules/
+node_modules/
 /.pnpm-store/
 
-# Generated GUI output
-/gui/out/
-/gui/stats.html
+# Generated GUI and Tauri output (gui/app/.gitignore covers dist and stats.html)
+/gui/tauri/target/
+/gui/tauri/gen/
 
 # Native tooling caches
 /.cache/
@@ -41,6 +41,7 @@ vrconfig.yml.tmp
 /.backup/
 *.bak
 /.tools/
+.impeccable/
 /graphify-out/
 /.context-shears/
 

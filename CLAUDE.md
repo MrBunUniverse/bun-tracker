@@ -11,25 +11,28 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 
 ## Current UI: edit only this copy
 
-- The live UI is the Tauri SlimeVR Spike. Frontend: `tauri-spike/latest/gui/src/` (styles in `src/index.scss`). Tauri shell: `tauri-spike/src-tauri/`. It runs from the main checkout on `main`; `Start SlimeVR.command` starts it with Vite on port 5173 and hot reload.
-- Edit only that copy. Do not edit the removed Electron `gui/` (retired; recoverable from git history), any archived copy, or a copy in another worktree.
+- The live UI is the Tauri SlimeVR Spike. Frontend: `gui/app/src/` (styles in `src/index.scss`). Tauri shell: `gui/tauri/`. It runs from the main checkout on `main`; `Start SlimeVR.command` starts it with Vite on port 5173 and hot reload.
+- Edit only that copy. Do not edit the retired Electron GUI (recoverable from git history), the old `tauri-spike/` layout (recoverable from the `checkpoint/pre-restructure` tag), any archived copy, or a copy in another worktree.
 - From a session worktree, edits reach the running app only after they are committed on the session branch and fast-forwarded into `main` (`git -C <main checkout> merge --ff-only <branch>`). Check `git status` in a worktree before removing it.
 
 ## Repository map
 
 | Area | Location | Notes |
 | --- | --- | --- |
-| Tauri shell | `tauri-spike/src-tauri/` | Native window, tray, capabilities |
-| React interface | `tauri-spike/latest/gui/src/` | Components, hooks, state, styling |
-| GUI tests | `tauri-spike/latest/gui/tests/` | Node-based automated suites |
+| Tauri shell | `gui/tauri/` | Native window, tray, capabilities; the crate root and `tauri.conf.json` live here |
+| React interface | `gui/app/src/` | Components, hooks, state, styling |
+| Native API contract | `gui/shared/electron-api.ts` | Types for `window.electronAPI`; import as `@shared/electron-api` |
+| GUI tests | `gui/app/tests/` | Node-based automated suites |
 | Tracking server | `server/core/` | Kotlin tracking, OSC, RPC, configuration |
 | Desktop server | `server/desktop/` | Desktop entry point and packaged JAR |
 | Protocol | `solarxr-protocol/` | Git submodule; FlatBuffers and generated libraries |
 | OpenVR bindings | `bindings-provider/` | Includes the `openvr` submodule |
 | Launcher | `Start SlimeVR.command` (repo root) | Starts the server, dongle bridge, and Spike |
+| GUI tools | `tools/gui/` | Theme token check, resource measurement, icon source |
+| Fork notes | `docs/fork/` | `CUSTOM.md` feature inventory, `UPSTREAM.md` merge and rollback workflow |
 | Documentation | `docs/` | Start at `docs/README.md` |
 
-Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `tauri-spike/latest/gui/dist/`, `node_modules/`. `.claude/settings.json` denies reads there. Search with `rg` on explicit source paths (`tauri-spike/latest/gui/src`, `server/core`, `server/desktop`).
+Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `gui/app/dist/`, `gui/tauri/target/`, `gui/tauri/gen/`, `node_modules/`. `.claude/settings.json` denies reads there. Search with `rg` on explicit source paths (`gui/app/src`, `server/core`, `server/desktop`).
 
 ## Commands
 
@@ -37,13 +40,15 @@ Run from the repo root unless noted.
 
 | Task | Command |
 | --- | --- |
-| GUI lint | `cd tauri-spike/latest/gui && pnpm run lint` |
-| GUI tests | `cd tauri-spike/latest/gui && pnpm test` |
-| GUI build | `cd tauri-spike/latest/gui && pnpm run build` |
+| All current checks | `pnpm verify` (add `--full` for server tests, jar, and the Tauri app) |
+| Install dependencies | `pnpm install --frozen-lockfile` (one workspace and lockfile at the repo root) |
+| GUI lint | `cd gui/app && pnpm run lint` |
+| GUI tests | `cd gui/app && pnpm test` |
+| GUI build | `cd gui/app && pnpm run build` |
 | GUI dev and launch | `bash "Start SlimeVR.command"` (server, dongle bridge, and Spike; Vite on 5173) |
 | Server tests + jar | `./gradlew :server:core:test :server:desktop:shadowJar` |
 | Protocol build | `cd solarxr-protocol && pnpm run build` |
-| Theme token check | `python3 tauri-spike/tools/check-theme-tokens.py bun` |
+| Theme token check | `python3 tools/gui/check-theme-tokens.py bun` |
 
 ## Verification
 
@@ -52,17 +57,18 @@ Run the checks for every area touched. If a command cannot run, report the exact
 | Changed area | Required verification |
 | --- | --- |
 | Documentation or Claude config only | `git diff --check`; confirm referenced paths and commands exist |
-| `tauri-spike/latest/gui/src/`, GUI config | `cd tauri-spike/latest/gui && pnpm run lint && pnpm test`; theme changes also run the theme token check |
-| GUI build or packaging | GUI checks, then `cd tauri-spike/latest/gui && pnpm run build` |
+| `gui/app/src/`, GUI config | `cd gui/app && pnpm run lint && pnpm test`; theme changes also run the theme token check |
+| GUI build or packaging | GUI checks, then `cd gui/app && pnpm run build` |
+| `gui/tauri/` | GUI checks, then `cd gui/tauri && cargo check && cargo test`; packaging changes also run `pnpm build` from the repo root |
 | Kotlin/Java under `server/` | Relevant Gradle tests, then `./gradlew :server:desktop:shadowJar` |
-| `solarxr-protocol/` | `cd solarxr-protocol && pnpm run build`, remove only `tauri-spike/latest/gui/node_modules/.vite`, then GUI checks |
-| Shell launcher | `bash -n "Start SlimeVR.command"`, plus a project-scoped process/port check if lifecycle behavior changed |
+| `solarxr-protocol/` | `cd solarxr-protocol && pnpm run build`, remove only `gui/app/node_modules/.vite`, then GUI checks |
+| Shell launcher | `bash -n "Start SlimeVR.command"` and `bash tools/launcher-tests/test-start-slimevr.sh`, plus a project-scoped process/port check if lifecycle behavior changed |
 
 ## Skills and rules
 
 - `slimevr-dev` skill: invoke for implementation, diagnosis, build, launch, protocol, or server work. Read only the reference it links for the task.
 - `apple-design` skill: only for UI/UX review or design work.
-- `.claude/rules/` loads automatically: `implementation-discipline.md` and `graphify.md` always; `ui-map.md` when working under `tauri-spike/latest/gui/src/`.
+- `.claude/rules/` loads automatically: `implementation-discipline.md` and `graphify.md` always; `ui-map.md` when working under `gui/app/src/`.
 
 ## Safety
 
