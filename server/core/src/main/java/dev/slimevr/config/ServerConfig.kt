@@ -10,6 +10,9 @@ import kotlinx.coroutines.sync.Mutex
 class ServerConfig {
 	val trackerPort: Int = 6969
 
+	// The WebSocket API has no authentication, so it only listens on loopback unless this is enabled
+	var websocketApiAllowRemote: Boolean = false
+
 	var useMagnetometerOnAllTrackers: Boolean = false
 		private set
 
