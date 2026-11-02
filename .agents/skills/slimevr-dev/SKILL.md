@@ -1,6 +1,6 @@
 ---
 name: slimevr-dev
-description: Build, test, launch, diagnose, or modify this SlimeVR Kotlin server, Electron/React GUI, Quest integration, or SolarXR protocol. Use for repository implementation work; skip for unrelated prose tasks.
+description: Build, test, launch, diagnose, or modify this SlimeVR Kotlin server, Tauri/React GUI, Quest integration, or SolarXR protocol. Use for repository implementation work; skip for unrelated prose tasks.
 ---
 
 # SlimeVR Development

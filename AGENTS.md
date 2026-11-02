@@ -5,14 +5,14 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 ## Priorities
 
 1. Follow the current request and preserve its scope.
-2. Preserve existing work. The worktree is often intentionally dirty (`firmware_backups/`, `gui/.context-shears/`, `docs/audits/*.patch`); never reset, stash, clean, or rewrite unrelated changes.
+2. Preserve existing work. The worktree is often intentionally dirty (`firmware_backups/`, `.context-shears/`, `docs/audits/*.patch`); never reset, stash, clean, or rewrite unrelated changes.
 3. Fix the root cause with the smallest maintainable change.
 4. Verify in proportion to the files changed and report results as actually run. Never assume or hard-code a test count.
 
 ## Current UI: edit only this copy
 
 - The live UI is the Tauri SlimeVR Spike. Frontend: `tauri-spike/latest/gui/src/` (styles in `src/index.scss`). Tauri shell: `tauri-spike/src-tauri/`. It runs from the main checkout on `main`; `Start SlimeVR.command` starts it with Vite on port 5173 and hot reload.
-- Edit only that copy. Do not edit the removed Electron `gui/` (kept only in `.backup/electron-version-20261019.zip`), any archived copy, or a copy in another worktree.
+- Edit only that copy. Do not edit the removed Electron `gui/` (retired; recoverable from git history), any archived copy, or a copy in another worktree.
 - From a session worktree, edits reach the running app only after they are committed on the session branch and fast-forwarded into `main` (`git -C <main checkout> merge --ff-only <branch>`). Check `git status` in a worktree before removing it.
 
 ## Repository map
@@ -29,7 +29,7 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 | Launcher | `Start SlimeVR.command` (repo root) | Starts the server, dongle bridge, and Spike |
 | Documentation | `docs/` | Start at `docs/README.md` |
 
-Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `tauri-spike/latest/gui/out/`, `node_modules/`. `.Codex/settings.json` denies reads there. Search with `rg` on explicit source paths (`tauri-spike/latest/gui/src`, `server/core`, `server/desktop`).
+Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `tauri-spike/latest/gui/dist/`, `node_modules/`. `.Codex/settings.json` denies reads there. Search with `rg` on explicit source paths (`tauri-spike/latest/gui/src`, `server/core`, `server/desktop`).
 
 ## Commands
 

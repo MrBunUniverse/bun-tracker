@@ -32,13 +32,13 @@ be at `server/desktop/build/libs/slimevr.jar` (you can ignore `server.jar`).
 
 (Note: Your IDE may be able to do all of the above for you.)
 
-### Electron (gui)
+### Tauri and React (desktop interface)
 
-- Activate corepack (included with Node.JS) via `corepack enable` (might require administrator permissions)
-- Run `pnpm i` in your IDE's terminal to download and install dependencies.
-- To launch the GUI in dev mode, run `pnpm gui`.
-- Finally, to compile for production, run `pnpm package:build`. The result
-will be at `dist/artifacts/` content will change depending of the platform.
+- Install the Rust toolchain and enable Corepack for pnpm.
+- Install app tools with `(cd tauri-spike && npm ci)`.
+- Install frontend dependencies with `(cd tauri-spike/latest && pnpm install --frozen-lockfile)`.
+- Run `pnpm start` from the repository root for the server, optional dongle bridge, and Tauri app with hot reload.
+- Run `pnpm build` from the repository root to build the Tauri app. On macOS, the bundle is in `tauri-spike/src-tauri/target/release/bundle/macos/`.
 
 ## Code style
 
@@ -84,14 +84,14 @@ Import the formatting settings defined in `spotless.xml`, like this:
 Eclipse will only do a subset of the checks in `spotless`, so you may still want to do
 `./gradlew spotlessApply` if you ever see an error from spotless.
 
-### Electron (gui)
+### Tauri and React (desktop interface)
 
 We use ESLint and Prettier to format GUI code.
-- First, go into the GUI's directory with your terminal by running `cd gui`.
+- First, go into the GUI's directory with your terminal by running `cd tauri-spike/latest/gui`.
 - To check code formatting, run `pnpm run lint`.
 - To fix code formatting, run `pnpm run lint:fix` and `pnpm run format`
 
-Don't forget to run `cd ..` to return to the root directory.
+Run these checks from the frontend directory, or use `pnpm lint` and `pnpm test` from the repository root.
 
 ## SolarXR Protocol
 
