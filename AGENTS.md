@@ -49,6 +49,7 @@ Run from the repo root unless noted.
 | Server tests + jar | `./gradlew :server:core:test :server:desktop:shadowJar` |
 | Protocol build | `cd solarxr-protocol && pnpm run build` |
 | Theme token check | `python3 tools/gui/check-theme-tokens.py bun` |
+| Doc link check | `pnpm check:docs` |
 
 ## Verification
 
@@ -56,7 +57,7 @@ Run the checks for every area touched. If a command cannot run, report the exact
 
 | Changed area | Required verification |
 | --- | --- |
-| Documentation or agent instructions only | `git diff --check`; confirm referenced paths and commands exist |
+| Documentation or agent instructions only | `git diff --check` and `pnpm check:docs`; confirm referenced commands exist |
 | `gui/app/src/`, GUI config | `cd gui/app && pnpm run lint && pnpm test`; theme changes also run the theme token check |
 | GUI build or packaging | GUI checks, then `cd gui/app && pnpm run build` |
 | `gui/tauri/` | GUI checks, then `cd gui/tauri && cargo check && cargo test`; packaging changes also run `pnpm build` from the repo root |

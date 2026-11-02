@@ -5,7 +5,7 @@ Run checks from the repository root unless a command explicitly changes director
 ## Everything
 
 ```bash
-pnpm verify          # whitespace, launcher, GUI, theme tokens, Tauri crate
+pnpm verify          # whitespace, doc links, launcher, GUI, theme tokens, Tauri crate
 pnpm verify --full   # also protocol, server tests and jar, Tauri app, Android assets
 ```
 
@@ -80,4 +80,4 @@ The launcher suite uses fake tools and test ports only.
 
 If launcher lifecycle behavior changed, check only this project's listeners, for example `lsof -nP -iTCP:21110 -sTCP:LISTEN` (server) and `lsof -nP -iTCP:5173 -sTCP:LISTEN` (Vite). Do not stop processes by name.
 
-For documentation-only changes, validate every referenced file and command. Application rebuilds are unnecessary unless documentation work also changes executable configuration.
+For documentation-only changes, run `pnpm check:docs` and validate every referenced command. It checks relative links and fragments against tracked files, so an untracked target fails even if it exists locally. `reports/`, `research_notes/`, and the Apple HIG corpus are skipped as evidence. Application rebuilds are unnecessary unless documentation work also changes executable configuration.

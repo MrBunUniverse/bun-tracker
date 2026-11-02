@@ -15,6 +15,7 @@
     "lint:fix": "pnpm --dir gui/app lint:fix",
     "test": "pnpm --dir gui/app test",
     "verify": "bash tools/verify.sh",
+    "check:docs": "python3 tools/check-docs.py",
     "update-solarxr": "cd solarxr-protocol && pnpm run build",
     "prepare": "husky && pnpm run update-solarxr",
     "preinstall": "npx only-allow pnpm"

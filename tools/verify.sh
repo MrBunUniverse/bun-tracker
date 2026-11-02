@@ -1,6 +1,6 @@
 #!/bin/bash
 # Runs the project's checks from any directory and stops at the first failure.
-#   pnpm verify          whitespace, launcher, GUI, theme tokens, Tauri crate
+#   pnpm verify          whitespace, doc links, launcher, GUI, theme tokens, Tauri crate
 #   pnpm verify --full   also protocol rebuild, server tests and jar, Android assets, Tauri app
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -15,6 +15,10 @@ step() { printf '\n==> %s\n' "$*"; }
 
 step "Whitespace"
 git diff --check HEAD
+
+step "Docs"
+python3 tools/check-docs.py
+python3 tools/test-check-docs.py
 
 step "Launcher"
 bash -n "Start SlimeVR.command"
