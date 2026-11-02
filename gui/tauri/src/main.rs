@@ -113,22 +113,19 @@ async fn apple_music() -> String {
 
 // ---- server restart (the top bar's red button) ----
 
-// The checkout the server is run from: the jar there is the only one that matches the user's
-// config (a jar built elsewhere rewrites vrconfig.yml without the fields it doesn't know).
-const SERVER_DIR: &str = "/Users/sirjame/Documents/Project/SJ SlimeVR Sever Claude";
-
 #[tauri::command]
 async fn restart_server(app: AppHandle) -> Result<(), String> {
     let log = app.path().app_log_dir().map_err(|e| e.to_string())?;
     tauri::async_runtime::spawn_blocking(move || {
         use std::os::unix::process::CommandExt;
         use std::process::{Command, Stdio};
-        let jar = Path::new(SERVER_DIR).join("server/desktop/build/libs/slimevr.jar");
+        let root = server_process::main_checkout()?;
+        let jar = root.join("server/desktop/build/libs/slimevr.jar");
         if !jar.is_file() {
             return Err(format!("No server jar at {}", jar.display()));
         }
 
-        server_process::stop_server(Path::new(SERVER_DIR))?;
+        server_process::stop_server(&root)?;
 
         fs::create_dir_all(&log).map_err(|e| e.to_string())?;
         let out = fs::File::create(log.join("server.log")).map_err(|e| e.to_string())?;
@@ -137,7 +134,7 @@ async fn restart_server(app: AppHandle) -> Result<(), String> {
             .args(["-Xmx128M", "-jar"])
             .arg(&jar)
             .arg("run")
-            .current_dir(SERVER_DIR)
+            .current_dir(&root)
             .stdin(Stdio::null())
             .stdout(out)
             .stderr(err)
@@ -164,7 +161,8 @@ async fn start_dongle_bridge(app: AppHandle) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
         use std::os::unix::process::CommandExt;
         use std::process::{Command, Stdio};
-        let bridge = Path::new(SERVER_DIR).join("tools/esp32-dongle/bridge.py");
+        let root = server_process::main_checkout()?;
+        let bridge = root.join("tools/esp32-dongle/bridge.py");
         if !bridge.is_file() {
             return Err(format!("No bridge at {}", bridge.display()));
         }
@@ -189,7 +187,7 @@ async fn start_dongle_bridge(app: AppHandle) -> Result<String, String> {
             .arg("-u")
             .arg(&bridge)
             .args(["--port", &port])
-            .current_dir(SERVER_DIR)
+            .current_dir(&root)
             .stdin(Stdio::null())
             .stdout(out)
             .stderr(err)

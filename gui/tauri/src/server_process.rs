@@ -1,7 +1,32 @@
-use std::path::Path;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const RELATIVE_JAR: &str = "server/desktop/build/libs/slimevr.jar";
+
+/// The checkout the server and bridge run from. Its jar is the only one that matches the user's
+/// config (a jar built elsewhere rewrites vrconfig.yml without the fields it doesn't know), so a
+/// build from a linked worktree still uses the main checkout. A moved checkout needs a rebuild.
+pub fn main_checkout() -> Result<PathBuf, String> {
+    resolve_main_checkout(Path::new(env!("CARGO_MANIFEST_DIR")))
+}
+
+fn resolve_main_checkout(crate_dir: &Path) -> Result<PathBuf, String> {
+    let root = crate_dir.ancestors().nth(2).ok_or("Crate is not inside a checkout")?;
+    let git = root.join(".git");
+    if git.is_dir() {
+        return Ok(root.to_path_buf());
+    }
+    // A linked worktree's .git is a file: "gitdir: <main>/.git/worktrees/<name>".
+    let linked = fs::read_to_string(&git).map_err(|_| format!("No checkout at {}", root.display()))?;
+    let main = linked
+        .trim()
+        .strip_prefix("gitdir: ")
+        .and_then(|dir| Path::new(dir).ancestors().nth(3))
+        .filter(|main| main.join(".git").is_dir())
+        .ok_or_else(|| format!("Could not find the main checkout from {}", root.display()))?;
+    Ok(main.to_path_buf())
+}
 
 fn matches_server(command: &str, cwd: &str, root: &Path) -> bool {
     let Some((_, invocation)) = command.trim().split_once(" -jar ") else {
@@ -96,5 +121,26 @@ mod tests {
         assert!(!matches_server("java -jar /Projects/other/server/desktop/build/libs/slimevr.jar run", "/Projects/SlimeVR Server", root));
         assert!(!matches_server("java -jar /Projects/SlimeVR Server/server/desktop/build/libs/slimevr.jar run-extra", "", root));
         assert!(!matches_server("java -jar slimevr.jar run", "/Projects/SlimeVR Server", root));
+    }
+
+    #[test]
+    fn resolves_the_main_checkout_only() {
+        let base = std::env::temp_dir().join(format!("slimevr main checkout {}", std::process::id()));
+        let main = base.join("main");
+        let worktree = base.join("worktree");
+        let moved = base.join("moved");
+        fs::create_dir_all(main.join(".git/worktrees/session")).unwrap();
+        fs::create_dir_all(&worktree).unwrap();
+        let gitdir = format!("gitdir: {}\n", main.join(".git/worktrees/session").display());
+        fs::write(worktree.join(".git"), gitdir).unwrap();
+        fs::create_dir_all(&moved).unwrap();
+
+        assert_eq!(resolve_main_checkout(&main.join("gui/tauri")).unwrap(), main);
+        assert_eq!(resolve_main_checkout(&worktree.join("gui/tauri")).unwrap(), main);
+        assert!(resolve_main_checkout(&moved.join("gui/tauri")).is_err());
+        fs::write(moved.join(".git"), "gitdir: /nowhere/.git/worktrees/x\n").unwrap();
+        assert!(resolve_main_checkout(&moved.join("gui/tauri")).is_err());
+
+        fs::remove_dir_all(&base).unwrap();
     }
 }
