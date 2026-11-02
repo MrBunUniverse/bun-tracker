@@ -4,6 +4,18 @@ This project is in early development. Versions below 1.0 can change anything wit
 
 Version numbers follow `0.MINOR.PATCH`. A minor version adds features or changes behavior. A patch version only fixes things.
 
+## Unreleased
+
+Desktop app moved to Tauri, and the repository was reorganized.
+
+- The desktop app now runs in a Tauri shell. The Electron host is retired.
+- The app now lives in `gui/app`, `gui/shared` and `gui/tauri`, with one pnpm workspace at the repo root.
+- `solarxr-protocol/` is now the only protocol source.
+- Added the ESP32 USB dongle and its bridge.
+- Added fork docs and a single `pnpm verify` command.
+
+Known limits: some native features are disabled in the Tauri shell, including Quest streaming and audio, Mac built-in dictation, and the tray. The app reports each one as unavailable. See `docs/fork/CUSTOM.md`.
+
 ## 0.3.0 (2026-10-04)
 
 Tracker reliability and new tests.

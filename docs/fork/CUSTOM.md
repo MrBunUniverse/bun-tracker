@@ -53,6 +53,7 @@ Known gaps that are not contract members:
 
 - The udev rules file `gui/tauri/resources/69-slimevr-devices.rules` is not placed in the app's install directory, which is where `UdevRulesModal` reads it.
 - The Dongle popup's bridge start uses a fixed Python path (`BRIDGE_PYTHON` in `gui/tauri/src/main.rs`), unlike the launcher, which finds a Python with pyserial.
+- `flake.nix` still describes the Electron build (`pkgs.electron`, electron-builder, `ELECTRON_*`). It has not been validated against the Tauri app, so treat the Nix shell as unverified.
 
 ### Quest restoration plan
 

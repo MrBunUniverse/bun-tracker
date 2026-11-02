@@ -1,5 +1,7 @@
 # Contributing
 
+> **Fork note.** This is a personal fork. The linked guidelines and the Discord and "Use of AI" sections below are upstream SlimeVR's, kept as written. They apply to contributions sent to [SlimeVR-Server](https://github.com/SlimeVR/SlimeVR-Server), and that includes its ban on AI-generated work. They do not describe this fork, which is developed with AI tools (see [AGENTS.md](../AGENTS.md)). The rest of this guide covers this fork's build.
+
 Please follow general contribution guidelines: [CONTRIBUTING.md](https://github.com/SlimeVR/.github/blob/main/profile/CONTRIBUTING.md).
 
 This document describes essential knowledge required to contribute to the SlimeVR Server.

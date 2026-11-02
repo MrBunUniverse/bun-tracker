@@ -1,5 +1,7 @@
 # SlimeVR Tauri Spike: Performance Baseline
 
+> **Historical measurement, 2026-10-11. Status reviewed 2026-11-02.** These numbers have not been re-measured since the restructure, so they describe the build listed below, not the current one. The measuring scripts are now in `tools/gui/`.
+
 Reference numbers for CPU, GPU, and RAM on macOS. Use this table to check new features (animations, layouts, screens) against the baseline before they ship.
 
 Measured 2026-10-11 on a Mac15,12 (MacBook Air, Apple Silicon), macOS 27.0 (26A428), 15 GB RAM.
@@ -9,7 +11,7 @@ Measured 2026-10-11 on a Mac15,12 (MacBook Air, Apple Silicon), macOS 27.0 (26A4
 - **Spike** (paths below are as they were when measured)**:** Tauri release build (`gui/tauri/target/release/bundle/macos/SlimeVR Spike.app`). Its GUI is the latest uncommitted GUI from the main checkout's working copy (`codex/cleanup-project-organization`), snapshotted into `tauri-spike/latest/`.
 - **Server:** the main worktree's `slimevr.jar` (`server/desktop/build/libs/`), which uses protocol `00c38a6`. The custom server (`tauri-spike/custom/`, protocol `9f8a473`) was not measured yet. Re-measure once it is running.
 
-## Baseline (current)
+## Baseline (2026-10-11)
 
 Each row is one 20 to 30 second run of `tools/measure-resources.sh`, taken in the same session. GPU is **system-wide**, so other apps change it (see Notes).
 

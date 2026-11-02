@@ -1,5 +1,7 @@
 # Plan: SlimeVR spike in the PawPad style
 
+> **Historical plan, written 2026-10-11. Status reviewed 2026-11-02.** Kept as a record, not a current task list. It predates the move to `gui/app`, `gui/shared` and `gui/tauri`, so paths may be out of date, and it does not record which phases were finished. For the current look, see [DESIGN.md](DESIGN.md) and [THEMES.md](THEMES.md).
+
 Goal: make the spike app (the Tauri shell around the latest GUI) match the PawPad look: a pixel
 retro feel, the Bun palette, bigger and easier-to-read text, pixel-style buttons and animations, and a
 menu bar (tray) icon that's easy to see. Keep all the functionality.
