@@ -13,6 +13,7 @@ Desktop app moved to Tauri, and the repository was reorganized.
 - `solarxr-protocol/` is now the only protocol source.
 - Added the ESP32 USB dongle and its bridge.
 - Added fork docs and a single `pnpm verify` command.
+- The Dongle popup's Start button now finds a Python with pyserial the same way the launcher does.
 
 Known limits: some native features are disabled in the Tauri shell, including Quest streaming and audio, Mac built-in dictation, and the tray. The app reports each one as unavailable. See `docs/fork/CUSTOM.md`.
 

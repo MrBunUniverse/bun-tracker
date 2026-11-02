@@ -8,7 +8,7 @@ bash "Start SlimeVR.command"   # also opens from Finder by double-click
 
 The launcher starts, in order: the server (built with `./gradlew :server:desktop:shadowJar` when the jar is missing or older than the Kotlin sources), the USB dongle bridge if an ESP32 is plugged in, and the Spike: Vite on port 5173 with Tauri pointed at it for hot reload. Ctrl+C or closing the window stops only what that window started. Anything already listening on 21110 or 5173, or already running from this checkout, is left alone and never duplicated. Lifecycle changes must keep that ownership rule: match this checkout's absolute paths, never broad process names.
 
-Overrides, mainly for tests: `SLIMEVR_PYTHON` (interpreter that must have pyserial), `SLIMEVR_DONGLE_PORT` (empty means no dongle), `SERVER_PORT`, `SPIKE_PORT`. Launcher tests: `bash tools/launcher-tests/test-start-slimevr.sh`; they use fake tools and test ports only.
+Overrides, mainly for tests: `SLIMEVR_PYTHON` (interpreter that must have pyserial; the Dongle popup's Start button honors it too), `SLIMEVR_DONGLE_PORT` (empty means no dongle), `SERVER_PORT`, `SPIKE_PORT`. Launcher tests: `bash tools/launcher-tests/test-start-slimevr.sh`; they use fake tools and test ports only.
 
 ## Logs and Ports
 

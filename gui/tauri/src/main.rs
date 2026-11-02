@@ -16,6 +16,7 @@ use tauri_plugin_opener::OpenerExt;
 // Injected before the page loads. Provides window.electronAPI, the same surface Electron's preload exposes.
 const SHIM: &str = include_str!("../shim/electron-shim.js");
 
+mod bridge_python;
 mod server_process;
 
 // Serializes read-modify-write cycles on the JSON store files.
@@ -59,6 +60,24 @@ fn os_type() -> &'static str {
     }
 }
 
+// ---- external processes ----
+
+// Polls the child until it exits. A child still running at the timeout is killed and None is returned.
+fn wait_bounded(child: &mut std::process::Child, timeout: std::time::Duration) -> Option<std::process::ExitStatus> {
+    const POLL: std::time::Duration = std::time::Duration::from_millis(100);
+    let deadline = std::time::Instant::now() + timeout;
+    while std::time::Instant::now() < deadline {
+        match child.try_wait() {
+            Ok(Some(status)) => return Some(status),
+            Ok(None) => std::thread::sleep(POLL),
+            Err(_) => break,
+        }
+    }
+    let _ = child.kill();
+    let _ = child.wait();
+    None
+}
+
 // ---- Apple Music (replaces Electron's GET_APPLE_MUSIC; the shim parses the output) ----
 
 const MUSIC_SCRIPT: &str = r#"if application "Music" is running then
@@ -93,19 +112,14 @@ async fn apple_music() -> String {
             return String::new();
         };
         // Bound the call to 3s, like Electron, so a hung Music/osascript can't pile up.
-        for _ in 0..30 {
-            if let Ok(Some(_)) = child.try_wait() {
-                let mut out = String::new();
-                if let Some(mut s) = child.stdout.take() {
-                    let _ = s.read_to_string(&mut out);
-                }
-                return out.trim().to_string();
-            }
-            std::thread::sleep(std::time::Duration::from_millis(100));
+        if wait_bounded(&mut child, std::time::Duration::from_secs(3)).is_none() {
+            return String::new();
         }
-        let _ = child.kill();
-        let _ = child.wait();
-        String::new()
+        let mut out = String::new();
+        if let Some(mut s) = child.stdout.take() {
+            let _ = s.read_to_string(&mut out);
+        }
+        out.trim().to_string()
     })
     .await
     .unwrap_or_default()
@@ -150,8 +164,6 @@ async fn restart_server(app: AppHandle) -> Result<(), String> {
 
 // ---- ESP32 dongle bridge (the Dongle popup's Start button) ----
 
-// Same as Start SlimeVR.command: the framework Python has pyserial.
-const BRIDGE_PYTHON: &str = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3";
 const BRIDGE_MATCH: &str = "esp32-dongle/bridge.py";
 
 /// Starts tools/esp32-dongle/bridge.py on the plugged-in dongle and returns its serial port.
@@ -179,11 +191,12 @@ async fn start_dongle_bridge(app: AppHandle) -> Result<String, String> {
             .collect();
         ports.sort();
         let port = ports.into_iter().next().ok_or("Dongle not plugged in.")?;
+        let python = bridge_python::find()?;
 
         fs::create_dir_all(&log).map_err(|e| e.to_string())?;
         let out = fs::File::create(log.join("bridge.log")).map_err(|e| e.to_string())?;
         let err = out.try_clone().map_err(|e| e.to_string())?;
-        Command::new(BRIDGE_PYTHON)
+        Command::new(python)
             .arg("-u")
             .arg(&bridge)
             .args(["--port", &port])
