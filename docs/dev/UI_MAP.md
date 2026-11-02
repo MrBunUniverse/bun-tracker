@@ -17,7 +17,6 @@ Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`
 | Broadcast / VRChat chatbox | `src/components/broadcast/ChatboxDropdown.tsx` (+ `.scss`) | Voice, sticky, music, BPM tabs; battery broadcast |
 | Reset toolbar | `src/components/Toolbar.tsx` | `Toolbar`, `ResetActionsGroup`, `BasicResetButton` |
 | App-level modals | `src/components/{SerialDetectionModal,UnknownDeviceModal,VersionUpdateModal,TrackersStillOnModal,TrayOrExitModal}.tsx` | |
-| Pause / BVH buttons | `src/components/TrackingPauseButton.tsx`, `BVHButton.tsx` | |
 
 ## Home (`/`)
 
@@ -69,7 +68,7 @@ Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`
 | Element | File | Notes |
 | --- | --- | --- |
 | Layout | `src/components/onboarding/OnboardingLayout.tsx` | |
-| Intro, Wi-Fi, dongle, connect | `src/components/onboarding/pages/{Home,WifiCreds,Dongle,ConnectTracker,ResetTutorial}.tsx` | |
+| Intro, Wi-Fi, dongle, connect | `src/components/onboarding/pages/{Home,WifiCreds,Dongle,ConnectTracker}.tsx` | |
 | Quiz | `src/components/onboarding/pages/quiz/` | `SlimeSetQuestion.tsx` and peers |
 | Assignment | `src/components/onboarding/pages/trackers-assign/{TrackerAssignment,TrackerSelectionMenu}.tsx`, `onboarding/BodyAssignment.tsx` | |
 | Mounting | `src/components/onboarding/pages/mounting/{MountingChoose,AutomaticMounting,ManualMounting,MountingSelectionMenu}.tsx` | Shared logic in `src/hooks/manual-mounting.ts` |
@@ -85,7 +84,7 @@ Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`
 
 ## Shared primitives
 
-All in `src/components/commons/`: `Button`, `BigButton`, `IconButton`, `SegmentedControl`, `StatusDot`, `Typography`, `Input`, `Dropdown`, `Checkbox`, `Radio`, `Toggle`, `Range`, `Slider`, `NumberSelector`, `SettingRow`, `TipBox` (also exports the warning box), `Tooltip`, `BaseModal`, `Modal`, `ButtonConfirmModal`, `ProgressBar`, `VerticalStepper`, `ThemeSelector`, `LangSelector`, `BodyDisplay`, `BodyInteractions`.
+All in `src/components/commons/`: `Button`, `IconButton`, `SegmentedControl`, `StatusDot`, `Typography`, `Input`, `Dropdown`, `Checkbox`, `Radio`, `Toggle`, `Range`, `Slider`, `NumberSelector`, `SettingRow`, `TipBox` (also exports the warning box), `Tooltip`, `BaseModal`, `Modal`, `ButtonConfirmModal`, `ProgressBar`, `VerticalStepper`, `ThemeSelector`, `LangSelector`, `BodyDisplay`, `BodyInteractions`.
 
 `IconButton` requires an accessible name. Status is never conveyed by color alone.
 
