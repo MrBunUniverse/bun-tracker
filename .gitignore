@@ -45,5 +45,11 @@ vrconfig.yml.tmp
 /graphify-out/
 /.context-shears/
 
-# Claude Code local overrides
+# Claude Code local state. Shared rules and skills are tracked in .agents/.
 /.claude/settings.local.json
+/.claude/worktrees/
+/.claude/rules/
+/.claude/skills/
+/.claude/settings.json.pre-restructure
+/.claude/ui-map.md.pre-restructure
+/.claude/slimevr-dev-skill-pre-restructure.tgz

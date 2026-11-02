@@ -32,7 +32,7 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 | Fork notes | `docs/fork/` | `CUSTOM.md` feature inventory, `UPSTREAM.md` merge and rollback workflow |
 | Documentation | `docs/` | Start at `docs/README.md` |
 
-Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `gui/app/dist/`, `gui/tauri/target/`, `gui/tauri/gen/`, `node_modules/`. `.claude/settings.json` denies reads there. Search with `rg` on explicit source paths (`gui/app/src`, `server/core`, `server/desktop`).
+Generated or local-state dirs are not source: `.backup/`, `.gradle/`, `.kotlin/`, `.pnpm-store/`, `.tools/`, `build/`, `graphify-out/`, `gui/app/dist/`, `gui/tauri/target/`, `gui/tauri/gen/`, `node_modules/`. Skip them. This is a convention; nothing tracked in this repo enforces it. Search with `rg` on explicit source paths (`gui/app/src`, `server/core`, `server/desktop`).
 
 ## Commands
 
@@ -56,7 +56,7 @@ Run the checks for every area touched. If a command cannot run, report the exact
 
 | Changed area | Required verification |
 | --- | --- |
-| Documentation or Claude config only | `git diff --check`; confirm referenced paths and commands exist |
+| Documentation or agent instructions only | `git diff --check`; confirm referenced paths and commands exist |
 | `gui/app/src/`, GUI config | `cd gui/app && pnpm run lint && pnpm test`; theme changes also run the theme token check |
 | GUI build or packaging | GUI checks, then `cd gui/app && pnpm run build` |
 | `gui/tauri/` | GUI checks, then `cd gui/tauri && cargo check && cargo test`; packaging changes also run `pnpm build` from the repo root |
@@ -66,9 +66,13 @@ Run the checks for every area touched. If a command cannot run, report the exact
 
 ## Skills and rules
 
-- `slimevr-dev` skill: invoke for implementation, diagnosis, build, launch, protocol, or server work. Read only the reference it links for the task.
-- `apple-design` skill: only for UI/UX review or design work.
-- `.claude/rules/` loads automatically: `implementation-discipline.md` and `graphify.md` always; `ui-map.md` when working under `gui/app/src/`.
+Shared instructions live in `.agents/`. Read them directly; do not assume a tool has loaded them.
+
+- `.agents/skills/slimevr-dev/SKILL.md`: for implementation, diagnosis, build, launch, protocol, or server work. Read only the reference it links for the task.
+- `.agents/skills/apple-design/SKILL.md`: only for UI/UX review or design work.
+- `.agents/rules/implementation-discipline.md`: before editing. `.agents/rules/ui-map.md`: before working under `gui/app/src/`. `.agents/rules/graphify.md`: before using Graphify.
+
+`.claude/` is untracked and personal. A checkout may hold settings, rules, or skill copies there, which Claude Code loads on its own, but a fresh clone has none and those copies can lag `.agents/`.
 
 ## Safety
 
