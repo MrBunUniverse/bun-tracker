@@ -8,7 +8,11 @@ Use this page as the index for project documentation. Runtime source belongs in 
 - [Contributing guide](CONTRIBUTING.md)
 - [GUI design direction](dev/DESIGN.md)
 - [Repository UI map](dev/UI_MAP.md)
+- [Adding a theme](dev/THEMES.md)
+- [Performance baseline](dev/PERFORMANCE_BASELINE.md)
 - [Development runbook skill](../.claude/skills/slimevr-dev/SKILL.md)
+- [Custom feature inventory](fork/CUSTOM.md)
+- [Tracking upstream](fork/UPSTREAM.md)
 
 ## Audits
 

@@ -53,6 +53,7 @@ pnpm start                            # hot-reload launcher: server, dongle brid
 pnpm build                            # build the Spike app bundle (Tauri; runs the Vite build first)
 pnpm lint                             # GUI type check, ESLint, and Prettier on src/
 pnpm test                             # GUI test suites (Node 22)
+pnpm verify                           # all quick checks; add --full for server, protocol, and the app
 ./gradlew :server:desktop:shadowJar   # build the server jar the launcher runs
 ./gradlew :server:core:test           # run server tests
 ```
