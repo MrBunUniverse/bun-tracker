@@ -13,6 +13,7 @@ Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`
 | Title bar | `src/components/TopBar.tsx` | Status cluster, theme toggle, reload, window controls |
 | Connection status popover | `src/components/shell/StatusCluster.tsx` | Server, mode, trackers, Mac IP, headset address, scan |
 | Other shell controls | `src/components/shell/{QuestTargetIPPill,ThemeModeToggle,RefreshTrackersButton,HardRebootButton,VersionTag}.tsx` | |
+| Native shell | `../tauri/src/main.rs`, `../tauri/shim/electron-shim.js`, `../shared/electron-api.ts` | Tauri commands, the `window.electronAPI` shim, its types |
 | Layouts | `src/components/MainLayout.tsx` (+ `.scss`), `EmptyLayout.tsx`, `src/AppLayout.tsx` | Grid shell for main routes |
 | Broadcast / VRChat chatbox | `src/components/broadcast/ChatboxDropdown.tsx` (+ `.scss`) | Voice, sticky, music, BPM tabs; battery broadcast |
 | Reset toolbar | `src/components/Toolbar.tsx` | `Toolbar`, `ResetActionsGroup`, `BasicResetButton` |
@@ -50,7 +51,7 @@ Routes are defined in `src/App.tsx`. Design direction is in `docs/dev/DESIGN.md`
 | --- | --- | --- |
 | Remote page | `src/components/remote/RemotePage.tsx` | Headset list, wireless ADB, audio demo, game audio and mic cards, mirror studio |
 | Quest capture settings | `src/components/settings/pages/QuestCaptureSettings.tsx`, `src/hooks/quest-capture.ts` | Presets, crop, codec, bitrate; persisted settings |
-| Native side | `electron/main/quest-capture.ts`, `quest-audio.ts`, `channel-test-tone.ts` | scrcpy/ADB processes |
+| Native side | None yet | `questCapture` and `questAudio` are disabled in the Tauri shell; see `docs/fork/CUSTOM.md` |
 
 ## Settings (`/settings/...`)
 

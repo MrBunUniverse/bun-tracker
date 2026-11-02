@@ -9,7 +9,7 @@ SlimeVR is a focused desktop control surface for live body tracking. It should f
 - Dark blue-gray surfaces with warm-gray text, navy depth, and one warm amber
   action color from the supplied palette.
 - Thin outlines, restrained shadows, and clear grouping.
-- Floating navigation dock and toolbar inspired by macOS desktop apps.
+- Side navigation and a top toolbar inspired by macOS desktop apps.
 - Compact cards, tabs, drawers, and mobile sheets.
 - Monochrome line icons with consistent visual weight.
 
@@ -53,19 +53,11 @@ Use semantic tokens, not raw colors in components.
 
 The dark theme remains supported. Light reference colors must pass contrast checks before release.
 
-## Rollout plan
-
-1. Shell: establish the top bar, floating dock, route-level information architecture, semantic theme tokens, and focus/contrast rules.
-2. Live tracking: make Home the health-first workspace; align tracker cards, diagnostics, reset actions, table view, and the skeleton drawer to the same surfaces.
-3. Workflows: align Remote and Setup around task-specific cards, clear prerequisites, progressive disclosure, and useful empty/error states.
-4. Configuration: keep the searchable Settings rail, but unify section headers, controls, tabs, sheets, and destructive-action states.
-5. Hardening: verify every route at desktop/mobile widths, preserve WebSocket/RPC/IPC behavior, run the existing tests/build, and remove only styling that is proven redundant.
-
 ## Acceptance gates
 
 - Existing routes and deep links still resolve.
-- Tracker discovery, resets, calibration, WebSocket updates, Quest streaming, and Electron actions remain behaviorally unchanged.
-- The floating dock is keyboard reachable, has visible focus, and does not cover scrollable content.
+- Tracker discovery, resets, calibration, WebSocket updates, and native actions remain behaviorally unchanged. Capabilities the Tauri shell does not provide stay reported as unavailable.
+- The side navigation is keyboard reachable, has visible focus, and does not cover scrollable content.
 - Primary yellow actions meet WCAG AA contrast; status never depends on color alone.
 - Reduced motion and reduced transparency still produce usable layouts.
 - No new UI dependency is introduced without a measured interaction or maintenance benefit.

@@ -12,8 +12,8 @@ The ESP32 keeps the `SirJameVR ESP` network name, so the trackers need no change
 
 1. Flash the ESP32 once: `pio run -t upload` in this folder.
 2. Start the SlimeVR server.
-3. Start the bridge, using a Python that has pyserial:
-   `/Library/Frameworks/Python.framework/Versions/3.14/bin/python3 bridge.py`
+3. Start the bridge with a Python 3 that has pyserial (`python3 -m pip install pyserial`):
+   `python3 bridge.py`
 4. Join the Mac's Wi-Fi to the house 5 GHz network.
 
 The bridge prints `esp32: up=… down=… dropped=… bad_frames=… clients=…` every 2 seconds.

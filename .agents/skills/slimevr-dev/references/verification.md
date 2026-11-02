@@ -2,6 +2,15 @@
 
 Run checks from the repository root unless a command explicitly changes directory.
 
+## Everything
+
+```bash
+pnpm verify          # whitespace, launcher, GUI, theme tokens, Tauri crate
+pnpm verify --full   # also protocol, server tests and jar, Tauri app, Android assets
+```
+
+`tools/verify.sh` stops at the first failure. Use the narrower commands below while iterating.
+
 ## GUI Logic
 
 Run from the repository root:
@@ -63,8 +72,11 @@ Target exactly `gui/app/node_modules/.vite`; never delete the complete dependenc
 
 ```bash
 bash -n "Start SlimeVR.command"
+bash tools/launcher-tests/test-start-slimevr.sh
 git diff --check
 ```
+
+The launcher suite uses fake tools and test ports only.
 
 If launcher lifecycle behavior changed, check only this project's listeners, for example `lsof -nP -iTCP:21110 -sTCP:LISTEN` (server) and `lsof -nP -iTCP:5173 -sTCP:LISTEN` (Vite). Do not stop processes by name.
 

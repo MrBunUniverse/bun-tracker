@@ -30,7 +30,7 @@ Confirm ownership with `lsof -nP` before changing or terminating a listener, for
 
 ## Frontend Build
 
-The Spike frontend is a plain Vite app. `gui/app/vite.config.ts` writes `gui/app/dist/`, which `gui/tauri/tauri.conf.json` uses as `frontendDist`. `beforeBuildCommand` runs that build; `beforeDevCommand` runs `pnpm start` (Vite on 5173, strict port). The Electron build and its packaging are retired; the retired source remains recoverable from git history.
+The Spike frontend is a plain Vite app. `gui/app/vite.config.ts` writes `gui/app/dist/`, which `gui/tauri/tauri.conf.json` uses as `frontendDist`. `beforeBuildCommand` runs that build; `beforeDevCommand` runs `pnpm start` (Vite on 5173, strict port) for a bare `tauri dev`; the launcher sets it to null and owns Vite itself. The Electron build and its packaging are retired; the retired source remains recoverable from git history.
 
 Retained compatibility assets:
 
