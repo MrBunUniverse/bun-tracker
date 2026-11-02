@@ -1,7 +1,7 @@
 packages:
-  - "solarxr-protocol"
+  - "../../solarxr-protocol"
   - "gui"
-  - "!solarxr-protocol/lib/flatbuffers/**"
+  - "!../../solarxr-protocol/lib/flatbuffers/**"
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

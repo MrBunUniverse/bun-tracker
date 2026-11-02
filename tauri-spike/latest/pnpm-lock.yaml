@@ -204,8 +204,8 @@ importers:
         specifier: ^7.6.3
         version: 7.7.4
       solarxr-protocol:
-        specifier: file:../solarxr-protocol
-        version: link:../solarxr-protocol
+        specifier: workspace:*
+        version: link:../../../solarxr-protocol
       spdx-satisfies:
         specifier: ^5.0.1
         version: 5.0.1
@@ -240,7 +240,7 @@ importers:
         specifier: ^1.4.0
         version: 1.7.1
 
-  solarxr-protocol:
+  ../../solarxr-protocol:
     dependencies:
       flatbuffers:
         specifier: ^22.10.26
