@@ -6,7 +6,7 @@
 
   const invoke = (cmd, args) => window.__TAURI_INTERNALS__.invoke(cmd, args);
 
-  // Same allowlist as the Electron main process (gui/electron/main/index.ts, OPEN_URL).
+  // Same allowlist as the retired Electron main process (electron/main/index.ts, OPEN_URL; see git history).
   const GH_RELEASES_PREFIX = 'https://github.com/SlimeVR/SlimeVR-Tracker-ESP/releases/download';
   const GH_API_RELEASES = 'https://api.github.com/repos/SlimeVR/SlimeVR-Tracker-ESP/releases';
 
@@ -61,7 +61,7 @@
     isSteam: async () => false,
     restartServer: () => invoke('restart_server'),
     startDongleBridge: () => invoke('start_dongle_bridge'),
-    // Same result shape as Electron's GET_APPLE_MUSIC (gui/electron/main/index.ts).
+    // Same result shape as the retired Electron GET_APPLE_MUSIC (electron/main/index.ts, see git history).
     getAppleMusic: async () => {
       const out = await invoke('apple_music');
       if (out === 'STOPPED') return { running: true, playing: false };

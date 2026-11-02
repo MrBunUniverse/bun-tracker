@@ -8,10 +8,11 @@
     "gui"
   ],
   "scripts": {
-    "gui": "pnpm run update-solarxr && cd gui && pnpm run gui",
-    "lint:fix": "cd gui && pnpm lint:fix",
-    "skipbundler": "cd gui && pnpm run skipbundler",
-    "build": "cd gui && pnpm build",
+    "start": "pnpm --dir gui start",
+    "build": "pnpm --dir gui build",
+    "lint": "pnpm --dir gui lint",
+    "lint:fix": "pnpm --dir gui lint:fix",
+    "test": "pnpm --dir gui test",
     "update-solarxr": "cd solarxr-protocol && pnpm run build",
     "prepare": "husky && pnpm run update-solarxr",
     "preinstall": "npx only-allow pnpm"

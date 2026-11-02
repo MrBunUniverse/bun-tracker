@@ -8,10 +8,15 @@ import { Vector3FromVec3fT } from '@/maths/vector3';
 import { useAtomValue } from 'jotai';
 import { trackerFromIdAtom } from '@/store/app-store';
 
+// Protocol names are typed string | Uint8Array; the byte form is UTF-8 text.
+const nameText = (value: string | Uint8Array | null | undefined) =>
+  value instanceof Uint8Array ? new TextDecoder().decode(value) : value;
+
 export function getTrackerName(l10n: ReactLocalization, info: TrackerInfoT | null) {
-  if (info?.customName) return info?.customName;
+  const custom = nameText(info?.customName);
+  if (custom) return custom;
   if (info?.bodyPart) return l10n.getString('body_part-' + BodyPart[info?.bodyPart]);
-  return info?.displayName || 'NONE';
+  return nameText(info?.displayName) || 'NONE';
 }
 
 // Motion level above which a tracker counts as moving.

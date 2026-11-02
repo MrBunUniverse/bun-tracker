@@ -33,10 +33,10 @@ java {
 val copyGuiAssets = tasks.register<Copy>("copyGuiAssets") {
 	val target = layout.projectDirectory.dir("src/main/assets/web-gui")
 	delete(target)
-	from(rootProject.layout.projectDirectory.dir("gui/out/renderer"))
+	from(rootProject.layout.projectDirectory.dir("tauri-spike/latest/gui/dist"))
 	into(target)
 	if (inputs.sourceFiles.isEmpty) {
-		throw GradleException("You need to run \"pnpm run build\" on the gui folder first!")
+		throw GradleException("You need to build the frontend in tauri-spike/latest/gui first!")
 	}
 }
 tasks.preBuild {

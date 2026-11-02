@@ -13,7 +13,10 @@ export function ServerRestartButton() {
   // The confirm and result states fall back to idle by themselves.
   useEffect(() => {
     if (state === 'idle') return;
-    const id = setTimeout(() => setState('idle'), state === 'confirm' ? 3000 : 6000);
+    const id = setTimeout(
+      () => setState('idle'),
+      state === 'confirm' ? 3000 : 6000
+    );
     return () => clearTimeout(id);
   }, [state]);
 

@@ -380,7 +380,9 @@ export function useSpeechDictation(
         if (settings.autoSticky && onSticky) {
           // original on top, translation below (single line if identical)
           const same = clean.toLowerCase() === trans.trim().toLowerCase();
-          onSticky(same || settings.targetLanguage === 'none' ? clean : `${clean}\n${trans}`);
+          onSticky(
+            same || settings.targetLanguage === 'none' ? clean : `${clean}\n${trans}`
+          );
         }
 
         if (settings.autoSend && onSendMessage && formatted) {
@@ -889,8 +891,7 @@ export function useSpeechDictation(
     setStickySeconds: (stickySeconds: number) =>
       setSettings((s) => ({ ...s, stickySeconds })),
     setFastMode: (fastMode: boolean) => setSettings((s) => ({ ...s, fastMode })),
-    setAutoSticky: (autoSticky: boolean) =>
-      setSettings((s) => ({ ...s, autoSticky })),
+    setAutoSticky: (autoSticky: boolean) => setSettings((s) => ({ ...s, autoSticky })),
     setPlaySound: (playSound: boolean) => setSettings((s) => ({ ...s, playSound })),
   };
 }

@@ -74,7 +74,14 @@ test('dictation survives rerenders during microphone startup and listening', asy
       Buffer,
       console,
       localStorage: { getItem: () => null, setItem() {} },
-      window: { AudioContext: AudioContextMock },
+      // The default 'local' engine needs the Web Speech API; without it the hook stops listening by design.
+      window: {
+        AudioContext: AudioContextMock,
+        SpeechRecognition: class {
+          start() {}
+          stop() {}
+        },
+      },
       navigator: {
         mediaDevices: {
           enumerateDevices: async () => [],

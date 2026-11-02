@@ -16,6 +16,8 @@ use tauri_plugin_opener::OpenerExt;
 // Injected before the page loads. Provides window.electronAPI, the same surface Electron's preload exposes.
 const SHIM: &str = include_str!("../shim/electron-shim.js");
 
+mod server_process;
+
 // Serializes read-modify-write cycles on the JSON store files.
 struct StoreLock(Mutex<()>);
 
@@ -114,7 +116,6 @@ async fn apple_music() -> String {
 // The checkout the server is run from: the jar there is the only one that matches the user's
 // config (a jar built elsewhere rewrites vrconfig.yml without the fields it doesn't know).
 const SERVER_DIR: &str = "/Users/sirjame/Documents/Project/SJ SlimeVR Sever Claude";
-const SERVER_MATCH: &str = "slimevr.jar run";
 
 #[tauri::command]
 async fn restart_server(app: AppHandle) -> Result<(), String> {
@@ -127,15 +128,7 @@ async fn restart_server(app: AppHandle) -> Result<(), String> {
             return Err(format!("No server jar at {}", jar.display()));
         }
 
-        // Stop the running server and wait for it to exit, so the new one can take its ports.
-        let _ = Command::new("pkill").args(["-f", SERVER_MATCH]).status();
-        for _ in 0..50 {
-            let running = Command::new("pgrep").args(["-f", SERVER_MATCH]).stdout(Stdio::null()).status();
-            if !matches!(running, Ok(s) if s.success()) {
-                break;
-            }
-            std::thread::sleep(std::time::Duration::from_millis(100));
-        }
+        server_process::stop_server(Path::new(SERVER_DIR))?;
 
         fs::create_dir_all(&log).map_err(|e| e.to_string())?;
         let out = fs::File::create(log.join("server.log")).map_err(|e| e.to_string())?;

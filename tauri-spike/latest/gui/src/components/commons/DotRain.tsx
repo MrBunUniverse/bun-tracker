@@ -151,7 +151,5 @@ export function DotRain({
 
   if (!shown) return null;
 
-  return (
-    <canvas ref={canvasRef} aria-hidden="true" className={className} />
-  );
+  return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
 }

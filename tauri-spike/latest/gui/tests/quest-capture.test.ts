@@ -1,15 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 
-const require = createRequire(import.meta.url);
-
 function loadCaptureModule() {
   const source = readFileSync(
-    new URL('../electron/main/quest-capture.ts', import.meta.url),
+    new URL('../src/utils/quest-capture-options.ts', import.meta.url),
     'utf8'
   );
   const { outputText } = ts.transpileModule(source, {
@@ -20,25 +17,7 @@ function loadCaptureModule() {
     },
   });
   const exports = {};
-  runInNewContext(outputText, {
-    exports,
-    require: (name: string) => {
-      if (name === './paths') return { getGuiDataFolder: () => '/tmp/slimevr-test' };
-      if (name === './quest-audio') {
-        return {
-          findAdb: async () => null,
-          findScrcpy: async () => null,
-          getQuestAudioStatus: async () => ({}),
-          startAudioStream: async () => ({ success: true }),
-          stopAudioStream: async () => ({ success: true }),
-        };
-      }
-      return require(name);
-    },
-    process,
-    setTimeout,
-    clearTimeout,
-  });
+  runInNewContext(outputText, { exports });
   return exports as any;
 }
 

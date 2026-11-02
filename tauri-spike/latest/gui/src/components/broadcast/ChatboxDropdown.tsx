@@ -122,7 +122,9 @@ function HeartReadout({
         </div>
         <div className="flex flex-col items-end gap-0.5 text-ui-2xs">
           {bpm !== null && (
-            <span className={classNames('font-medium', ZONE_STYLE[zone].className)}>
+            <span
+              className={classNames('font-medium', ZONE_STYLE[zone].className)}
+            >
               {ZONE_STYLE[zone].label}
             </span>
           )}
@@ -134,7 +136,11 @@ function HeartReadout({
         preserveAspectRatio="none"
         className="h-8 w-full"
         role="img"
-        aria-label={points ? `Last ${points.length * 5} seconds, ${points[0]} to ${points[points.length - 1]} BPM` : 'No history yet'}
+        aria-label={
+          points
+            ? `Last ${points.length * 5} seconds, ${points[0]} to ${points[points.length - 1]} BPM`
+            : 'No history yet'
+        }
       >
         {points ? (
           <polyline
@@ -1097,7 +1103,11 @@ export function ChatboxDropdown({
                     </SettingGroup>
 
                     <HeartReadout
-                      bpm={fakeBpm.enabled && fakeBpm.available ? fakeBpm.currentBpm : null}
+                      bpm={
+                        fakeBpm.enabled && fakeBpm.available
+                          ? fakeBpm.currentBpm
+                          : null
+                      }
                       zone={fakeBpm.zone}
                       label={
                         !fakeBpm.enabled
@@ -1128,10 +1138,16 @@ export function ChatboxDropdown({
                               restingBpm: e.target.valueAsNumber,
                             })
                           }
-                          className={classNames(textInput, 'tnum w-16 text-right')}
+                          className={classNames(
+                            textInput,
+                            'tnum w-16 text-right'
+                          )}
                         />
                       </SettingRow>
-                      <SettingRow label="Age" description="Sets how high it can go">
+                      <SettingRow
+                        label="Age"
+                        description="Sets how high it can go"
+                      >
                         <input
                           type="number"
                           inputMode="numeric"
@@ -1146,7 +1162,10 @@ export function ChatboxDropdown({
                               age: e.target.valueAsNumber,
                             })
                           }
-                          className={classNames(textInput, 'tnum w-16 text-right')}
+                          className={classNames(
+                            textInput,
+                            'tnum w-16 text-right'
+                          )}
                         />
                       </SettingRow>
                     </SettingGroup>
@@ -1217,44 +1236,51 @@ export function ChatboxDropdown({
                       aria-label="Speech engine"
                       className={selectClass}
                     >
-                      <option value="local">Mac built-in (free, on-device)</option>
+                      <option value="local">
+                        Mac built-in (free, on-device)
+                      </option>
                       <option value="cloud">Groq Whisper v3 Turbo</option>
                     </select>
                   </SettingRow>
                   {dictation.settings.engine === 'cloud' && (
-                  <SettingRow
-                    stacked
-                    label="Groq API key"
-                    value={
-                      <button
-                        type="button"
-                        onClick={() => openUrl('https://console.groq.com/keys')}
-                        className="cursor-pointer text-ui-2xs font-medium text-accent-background-10 hover:underline"
-                      >
-                        Get a free key
-                      </button>
-                    }
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type={showApiKeyInput ? 'text' : 'password'}
-                        value={dictation.settings.groqApiKey}
-                        onChange={(e) =>
-                          dictation.setGroqApiKey(e.target.value)
-                        }
-                        placeholder="gsk_..."
-                        aria-label="Groq API key"
-                        className={classNames(textInput, 'flex-grow font-mono')}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                        className={ghostButton}
-                      >
-                        {showApiKeyInput ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-                  </SettingRow>
+                    <SettingRow
+                      stacked
+                      label="Groq API key"
+                      value={
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openUrl('https://console.groq.com/keys')
+                          }
+                          className="cursor-pointer text-ui-2xs font-medium text-accent-background-10 hover:underline"
+                        >
+                          Get a free key
+                        </button>
+                      }
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type={showApiKeyInput ? 'text' : 'password'}
+                          value={dictation.settings.groqApiKey}
+                          onChange={(e) =>
+                            dictation.setGroqApiKey(e.target.value)
+                          }
+                          placeholder="gsk_..."
+                          aria-label="Groq API key"
+                          className={classNames(
+                            textInput,
+                            'flex-grow font-mono'
+                          )}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                          className={ghostButton}
+                        >
+                          {showApiKeyInput ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                    </SettingRow>
                   )}
                   <SettingRow label="Microphone">
                     <select

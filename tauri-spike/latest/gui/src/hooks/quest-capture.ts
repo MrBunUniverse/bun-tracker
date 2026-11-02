@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  QuestCaptureProfile,
-  QuestVideoStartOptions,
-} from 'electron/preload/interface';
+import { QuestCaptureProfile, QuestVideoStartOptions } from '@/types/electron-api';
 
 export type QuestCaptureSettings = QuestVideoStartOptions & {
   gameAudioEnabled: boolean;

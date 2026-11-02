@@ -643,21 +643,26 @@ body {
 /* Pixel look: 3px corners and a coral light toggle. Circles keep rounded-full. The body dot grid was removed. */
 
 /* Panels are solid and drop the backdrop blur, so the page behind them stays flat. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-standard.bg-background-80 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .text-standard.bg-background-80 {
   background-color: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .glass-panel,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) #home-tracker-view-panel,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-surface {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .glass-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  #home-tracker-view-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .home-tracker-surface {
   background-color: rgb(var(--background-70));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 /* Remote: the cards match the Home tracker cards, a raised surface with a hairline border and a soft shadow. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-card {
   background-color: rgb(var(--background-60));
   border: 1px solid rgba(var(--background-10), 0.08) !important;
   box-shadow:
@@ -666,7 +671,8 @@ body {
 }
 
 /* The page header is plain text over a hairline, not a boxed card. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-header {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-header {
   background-color: transparent;
   border: 0 !important;
   border-bottom: 1px solid rgba(var(--background-10), 0.06) !important;
@@ -675,13 +681,17 @@ body {
 }
 
 /* The decorative wave in each title bar goes. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card__banner > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-card__banner
+  > svg {
   display: none;
 }
 
 /* Stream cards: a slim header with the icon on the left and the file name on the right,
    then the settings as one list with hairline separators. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .remote-card__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .remote-card__banner {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -691,12 +701,17 @@ body {
   border-bottom: 1px solid rgba(var(--background-10), 0.06);
 }
 
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .remote-card__banner > div:nth-child(2) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .remote-card__banner
+  > div:nth-child(2) {
   order: -1;
   flex-grow: 0;
 }
 
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream [class*='rounded-[10px]']:not(button) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  [class*='rounded-[10px]']:not(button) {
   background-color: transparent;
   border: 0;
   border-bottom: 1px solid rgba(var(--background-10), 0.06);
@@ -705,14 +720,17 @@ body {
 }
 
 /* The empty headset state is plain text, not a dashed box. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-card [class*='border-dashed'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-card
+  [class*='border-dashed'] {
   background-color: transparent;
   border: 0;
   border-radius: 0 !important;
 }
 
 /* Bun: the tracker logo sits alone on the ripple, with no flat circle around it. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .tracker-empty-logo {
   border: 0;
   background-color: transparent;
 }
@@ -741,28 +759,33 @@ body {
     transform: translateY(0) scale(1);
   }
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo.tracker-logo-hop {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .tracker-empty-logo.tracker-logo-hop {
   transform-origin: 50% 100%;
   animation: tracker-logo-hop 4200ms ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .tracker-empty-logo.tracker-logo-hop {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+    .tracker-empty-logo.tracker-logo-hop {
     animation: none;
   }
 }
 
 /* Bun: the onboarding steps draw the static dot grid instead of the technical gridlines. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .animate-grid-drift {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .animate-grid-drift {
   display: none;
 }
 
 /* Sidebar: bigger targets, rounded items, and a clear active item. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav__item {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .sidenav__item {
   height: 44px;
   border-radius: 12px !important;
   font-size: 15px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav__item[aria-current='page'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .sidenav__item[aria-current='page'] {
   background-color: rgba(var(--accent-background-20), 0.18);
   color: rgb(var(--accent-background-10));
   font-weight: 600;
@@ -771,61 +794,96 @@ body {
 /* Settings: easier to read and to use. Bun only, and nothing is removed.
    Text is at least 14px, headings are sans-serif, secondary text is brighter,
    and every card, row and control has more room. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout {
   font-size: 16px;
   line-height: 1.55;
   letter-spacing: 0;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-2xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='text-ui-2xs'] {
   font-size: 14px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='text-ui-xs'] {
   font-size: 15px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-sm'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='text-ui-sm'] {
   font-size: 16px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='text-ui-md'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='text-ui-md'] {
   font-size: 18px;
 }
 /* The top bar is the same on every tab, so it keeps its usual size inside settings. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [data-topbar-row] {
   line-height: 1.5;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] [class*='text-ui-2xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [data-topbar-row]
+  [class*='text-ui-2xs'] {
   font-size: calc(var(--font-size) / 12 * 0.75);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [data-topbar-row] [class*='text-ui-xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [data-topbar-row]
+  [class*='text-ui-xs'] {
   font-size: calc(var(--font-size) / 12 * 0.8125);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-standard,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-description {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-standard,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-description {
   font-size: 16px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-standard-bold {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-standard-bold {
   font-size: 16px;
   font-weight: 600;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .font-serif,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-section-title,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-main-title {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .font-serif,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-section-title,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-main-title {
   font-family: inherit;
   font-weight: 600;
   letter-spacing: 0;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .text-background-30 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .text-background-30 {
   color: rgb(var(--background-20));
 }
 
 /* Settings sidebar: larger links with rounded pills and a filled active item. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  a.group {
   height: auto;
   min-height: 38px;
   padding: 7px 10px !important;
   border-radius: 12px !important;
   font-size: 15px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group[aria-current='page'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  a.group[aria-current='page'] {
   background-color: rgba(var(--accent-background-20), 0.18);
   color: rgb(var(--accent-background-10));
   font-weight: 600;
@@ -854,10 +912,14 @@ body {
 }
 
 /* Settings panels: soft, rounded cards with room around each title and row. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout > div:nth-child(3) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  > div:nth-child(3) {
   padding: 24px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane {
   border-radius: 18px !important;
   border: 1px solid rgba(var(--background-10), 0.1) !important;
   background-color: rgb(var(--background-70));
@@ -866,7 +928,10 @@ body {
     0 2px 10px rgba(0, 0, 0, 0.2);
   margin-bottom: 22px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane > div:first-child {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane
+  > div:first-child {
   min-height: 72px;
   padding: 14px 18px;
   gap: 14px;
@@ -881,14 +946,19 @@ body {
   font-size: 18px !important;
   font-weight: 600 !important;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane__icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane__icon {
   width: 40px;
   height: 40px;
   border-radius: 12px !important;
   background-color: rgba(var(--accent-background-20), 0.16);
   border: 1px solid rgba(var(--accent-background-20), 0.35);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane__icon > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane__icon
+  > svg {
   width: 22px !important;
   height: 22px !important;
 }
@@ -910,34 +980,49 @@ body {
 }
 
 /* The tab chooser has its own dotted canvas (DotRain), so the body dots don't show through it. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar-frame {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-sidebar-frame {
   background-color: rgb(var(--background-70));
   border-radius: 16px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-sidebar {
   background-color: transparent;
 }
 
 /* Settings density: a roomier sidebar, rows and cards. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-sidebar .flex-col.gap-0\.5 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-sidebar
+  .flex-col.gap-0\.5 {
   gap: 2px;
 }
 /* Only the page you are on gets the fill. The router marks every link on the same route as current, so the rest are reset here. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout a.group[aria-current='page']:not([class*='bg-accent-background-20/10']) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  a.group[aria-current='page']:not([class*='bg-accent-background-20/10']) {
   background-color: transparent;
   color: rgb(var(--background-30));
   font-weight: 400;
 }
 /* Descriptions stop at about 62 characters per line and breathe a little more. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane
+  p {
   max-width: 62ch;
   line-height: 1.6;
 }
 /* Toggle rows in the outlined grids get more height, and the two columns get more space between them. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane label[class*='min-h-[44px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane
+  label[class*='min-h-[44px]'] {
   min-height: 60px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout .settings-pane .gap-x-8 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  .settings-pane
+  .gap-x-8 {
   column-gap: 40px;
 }
 
@@ -947,12 +1032,16 @@ body {
   [class*='text-background-40']:not(svg) {
   color: rgb(var(--background-30));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout label[class*='opacity-50'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  label[class*='opacity-50'] {
   opacity: 0.85;
 }
 
 /* Switches: the off track is easier to see. The round white knobs stay white. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='bg-background-10/[0.14]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='bg-background-10/[0.14]'] {
   background-color: rgba(var(--background-10), 0.3);
 }
 
@@ -964,7 +1053,9 @@ body {
 }
 
 /* Console and other mono text: at least 14px. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='font-mono'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='font-mono'] {
   font-size: max(14px, 0.9em);
 }
 
@@ -972,38 +1063,52 @@ body {
 :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
   .settings-layout
   input:not([type='radio']):not([type='checkbox']),
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout select {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  select {
   min-height: 46px;
   font-size: 16px;
   border-radius: 3px !important;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[42px]'],
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout [class*='min-h-[40px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='min-h-[42px]'],
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  [class*='min-h-[40px]'] {
   min-height: 46px;
 }
 
 /* Keyboard focus: a clear cream ring on every control in the settings and the sidebar. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .settings-layout :focus-visible,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .sidenav :focus-visible {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .settings-layout
+  :focus-visible,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .sidenav
+  :focus-visible {
   outline: 2px solid rgb(var(--background-10));
   outline-offset: 2px;
 }
 
 /* Big titles (MrBun-SlimeVR wordmark, page titles) use PawPad's monospace. Body text stays sans for readability. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .font-serif,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .text-main-title {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .font-serif,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .text-main-title {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   letter-spacing: 0.01em;
 }
 
 /* The sidebar name is wider in monospace, so it gets a little less size and tracking to fit the rail. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .truncate.font-serif {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .truncate.font-serif {
   font-size: 0.85em;
   letter-spacing: -0.03em;
 }
 
 /* Secondary buttons: the same stepped pixel corners, in the cocoa border colour. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-secondary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .app-button-secondary {
   --e: rgb(var(--background-50));
   border-radius: 0 !important;
   box-shadow:
@@ -1014,8 +1119,10 @@ body {
 }
 
 /* Tertiary buttons and the Toolbar's icon buttons get the same stepped corners. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-tertiary,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .toolbar-reset-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .app-button-tertiary,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .toolbar-reset-button {
   --e: rgb(var(--background-50));
   border-radius: 0 !important;
   box-shadow:
@@ -1026,7 +1133,8 @@ body {
 }
 
 /* The Exit Demo button gets stepped pixel corners in the coral border colour. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .demo-exit-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .demo-exit-button {
   --e: rgb(var(--accent-background-20));
   border-radius: 0 !important;
   box-shadow:
@@ -1043,7 +1151,8 @@ body {
 }
 
 /* Primary buttons get stepped pixel corners, the same trick as PawPad's status pill. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-primary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .app-button-primary {
   --e: rgb(var(--accent-background-30));
   /* Dark label on the lighter coral: about 7.5:1, where cream on the old fill was 3.1:1. */
   background-color: rgb(var(--accent-background-30));
@@ -1057,23 +1166,29 @@ body {
 }
 
 /* Slider rails are square pixel bars. The thumb stays a circle. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .apple-slider {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .apple-slider {
   border-radius: 0;
 }
 
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [class*='rounded-']:not([class*='rounded-full']) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  [class*='rounded-']:not([class*='rounded-full']) {
   border-radius: 3px !important;
 }
 
 /* Broadcast panel sets its radius in SCSS, so the rule above misses it. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-panel,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-widget,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .chatbox-hero-bubble {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .chatbox-panel,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .chatbox-widget,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .chatbox-hero-bubble {
   border-radius: 3px !important;
 }
 
 /* Setup: the ESC key is a pixel keycap, and the skip warning is a card like the settings panes. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button {
   --e: rgb(var(--background-50));
   display: flex;
   align-items: center;
@@ -1089,13 +1204,18 @@ body {
     -2px 0 0 0 var(--e),
     2px 0 0 0 var(--e);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:hover {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button:hover {
   --e: rgb(var(--accent-background-20));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button
+  svg {
   display: none;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button
+  p {
   margin: 0;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 14px;
@@ -1103,11 +1223,14 @@ body {
   letter-spacing: 0.08em;
   color: rgb(var(--background-10));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:hover p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button:hover
+  p {
   color: rgb(var(--accent-background-10));
 }
 
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-surface {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-surface {
   border: 1px solid rgba(var(--background-10), 0.1) !important;
   border-radius: 18px !important;
   background-color: rgb(var(--background-70));
@@ -1115,50 +1238,72 @@ body {
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 12px 32px rgba(0, 0, 0, 0.45);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal {
   background-color: transparent;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal__banner {
   height: auto !important;
   padding: 22px 22px 18px;
   background-color: transparent;
   border-bottom: 1px solid rgba(var(--background-10), 0.08);
 }
 /* The icon sits in a coral tile, like the settings icons. The breathing glow is a soft blur, so it goes. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  .animate-warning-breathe {
   width: 56px;
   height: 56px;
   border-radius: 14px !important;
   background-color: rgba(var(--accent-background-20), 0.16);
   border: 1px solid rgba(var(--accent-background-20), 0.35);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe::before {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  .animate-warning-breathe::before {
   display: none;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .animate-warning-breathe > svg {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  .animate-warning-breathe
+  > svg {
   width: 26px;
   height: 26px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal h3 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  h3 {
   font-size: 18px;
   font-weight: 600;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal p {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  p {
   font-size: 15px;
   line-height: 1.6;
   color: rgb(var(--background-20));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal button {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  button {
   min-height: 44px;
   font-size: 15px;
 }
 /* The global 3px corner rule would win on these buttons, so the stepped corners are set again here. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .app-button-primary,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal .app-button-secondary {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  .app-button-primary,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  .app-button-secondary {
   border-radius: 0 !important;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .setup-warning-modal :focus-visible,
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .skip-setup-button:focus-visible {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .setup-warning-modal
+  :focus-visible,
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .skip-setup-button:focus-visible {
   outline: 2px solid rgb(var(--background-10));
   outline-offset: 2px;
 }
@@ -1174,109 +1319,171 @@ body {
   overflow-wrap: break-word;
 }
 @container (min-width: 760px) {
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+    .remote-page
+    > div {
     display: grid !important;
     grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.6fr);
     /* Both columns share the row's height, so the headsets panel and the audio card line up. */
     align-items: stretch;
   }
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > * {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+    .remote-page
+    > div
+    > * {
     grid-column: 1 / -1;
   }
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > .remote-card.group:not(.remote-stream) {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+    .remote-page
+    > div
+    > .remote-card.group:not(.remote-stream) {
     grid-column: 1;
   }
-  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div > .remote-audio {
+  :root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+    .remote-page
+    > div
+    > .remote-audio {
     grid-column: 2;
   }
 }
 
 /* Audio tabs are the card's header: the card hangs straight off them, and its own banner (icon and
    file name) is dropped because the tab already names it. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio__tabs + [data-audio-tab] .remote-stream {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-audio__tabs
+  + [data-audio-tab]
+  .remote-stream {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio__tabs + [data-audio-tab] .remote-stream .remote-card__banner {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-audio__tabs
+  + [data-audio-tab]
+  .remote-stream
+  .remote-card__banner {
   display: none;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio [data-audio-tab],
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-audio [data-audio-tab] > .remote-stream {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-audio
+  [data-audio-tab],
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-audio
+  [data-audio-tab]
+  > .remote-stream {
   flex-grow: 1;
 }
 /* The live level slider spans the card, not a third of it. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > .remote-level.remote-level {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .gap-2\.5
+  > .remote-level.remote-level {
   grid-column: 1 / -1;
 }
 
 /* Audio tab: one card at a time, at full width. The other card stays mounted, so its stream keeps running. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  [data-audio-tab] {
   grid-template-columns: minmax(0, 1fr);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab='game'] > :nth-child(2),
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) [data-audio-tab='mic'] > :nth-child(1) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  [data-audio-tab='game']
+  > :nth-child(2),
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  [data-audio-tab='mic']
+  > :nth-child(1) {
   display: none;
 }
 
 /* Audio cards: codec, bitrate and latency buffer sit in one row inside each card. Header and live level take the full width. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .gap-2\.5 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.5rem;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > * {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .gap-2\.5
+  > * {
   grid-column: 1 / -1;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 > [class*='rounded-[10px]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .gap-2\.5
+  > [class*='rounded-[10px]'] {
   grid-column: auto;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-stream .gap-2\.5 select {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-stream
+  .gap-2\.5
+  select {
   width: 100%;
   min-width: 0;
   text-overflow: ellipsis;
 }
 
 /* Remote page: muted text (subtitles, pills, labels) is brighter, so it reads on the dark cards. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page [class*='text-background-30'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-page
+  [class*='text-background-30'] {
   color: rgb(var(--background-20));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page [class*='text-background-40'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-page
+  [class*='text-background-40'] {
   color: rgb(var(--background-30));
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page button[class*='text-background-30'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-page
+  button[class*='text-background-30'] {
   color: rgb(var(--background-10));
 }
 
 /* Remote page, compact: the whole page is scaled to about 84% and its spacing is tighter, so it fits one screen. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page > div {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-page
+  > div {
   zoom: 0.74;
   gap: 0.5rem !important;
   padding: 0.5rem !important;
 }
 
 /* Quest Mirror Studio: the same raised card as the rest of the Remote page, with the same tiles and type sizes. Bun only. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  section.remote-card {
   background-color: rgb(var(--background-60)) !important;
   border: 1px solid rgba(var(--background-10), 0.08) !important;
   box-shadow:
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 1px 2px rgba(0, 0, 0, 0.25);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .remote-page section.remote-card > div > div:nth-child(2) {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .remote-page
+  section.remote-card
+  > div
+  > div:nth-child(2) {
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.375rem;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='bg-background-10/[0.03]'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  section.remote-card
+  [class*='bg-background-10/[0.03]'] {
   border: 1px solid rgba(var(--background-10), 0.06);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='text-ui-xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  section.remote-card
+  [class*='text-ui-xs'] {
   font-size: 15px;
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) section.remote-card [class*='text-ui-2xs'] {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  section.remote-card
+  [class*='text-ui-2xs'] {
   font-size: 13px;
 }
 /* Disabled start buttons read as disabled: a flat cocoa fill with muted text, not a faded coral. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .app-button-primary:disabled {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .app-button-primary:disabled {
   --e: rgb(var(--background-50));
   background-color: rgba(var(--background-10), 0.08);
   color: rgb(var(--background-30));
@@ -3002,19 +3209,23 @@ a,
 }
 
 /* Bun, Fox and Dog: a stronger glow, on the moving cards and on the pixel icons and ears. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card.tracker-card-moving {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .home-tracker-card.tracker-card-moving {
   border-color: rgba(var(--motion), 0.75);
   box-shadow:
     inset 0 1px 0 0 rgba(250, 249, 245, 0.05),
     0 0 24px -2px rgba(var(--motion), 0.55);
 }
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .pixel-icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .pixel-icon {
   filter: drop-shadow(0 0 2px rgba(var(--accent-background-30), 0.95))
     drop-shadow(0 0 12px rgba(var(--accent-background-30), 0.6));
 }
 
 /* Tracker cards: the pixel glow is for motion only, so a resting card stays quiet. */
-:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog']) .home-tracker-card:not(.tracker-card-moving) .pixel-icon {
+:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])
+  .home-tracker-card:not(.tracker-card-moving)
+  .pixel-icon {
   filter: none;
 }
 /* A moving tracker's icon gives a short wiggle instead of a MOVING chip. */
@@ -3066,7 +3277,8 @@ a,
    heavier borders. */
 .home-tracker-card {
   box-shadow:
-    inset 0 1px 0 0 color-mix(in srgb, rgb(var(--background-10)) 10%, transparent),
+    inset 0 1px 0 0
+      color-mix(in srgb, rgb(var(--background-10)) 10%, transparent),
     0 10px 24px rgba(0, 0, 0, 0.4);
 }
 

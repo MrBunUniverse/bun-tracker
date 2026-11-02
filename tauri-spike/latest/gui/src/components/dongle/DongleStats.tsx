@@ -150,22 +150,49 @@ export function DonglePill() {
   );
 }
 
-function Stat({ label, value, bad }: { label: string; value: string; bad?: boolean }) {
+function Stat({
+  label,
+  value,
+  bad,
+}: {
+  label: string;
+  value: string;
+  bad?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-1 rounded-[10px] bg-background-70 px-3 py-2.5">
       <span className="text-ui-2xs text-background-30">{label}</span>
-      <span className={classNames('tnum text-ui-md font-medium', bad ? 'text-status-critical' : 'text-background-10')}>
+      <span
+        className={classNames(
+          'tnum text-ui-md font-medium',
+          bad ? 'text-status-critical' : 'text-background-10'
+        )}
+      >
         {value}
       </span>
     </div>
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: string; tone?: 'warning' | 'critical' }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: 'warning' | 'critical';
+}) {
   return (
     <div className="min-w-0">
       <dt className="text-ui-2xs text-background-30">{label}</dt>
-      <dd className={classNames(tone === 'critical' && 'text-status-critical', tone === 'warning' && 'text-status-warning', !tone && 'text-background-10')}>
+      <dd
+        className={classNames(
+          tone === 'critical' && 'text-status-critical',
+          tone === 'warning' && 'text-status-warning',
+          !tone && 'text-background-10'
+        )}
+      >
         {value}
       </dd>
     </div>
@@ -219,7 +246,8 @@ function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
       <div className="text-background-20">
         <StatusDot tone="warn" label="Dongle bridge not running" />
         <p className="mt-3 text-ui-xs">
-          Start <code>tools/esp32-dongle/bridge.py</code>; it serves live stats on {STATS_URL}.
+          Start <code>tools/esp32-dongle/bridge.py</code>; it serves live stats
+          on {STATS_URL}.
         </p>
         <StartBridgeButton />
       </div>
@@ -231,48 +259,93 @@ function DongleStatsPanel({ snap }: { snap: DongleSnapshot | null }) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-4">
         <StatusDot tone="ok" label={`${snap.port} @ ${snap.baud}`} />
-        <span className="text-ui-xs text-background-30">updates every 0.5 s</span>
+        <span className="text-ui-xs text-background-30">
+          updates every 0.5 s
+        </span>
       </div>
 
       {/* Fills the popup's width, not the window's. */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
-        <Stat label="Link load (ESP32 → Mac)" value={`${snap.link_in}%`} bad={snap.link_in > 60} />
+        <Stat
+          label="Link load (ESP32 → Mac)"
+          value={`${snap.link_in}%`}
+          bad={snap.link_in > 60}
+        />
         <Stat label="Packets up" value={String(snap.up)} />
         <Stat label="Packets down" value={String(snap.down)} />
         <Stat label="Bad frames" value={String(snap.bad_frames)} />
-        <Stat label="Dropped (ESP32)" value={String(esp.dropped ?? '–')} bad={Number(esp.dropped) > 0} />
+        <Stat
+          label="Dropped (ESP32)"
+          value={String(esp.dropped ?? '–')}
+          bad={Number(esp.dropped) > 0}
+        />
         <Stat label="Clients on ESP32" value={String(esp.clients ?? '–')} />
-        <Stat label="Wi-Fi RTT avg/max" value={String(esp.wifi_rtt_ms ?? '–')} />
-        <Stat label="ESP32 free heap" value={esp.heap ? `${Math.round(Number(esp.heap) / 1024)} KB` : '–'} />
+        <Stat
+          label="Wi-Fi RTT avg/max"
+          value={String(esp.wifi_rtt_ms ?? '–')}
+        />
+        <Stat
+          label="ESP32 free heap"
+          value={esp.heap ? `${Math.round(Number(esp.heap) / 1024)} KB` : '–'}
+        />
       </div>
 
       <div className="flex flex-col gap-2">
         {snap.trackers.map((t) => (
-          <div key={t.ip} className="rounded-[10px] bg-background-70 px-3 py-2.5">
-            <div className="mb-1.5 text-ui-xs font-medium text-background-10">Tracker .{t.id}</div>
+          <div
+            key={t.ip}
+            className="rounded-[10px] bg-background-70 px-3 py-2.5"
+          >
+            <div className="mb-1.5 text-ui-xs font-medium text-background-10">
+              Tracker .{t.id}
+            </div>
             <dl className="tnum grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-x-3 gap-y-1.5 text-ui-xs">
               <Metric label="Packets/s" value={String(t.pps)} />
-              <Metric label="Last seen" value={`${ms(t.age_ms)} ago`} tone={t.age_ms > 750 ? 'critical' : undefined} />
-              <Metric label="Longest gap" value={ms(t.gap_max_ms)} tone={t.gap_max_ms > 750 ? 'warning' : undefined} />
-              <Metric label="RTT min/avg/max" value={t.rtt_avg === null ? '–' : `${t.rtt_min}/${t.rtt_avg}/${t.rtt_max} ms`} />
+              <Metric
+                label="Last seen"
+                value={`${ms(t.age_ms)} ago`}
+                tone={t.age_ms > 750 ? 'critical' : undefined}
+              />
+              <Metric
+                label="Longest gap"
+                value={ms(t.gap_max_ms)}
+                tone={t.gap_max_ms > 750 ? 'warning' : undefined}
+              />
+              <Metric
+                label="RTT min/avg/max"
+                value={
+                  t.rtt_avg === null
+                    ? '–'
+                    : `${t.rtt_min}/${t.rtt_avg}/${t.rtt_max} ms`
+                }
+              />
               <Metric label="Spikes >100ms" value={String(t.spikes)} />
               <Metric label="Hiccups >750ms" value={String(t.hiccups)} />
             </dl>
           </div>
         ))}
         {snap.trackers.length === 0 && (
-          <div className="rounded-[10px] bg-background-70 px-3 py-2.5 text-ui-xs text-background-30">No tracker has sent a packet yet.</div>
+          <div className="rounded-[10px] bg-background-70 px-3 py-2.5 text-ui-xs text-background-30">
+            No tracker has sent a packet yet.
+          </div>
         )}
       </div>
 
       <div className="rounded-[10px] bg-background-70 p-4">
-        <div className="mb-2 text-ui-xs text-background-30">Recent spikes and hiccups</div>
-        {snap.events.length === 0 && <div className="text-ui-xs text-background-20">None yet.</div>}
+        <div className="mb-2 text-ui-xs text-background-30">
+          Recent spikes and hiccups
+        </div>
+        {snap.events.length === 0 && (
+          <div className="text-ui-xs text-background-20">None yet.</div>
+        )}
         <ul className="tnum flex flex-col gap-1 text-ui-xs text-background-10">
           {[...snap.events].reverse().map((e, i) => (
             <li key={i}>
-              {Math.max(0, Math.round(now - e.t))} s ago · tracker .{e.tracker} ·{' '}
-              {e.kind === 'spike' ? `ping spike ${e.ms} ms` : `silent for ${e.ms} ms`}
+              {Math.max(0, Math.round(now - e.t))} s ago · tracker .{e.tracker}{' '}
+              ·{' '}
+              {e.kind === 'spike'
+                ? `ping spike ${e.ms} ms`
+                : `silent for ${e.ms} ms`}
             </li>
           ))}
         </ul>

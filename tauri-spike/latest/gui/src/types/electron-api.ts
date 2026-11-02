@@ -1,9 +1,29 @@
-import {
-  OpenDialogOptions,
-  OpenDialogReturnValue,
-  SaveDialogOptions,
-  SaveDialogReturnValue,
-} from 'electron';
+// Contract for window.electronAPI. The name is kept for compatibility: the Tauri shell
+// (tauri-spike/src-tauri/shim/electron-shim.js) injects an object with this shape.
+// Methods the shell does not implement are optional or are no-ops there.
+
+export type OpenDialogOptions = {
+  title?: string;
+  defaultPath?: string;
+  filters?: { name: string; extensions: string[] }[];
+  properties?: ('openFile' | 'openDirectory' | 'multiSelections')[];
+};
+
+export type OpenDialogReturnValue = {
+  canceled: boolean;
+  filePaths: string[];
+};
+
+export type SaveDialogOptions = {
+  title?: string;
+  defaultPath?: string;
+  filters?: { name: string; extensions: string[] }[];
+};
+
+export type SaveDialogReturnValue = {
+  canceled: boolean;
+  filePath: string;
+};
 
 export type ServerStatusEvent = {
   type: 'stdout' | 'stderr' | 'error' | 'terminated' | 'other';

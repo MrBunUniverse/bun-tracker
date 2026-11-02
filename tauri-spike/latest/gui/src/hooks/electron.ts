@@ -1,4 +1,4 @@
-import { IElectronAPI, OSStats } from 'electron/preload/interface';
+import { IElectronAPI, OSStats } from '@/types/electron-api';
 import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 type CachedData = {

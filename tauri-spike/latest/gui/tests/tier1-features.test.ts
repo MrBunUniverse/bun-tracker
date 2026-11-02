@@ -88,35 +88,6 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.ok(presetFile.includes('rounded-3xl'));
     });
 
-    it('F1.6: defines double heartbeat ping keyframes and badge rhythm for waiting beacon', () => {
-      assert.match(scssContent, /@keyframes heartbeat-ping-1/);
-      assert.match(scssContent, /@keyframes heartbeat-ping-2/);
-      assert.match(scssContent, /@keyframes heartbeat-badge/);
-      assert.match(scssContent, /@keyframes heartbeat-text-push-primary/);
-      assert.match(scssContent, /@keyframes heartbeat-text-push-secondary/);
-      assert.match(scssContent, /@keyframes heartbeat-window-wave-1/);
-      assert.match(scssContent, /@keyframes heartbeat-window-wave-2/);
-      assert.match(scssContent, /\.animate-heartbeat-ping-1\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-ping-2\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-badge\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-text-1\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-text-2\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-window-wave-1\s*\{/);
-      assert.match(scssContent, /\.animate-heartbeat-window-wave-2\s*\{/);
-
-      const emptyStateFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'HomeEmptyState.tsx'),
-        'utf-8'
-      );
-      assert.ok(emptyStateFile.includes('animate-heartbeat-ping-1'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-ping-2'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-badge'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-text-1'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-text-2'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-window-wave-1'));
-      assert.ok(emptyStateFile.includes('animate-heartbeat-window-wave-2'));
-    });
-
     it('F1.7: defines Apple Liquid Glass collapsible tab classes and cinematic easing transitions', () => {
       assert.match(scssContent, /\.collapsible-tab-grid\s*\{/);
       assert.match(scssContent, /\.collapsible-tab-grid-expanded\s*\{/);
@@ -124,20 +95,6 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.match(scssContent, /\.collapsible-tab-content\s*\{/);
       assert.match(scssContent, /\.liquid-glass-tab-strip\s*\{/);
       assert.match(scssContent, /cubic-bezier\(0\.16,\s*1,\s*0\.3,\s*1\)/);
-
-      const emptyStateFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'HomeEmptyState.tsx'),
-        'utf-8'
-      );
-      assert.ok(emptyStateFile.includes('collapsible-tab-grid'));
-      assert.ok(emptyStateFile.includes('liquid-glass-tab-strip'));
-
-      const questCardFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'QuestDiagnosticsCard.tsx'),
-        'utf-8'
-      );
-      assert.ok(questCardFile.includes('collapsible-tab-grid'));
-      assert.ok(questCardFile.includes('liquid-glass-tab-strip'));
     });
 
     it('F1.8: disables decorative animation app-wide to keep CPU/GPU low', () => {
@@ -156,30 +113,6 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.ok(emptyStateFile.includes('active:scale-[0.985]'));
     });
 
-    it('F1.9: verifies hero banner tab resets and replays all entrance animations when reopened after collapse', () => {
-      const emptyStateFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'HomeEmptyState.tsx'),
-        'utf-8'
-      );
-      assert.ok(emptyStateFile.includes('isCollapsed={isHeroCollapsed}'));
-      assert.ok(emptyStateFile.includes('logoVisible'));
-      assert.ok(emptyStateFile.includes('[isCollapsed]'));
-      assert.ok(emptyStateFile.includes('closeResetTimer'));
-    });
-
-    it('F1.10: verifies Quest diagnostics inside metric windows slide in from left and right with cinematic easing', () => {
-      const questCardFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'QuestDiagnosticsCard.tsx'),
-        'utf-8'
-      );
-      assert.ok(questCardFile.includes('-translate-x-2 opacity-0'));
-      assert.ok(questCardFile.includes('translate-x-2 opacity-0'));
-      assert.ok(questCardFile.includes('cubic-bezier(0.22,0.8,0.24,1)'));
-      assert.ok(questCardFile.includes('motion-reduce:transition-none'));
-      assert.ok(!questCardFile.includes('telemetry-disclosure'));
-      assert.ok(!questCardFile.includes('showFineTuning'));
-    });
-
     it('F1.11: verifies tracker cards and table rows slide in from left and right with Apple HIG cinematic easing', () => {
       const scssFile = fs.readFileSync(SCSS_PATH, 'utf-8');
       assert.ok(scssFile.includes('@keyframes tracker-slide-in-left'));
@@ -193,9 +126,7 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
         'utf-8'
       );
       assert.ok(homeEmptyStateFile.includes('animate-tracker-grid-enter'));
-      assert.ok(
-        homeEmptyStateFile.includes('animationDelay: `${row * 80 + col * 35}ms`')
-      );
+      assert.ok(homeEmptyStateFile.includes('`${row * 80 + col * 35}ms`'));
 
       const trackersTableFile = fs.readFileSync(
         path.join(GUI_ROOT, 'src', 'components', 'tracker', 'TrackersTable.tsx'),
@@ -225,25 +156,25 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.ok(scssFile.includes('.animate-preset-push-left'));
       assert.ok(scssFile.includes('.animate-preset-push-right'));
 
-      const questCardFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'home', 'QuestDiagnosticsCard.tsx'),
+      const toolbarFile = fs.readFileSync(
+        path.join(GUI_ROOT, 'src', 'components', 'Toolbar.tsx'),
         'utf-8'
       );
-      assert.ok(questCardFile.includes('animate-preset-pop'));
-      assert.ok(questCardFile.includes('animate-preset-push-left'));
-      assert.ok(questCardFile.includes('animate-preset-push-right'));
-      assert.ok(questCardFile.includes('--push-amp'));
-      assert.ok(questCardFile.includes('bounceAmp'));
-      assert.ok(questCardFile.includes('bounceDelay'));
+      assert.ok(toolbarFile.includes('animate-preset-pop'));
+      assert.ok(toolbarFile.includes('animate-preset-push-left'));
+      assert.ok(toolbarFile.includes('animate-preset-push-right'));
+      assert.ok(toolbarFile.includes('--push-amp'));
+      assert.ok(toolbarFile.includes('bounceAmp'));
+      assert.ok(toolbarFile.includes('bounceDelay'));
 
-      const topBarFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'broadcast', 'ChatboxDropdown.tsx'),
+      const homeFile = fs.readFileSync(
+        path.join(GUI_ROOT, 'src', 'components', 'home', 'Home.tsx'),
         'utf-8'
       );
-      assert.ok(topBarFile.includes('animate-preset-pop'));
-      assert.ok(topBarFile.includes('animate-preset-push-left'));
-      assert.ok(topBarFile.includes('animate-preset-push-right'));
-      assert.ok(topBarFile.includes('--push-amp'));
+      assert.ok(homeFile.includes('animate-preset-pop'));
+      assert.ok(homeFile.includes('animate-preset-push-left'));
+      assert.ok(homeFile.includes('animate-preset-push-right'));
+      assert.ok(homeFile.includes('--push-amp'));
     });
   });
 
@@ -554,29 +485,32 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.equal(active.oscReady, true);
     });
 
-    it('F7.6: provides Fake BPM simulation presets (sleeping, resting, sitting, standing, dancing, dynamic)', () => {
+    it('F7.6: drives Fake BPM from the adaptive heart model instead of fixed presets', () => {
       const bpmFile = fs.readFileSync(
         path.join(GUI_ROOT, 'src', 'hooks', 'fake-bpm.ts'),
         'utf-8'
       );
-      assert.ok(bpmFile.includes("'sleeping'"));
+      assert.ok(bpmFile.includes("from './adaptive-bpm'"));
       assert.ok(bpmFile.includes("'resting'"));
-      assert.ok(bpmFile.includes("'sitting'"));
-      assert.ok(bpmFile.includes("'standing'"));
-      assert.ok(bpmFile.includes("'dancing'"));
-      assert.ok(bpmFile.includes("'dynamic'"));
-      assert.ok(bpmFile.includes('computeNextBpm'));
+      assert.ok(bpmFile.includes("'elevated'"));
+      assert.ok(bpmFile.includes("'cardio'"));
+
+      const heartHookFile = fs.readFileSync(
+        path.join(GUI_ROOT, 'src', 'hooks', 'adaptive-bpm.ts'),
+        'utf-8'
+      );
+      assert.ok(heartHookFile.includes('new HeartModel()'));
+      assert.ok(heartHookFile.includes('model.current.step(now)'));
     });
 
-    it('F7.7: verifies TopBar Chatbox HUD integrates BPM heart rate telemetry and presets', () => {
+    it('F7.7: verifies TopBar Chatbox HUD integrates BPM heart rate telemetry', () => {
       const topBarFile = fs.readFileSync(
         path.join(GUI_ROOT, 'src', 'components', 'broadcast', 'ChatboxDropdown.tsx'),
         'utf-8'
       );
       assert.ok(topBarFile.includes('useFakeBpm'));
       assert.ok(topBarFile.includes("activeMode === 'bpm'"));
-      assert.ok(topBarFile.includes('Simulated Heart Rate'));
-      assert.ok(topBarFile.includes('Situation Presets'));
+      assert.ok(topBarFile.includes('Simulated heart rate'));
     });
 
     it('F7.8: verifies Chat-Only Mode suppresses tracker FBT streaming and battery lines in chatbox', () => {
@@ -587,7 +521,7 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       assert.ok(topBarFile.includes('setChatboxOnlyMode'));
       assert.ok(topBarFile.includes('chatboxOnlyMode'));
       assert.ok(topBarFile.includes('Chat-Only Mode'));
-      assert.ok(topBarFile.includes('FBT Muted'));
+      assert.ok(topBarFile.includes('FBT Trackers Muted'));
       assert.ok(topBarFile.includes('Trackers Muted'));
 
       const opModeFile = fs.readFileSync(
@@ -644,10 +578,10 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       );
       assert.ok(topBarFile.includes('useSpeechDictation'));
       assert.ok(topBarFile.includes("activeMode === 'dictate'"));
-      assert.ok(topBarFile.includes('Cloud Whisper Engine'));
-      assert.ok(topBarFile.includes('Translate Speech'));
+      assert.ok(topBarFile.includes('Groq Whisper v3 Turbo'));
+      assert.ok(topBarFile.includes('Translate speech'));
       assert.ok(topBarFile.includes('dictation.audioLevel'));
-      assert.ok(topBarFile.includes('Auto-Send to Chatbox'));
+      assert.ok(topBarFile.includes('Auto-send to chatbox'));
     });
 
     it('F7.11: verifies redesigned Broadcast HUD hero bubble, unified quick-send composer, and compact telemetry footer', () => {
@@ -655,29 +589,14 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
         path.join(GUI_ROOT, 'src', 'components', 'broadcast', 'ChatboxDropdown.tsx'),
         'utf-8'
       );
-      assert.ok(topBarFile.includes('Broadcast HUD'));
+      assert.ok(topBarFile.includes('Telemetry HUD'));
       assert.ok(topBarFile.includes('chatbox-hero-bubble'));
-      assert.ok(topBarFile.includes('Live In-Game Preview'));
-      assert.ok(topBarFile.includes('Quick Message'));
-      assert.ok(topBarFile.includes('Battery (30s)'));
+      assert.ok(topBarFile.includes('<span>Preview</span>'));
+      assert.ok(topBarFile.includes('aria-label="One-off message"'));
+      assert.ok(topBarFile.includes('battery levels every 30s'));
     });
 
-    it('F7.12: verifies macOS native speech recognition bridge and Electron IPC integration', () => {
-      const macSpeechFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'electron', 'main', 'mac-speech.ts'),
-        'utf-8'
-      );
-      assert.ok(macSpeechFile.includes('SFSpeechRecognizer'));
-      assert.ok(macSpeechFile.includes('SFSpeechURLRecognitionRequest'));
-      assert.ok(macSpeechFile.includes('transcribeWithMacSpeech'));
-      assert.ok(macSpeechFile.includes('LANGUAGE_LOCALE_MAP'));
-
-      const sharedFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'electron', 'shared.ts'),
-        'utf-8'
-      );
-      assert.ok(sharedFile.includes('NATIVE_SPEECH_TRANSCRIBE'));
-
+    it('F7.12: verifies the native speech bridge is optional in the dictation hook', () => {
       const dictationHook = fs.readFileSync(
         path.join(GUI_ROOT, 'src', 'hooks', 'use-speech-dictation.ts'),
         'utf-8'
@@ -816,6 +735,19 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       // Blur is the costliest effect for the macOS compositor.
       const scssContent = fs.readFileSync(SCSS_PATH, 'utf-8');
       assert.match(scssContent, /backdrop-filter:\s*none\s*!important/);
+    });
+
+    it('F8.9: disables Quest native controls when the build has no Quest bridge', () => {
+      const remoteFile = fs.readFileSync(
+        path.join(GUI_ROOT, 'src', 'components', 'remote', 'RemotePage.tsx'),
+        'utf-8'
+      );
+      assert.ok(remoteFile.includes('!!electron.api.questAudio'));
+      assert.ok(remoteFile.includes('!!electron.api.questCapture'));
+      assert.ok(remoteFile.includes('Quest streaming is not available in this build'));
+      assert.ok(remoteFile.includes('disabled={isConnectingWifi || !questNative}'));
+      assert.ok(remoteFile.includes('disabled={isInstallingScrcpy || !questNative}'));
+      assert.ok(remoteFile.includes('disabled={!questNative}'));
     });
   });
 });

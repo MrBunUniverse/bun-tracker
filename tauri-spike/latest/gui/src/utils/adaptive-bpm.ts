@@ -153,7 +153,8 @@ export class HeartModel {
     // Effort counts when it's sustained, so a quick wave of the arm barely registers.
     this.liveActivity += (weighted / weights - this.liveActivity) * ease(dt, 3);
 
-    const mean = (values: number[]) => values.reduce((s, v) => s + v, 0) / values.length;
+    const mean = (values: number[]) =>
+      values.reduce((s, v) => s + v, 0) / values.length;
     const torsoVertical = mean(torso);
     const thighVertical = mean(thighs);
     const candidate: ActivityPosture =
@@ -202,7 +203,8 @@ export class HeartModel {
     const exertion = clamp01((this.fast + this.slow) / Math.max(1, reserve));
     const breathPeriod = 4.6 - 2.2 * exertion;
     this.breathPhase = (this.breathPhase + dt / breathPeriod) % 1;
-    const breathing = (2.5 * (1 - exertion) + 0.4) * Math.sin(2 * Math.PI * this.breathPhase);
+    const breathing =
+      (2.5 * (1 - exertion) + 0.4) * Math.sin(2 * Math.PI * this.breathPhase);
 
     this.bpm = Math.min(
       maxBpm,

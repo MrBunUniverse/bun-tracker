@@ -13,6 +13,7 @@ import {
   DoubleSide,
   Euler,
   Group,
+  LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
@@ -77,8 +78,22 @@ const BUN_PALETTE: IMUPalette = {
 // Fox and Dog: Bun's preview in their own coat colours.
 const PAW_PALETTES: Record<string, IMUPalette> = {
   bun: BUN_PALETTE,
-  fox: { ...BUN_PALETTE, model: 0xd9651e, ground: 0xd6c0a3, accel: 0xf2995a, mag: 0xd6c0a3, axes: 0xf7e6cc },
-  dog: { ...BUN_PALETTE, model: 0xd9a24a, ground: 0xd6c4a3, accel: 0xf2a39a, mag: 0xd6c4a3, axes: 0xf5e9d3 },
+  fox: {
+    ...BUN_PALETTE,
+    model: 0xd9651e,
+    ground: 0xd6c0a3,
+    accel: 0xf2995a,
+    mag: 0xd6c0a3,
+    axes: 0xf7e6cc,
+  },
+  dog: {
+    ...BUN_PALETTE,
+    model: 0xd9a24a,
+    ground: 0xd6c4a3,
+    accel: 0xf2a39a,
+    mag: 0xd6c4a3,
+    axes: 0xf5e9d3,
+  },
 };
 const MODEL_SCALE = 6.5;
 const CANVAS_HEIGHT = 200;
@@ -196,7 +211,11 @@ async function initializeIMUVisualizer(
   trackerGroup.add(modelGroup);
 
   const axesHelper = new AxesHelper(height < 150 ? 3.2 : 10);
-  if (palette.axes != null) {
+  // AxesHelper always builds a single LineBasicMaterial; the check narrows the typed union.
+  if (
+    palette.axes != null &&
+    axesHelper.material instanceof LineBasicMaterial
+  ) {
     axesHelper.material.vertexColors = false;
     axesHelper.material.color.setHex(palette.axes);
     axesHelper.material.needsUpdate = true;

@@ -121,10 +121,7 @@ export function StatusCluster() {
         )}
       >
         <StatusDot tone={serverTone} label={`${serverLabel} ${serverText}`} />
-        <StatusDot
-          tone={isQuestStandalone ? 'ok' : 'idle'}
-          label={modeText}
-        />
+        <StatusDot tone={isQuestStandalone ? 'ok' : 'idle'} label={modeText} />
         {/* The tracker count lives once, in the Home toolbar; the open panel still lists it. */}
         <svg
           width="12"

@@ -41,7 +41,9 @@ function loadProfile(): HeartProfile {
 }
 
 export function useFakeBpm() {
-  const [enabled, setEnabledState] = useState(() => stored(STORAGE_KEY_ENABLED) === 'true');
+  const [enabled, setEnabledState] = useState(
+    () => stored(STORAGE_KEY_ENABLED) === 'true'
+  );
   const [profile, setProfileState] = useState(loadProfile);
 
   const heart = useHeartRate(enabled, profile);
@@ -61,7 +63,7 @@ export function useFakeBpm() {
   }, []);
 
   const bpm = heart.bpm;
-  const zone =
+  const zone: 'resting' | 'normal' | 'elevated' | 'cardio' =
     bpm < profile.restingBpm + 2
       ? 'resting'
       : bpm < profile.restingBpm + 20
