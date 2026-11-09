@@ -1,6 +1,15 @@
 import { useLocalization } from '@fluent/react';
 import classNames from 'classnames';
-import { MouseEventHandler, ReactNode, useMemo, useState } from 'react';
+import {
+  FocusEvent,
+  MouseEventHandler,
+  PointerEvent,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Label,
   UpdateBoneParams,
@@ -14,6 +23,93 @@ import {
 } from '@/components/commons/icon/ArrowIcons';
 import { Tooltip } from '@/components/commons/Tooltip';
 import { useBreakpoint } from '@/hooks/breakpoint';
+import {
+  BoneHighlight,
+  partsForRow,
+  rowForPart,
+} from '@/utils/proportion-highlight';
+import { BodyPart } from 'solarxr-protocol';
+
+export type OnHighlight = (parts: BoneHighlight | null) => void;
+
+/** A bone clicked in the preview; `n` changes on every click so the same bone can be picked again. */
+export type BonePick = { part: BodyPart; n: number };
+type FlashTarget = { label: string; parent: string | null };
+
+// How long a row picked from the preview stays lit.
+const FLASH_MS = 1400;
+// The group's open transition (0.2s) has to finish before its child can be scrolled to.
+const GROUP_OPEN_MS = 220;
+
+// How long a touched row stays highlighted after the finger lifts: there is no hover to hold it.
+const TOUCH_HOLD_MS = 1500;
+
+// Asks the preview to highlight the bones of a row while the pointer or keyboard focus is on it. Pointer and focus
+// are tracked apart so leaving one doesn't clear the other, and nothing here moves focus.
+function useRowHighlight(
+  parts: BoneHighlight | null,
+  onHighlight?: OnHighlight
+) {
+  const flags = useRef({ hover: false, focus: false, touch: false });
+  const shown = useRef(false);
+  const timer = useRef<number>();
+  const latest = useRef({ parts, onHighlight });
+  latest.current = { parts, onHighlight };
+
+  const sync = () => {
+    const { hover, focus, touch } = flags.current;
+    const on = hover || focus || touch;
+    if (on === shown.current) return;
+    shown.current = on;
+    latest.current.onHighlight?.(on ? latest.current.parts : null);
+  };
+
+  // A row that disappears while shown (the view switched) must not leave its bones lit.
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current);
+      if (shown.current) latest.current.onHighlight?.(null);
+    },
+    []
+  );
+
+  if (!parts || !onHighlight) return {};
+  return {
+    onPointerEnter: (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
+      flags.current.hover = true;
+      sync();
+    },
+    onPointerLeave: (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
+      flags.current.hover = false;
+      sync();
+    },
+    onPointerDown: (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      window.clearTimeout(timer.current);
+      flags.current.touch = true;
+      sync();
+    },
+    onPointerUp: (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => {
+        flags.current.touch = false;
+        sync();
+      }, TOUCH_HOLD_MS);
+    },
+    onFocus: () => {
+      flags.current.focus = true;
+      sync();
+    },
+    onBlur: (e: FocusEvent) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+      flags.current.focus = false;
+      sync();
+    },
+  };
+}
 
 function IncrementButton({
   children,
@@ -21,11 +117,12 @@ function IncrementButton({
   bgDark,
 }: {
   children: ReactNode;
-  onClick?: MouseEventHandler<HTMLDivElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   bgDark: boolean;
 }) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
       className={classNames(
         'no-user-drag p-2 rounded-xl xs:w-10 xs:h-10 flex flex-col justify-center items-center cursor-pointer select-none transition-all',
@@ -39,7 +136,7 @@ function IncrementButton({
       <Typography variant="vr-accessible" bold>
         {children}
       </Typography>
-    </div>
+    </button>
   );
 }
 
@@ -77,13 +174,18 @@ function ProportionItem({
   part,
   precise,
   onBoneChange,
+  onHighlight,
+  flash,
 }: {
   type: 'linear' | 'ratio';
   part: Label;
   precise: boolean;
   onBoneChange: (params: UpdateBoneParams) => void;
+  onHighlight?: OnHighlight;
+  flash?: FlashTarget | null;
 }) {
   const { l10n } = useLocalization();
+  const highlightProps = useRowHighlight(partsForRow(part), onHighlight);
   const { currentLocales } = useLocaleConfig();
 
   const { cmFormat, percentageFormat, configFormat } = useMemo(() => {
@@ -108,6 +210,32 @@ function ProportionItem({
   }, [currentLocales]);
 
   const [open, setOpen] = useState(false);
+
+  // Picked from the preview: open the group that holds the row, then scroll the row into view and light it briefly.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [flashing, setFlashing] = useState(false);
+  useEffect(() => {
+    if (!flash) return;
+    if (flash.parent === part.label) setOpen(true);
+    if (flash.label !== part.label) return;
+    const delay = flash.parent ? GROUP_OPEN_MS : 0;
+    const reduce = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+    const show = window.setTimeout(() => {
+      rowRef.current?.scrollIntoView({
+        block: 'center',
+        behavior: reduce ? 'auto' : 'smooth',
+      });
+      setFlashing(true);
+    }, delay);
+    const hide = window.setTimeout(() => setFlashing(false), delay + FLASH_MS);
+    return () => {
+      window.clearTimeout(show);
+      window.clearTimeout(hide);
+      setFlashing(false);
+    };
+  }, [flash, part.label]);
 
   const toggleOpen = () => {
     if (part.type === 'bone') return;
@@ -150,10 +278,16 @@ function ProportionItem({
     <div className={classNames('flex flex-col rounded-md overflow-clip')}>
       <div
         key={part.label}
+        ref={rowRef}
         itemID={part.label}
+        {...highlightProps}
         className={classNames(
-          'flex justify-center gap-6 mobile:gap-2 p-2 mobile:pt-0 mobile:px-2 px-4',
-          part.type === 'group-part' ? 'bg-background-50' : 'bg-background-70'
+          'flex justify-center gap-6 mobile:gap-2 p-2 mobile:pt-0 mobile:px-2 px-4 transition-[box-shadow,background-color] duration-300',
+          flashing
+            ? 'bg-accent-background-20/20 ring-2 ring-inset ring-accent-background-30'
+            : part.type === 'group-part'
+              ? 'bg-background-50'
+              : 'bg-background-70'
         )}
       >
         <div
@@ -282,6 +416,8 @@ function ProportionItem({
                 precise={precise}
                 part={part}
                 onBoneChange={onBoneChange}
+                onHighlight={onHighlight}
+                flash={flash}
               />
             ))}
           </div>
@@ -295,14 +431,23 @@ export function BodyProportions({
   precise,
   type,
   variant: _variant = 'onboarding',
+  onHighlight,
+  pick,
 }: {
   precise: boolean;
   type: 'linear' | 'ratio';
   variant: 'onboarding' | 'alone';
+  onHighlight?: OnHighlight;
+  pick?: BonePick | null;
 }) {
   const { bodyPartsGrouped, changeBoneValue } = useManualProportions({
     type,
   });
+  // Resolved once per click (not on every value update), so a later edit doesn't re-flash the row.
+  const flash = useMemo(
+    () => pick && rowForPart(bodyPartsGrouped, pick.part),
+    [pick]
+  );
 
   return (
     (bodyPartsGrouped.length > 0 && (
@@ -315,6 +460,8 @@ export function BodyProportions({
               part={part}
               precise={precise}
               onBoneChange={changeBoneValue}
+              onHighlight={onHighlight}
+              flash={flash}
             />
           ))}
         </div>

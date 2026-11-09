@@ -303,9 +303,9 @@ export function TrackersAssignPage() {
         onClose={() => closeChokerWarning(true)}
         accept={() => closeChokerWarning(false)}
       />
-      <div className="w-full h-full xs:p-4 p-2 flex justify-center">
+      <div className="w-full h-full px-6 smol:px-12 py-6 sm:py-8 flex justify-center">
         <div className="flex xs:gap-4 w-full max-w-screen-xl flex-col md:flex-row">
-          <div className="flex flex-col xs:gap-3 gap-2 w-full md:max-w-md">
+          <div className="flex flex-col xs:gap-3 gap-2 w-full md:max-w-md self-start">
             <Typography variant="main-title" color="accent">
               {l10n.getString('onboarding-assign_trackers-title')}
             </Typography>

@@ -7,7 +7,7 @@ import {
   SettingsPageLayout,
   SettingsPagePaneLayout,
 } from '@/components/settings/SettingsPageLayout';
-import { defaultConfig, useConfig } from '@/hooks/config';
+import { useConfig } from '@/hooks/config';
 
 // Each special theme is a `:root[data-theme='…']` block in index.scss.
 // Bun, Fox and Dog come from PawPad's bunny, red fox and golden dog. They share one layout (isPawTheme).
@@ -31,13 +31,6 @@ export function SpecialThemesSettings() {
       theme: 'dog',
       title: l10n.getString('settings-special-themes-dog-title'),
       description: l10n.getString('settings-special-themes-dog-description'),
-    },
-    {
-      theme: defaultConfig.theme,
-      title: l10n.getString('settings-special-themes-default-title'),
-      description: l10n.getString(
-        'settings-special-themes-default-description'
-      ),
     },
   ];
 

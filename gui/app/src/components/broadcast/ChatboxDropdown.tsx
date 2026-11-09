@@ -26,7 +26,14 @@ import { demoModeAtom, DEMO_TRACKERS_SET } from '@/store/demo-trackers';
 import { useElectron } from '@/hooks/electron';
 import { openUrl } from '@/hooks/crossplatform';
 import { useOperatingMode } from '@/hooks/operating-mode';
+import { StatusBarTile } from '@/components/shell/StatusBarTile';
 import { useTopBarPopover } from '@/hooks/top-bar-popover';
+import {
+  barPopover,
+  barRoot,
+  barTrigger,
+  useStatusBarMode,
+} from '@/components/shell/status-bar-mode';
 import { useFakeBpm } from '@/hooks/fake-bpm';
 import {
   useSpeechDictation,
@@ -306,6 +313,7 @@ export function ChatboxDropdown({
   variant?: 'side' | 'top';
 }) {
   const isTop = variant === 'top';
+  const bar = useStatusBarMode();
   const [isOpen, setIsOpen] = useState(false);
   const [isPanelMounted, setIsPanelMounted] = useState(false);
   const panelExitTimerRef = useRef<number | null>(null);
@@ -407,6 +415,26 @@ export function ChatboxDropdown({
     }
   );
   dictationStickySecondsRef.current = dictation.settings.stickySeconds;
+
+  const micSelect = (
+    <select
+      value={dictation.selectedInputId}
+      onChange={(e) => void dictation.selectInput(e.target.value)}
+      onFocus={() => dictation.refreshDevices()}
+      aria-label="Microphone"
+      title={dictation.nativeInputs ? 'Switches the Mac input' : undefined}
+      className={selectClass}
+    >
+      {!dictation.nativeInputs && (
+        <option value="default">Default microphone</option>
+      )}
+      {dictation.availableDevices.map((dev) => (
+        <option key={dev.deviceId} value={dev.deviceId}>
+          {dev.label}
+        </option>
+      ))}
+    </select>
+  );
   floorAnchorTextRef.current = floorAnchor.chatboxCustomPinnedText;
 
   const isDemoMode = useAtomValue(demoModeAtom);
@@ -689,7 +717,7 @@ export function ChatboxDropdown({
       className={classNames(
         'chatbox-control relative flex items-center',
         isTop
-          ? 'chatbox-control--top shrink-0'
+          ? classNames('chatbox-control--top shrink-0', barRoot(bar))
           : 'chatbox-control--side w-full',
         isOpen && 'chatbox-control--open'
       )}
@@ -702,82 +730,115 @@ export function ChatboxDropdown({
         aria-label={collapsed && !isTop ? 'Broadcast' : undefined}
         title="VRChat Broadcast & Telemetry HUD"
         className={classNames(
-          'relative flex items-center rounded-[10px] text-ui-xs font-medium tracking-tight cursor-pointer select-none',
+          'relative flex items-center tracking-tight cursor-pointer select-none',
+          !bar && 'rounded-[10px] text-ui-xs font-medium',
           isTop
-            ? 'h-8 gap-2 border border-[var(--material-border-subtle)] px-3'
+            ? bar
+              ? barTrigger(bar, isOpen)
+              : 'h-8 gap-2 border border-[var(--material-border-subtle)] px-3'
             : classNames(
                 'h-9 w-full gap-3',
                 collapsed ? 'justify-center px-0' : 'px-3'
               ),
-          isOpen
-            ? 'bg-accent-background-20/[0.12] text-accent-background-10'
-            : floorAnchor.chatboxEnabled
-              ? 'text-accent-background-10 hover:bg-background-10/[0.06]'
-              : 'text-background-20 hover:bg-background-10/[0.06] hover:text-background-10',
+          isTop && bar === 'vr'
+            ? ''
+            : isOpen
+              ? 'bg-accent-background-20/[0.12] text-accent-background-10'
+              : floorAnchor.chatboxEnabled
+                ? 'text-accent-background-10 hover:bg-background-10/[0.06]'
+                : 'text-background-20 hover:bg-background-10/[0.06] hover:text-background-10',
           isTop &&
             !isOpen &&
             !floorAnchor.chatboxEnabled &&
+            !bar &&
             'bg-background-10/[0.03]'
         )}
       >
-        <svg
-          className={classNames(
-            'shrink-0 opacity-90 stroke-[2.2]',
-            isTop ? 'h-4 w-4' : 'h-5 w-5'
-          )}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-
-        {(!collapsed || isTop) && (
-          <span className="topbar-label">Broadcast</span>
-        )}
-
-        {/* Live broadcasting / chat-only indicator (always has a text name). */}
-        {floorAnchor.chatboxOnlyMode ? (
-          <span
-            className={classNames(
-              'shrink-0 rounded-full border border-accent-background-20/40 bg-accent-background-20/[0.12] px-1.5 py-0.5 text-ui-2xs font-semibold leading-none text-accent-background-10',
-              collapsed && !isTop
-                ? 'absolute right-1 top-0.5'
-                : isTop
-                  ? ''
-                  : 'ml-auto'
-            )}
-            title="Chat-Only Mode Active (FBT Trackers Muted)"
-          >
-            {collapsed && !isTop ? (
-              <span className="sr-only">Chat only</span>
-            ) : (
-              'Only'
-            )}
-            {collapsed && !isTop && <span aria-hidden="true">•</span>}
-          </span>
-        ) : floorAnchor.chatboxEnabled ||
-          floorAnchor.chatboxCustomPinnedEnabled ||
-          floorAnchor.chatboxAppleMusicEnabled ||
-          fakeBpm.enabled ? (
-          <span
-            className={classNames(
-              'h-2 w-2 rounded-full bg-status-success',
-              collapsed && !isTop
-                ? 'absolute right-2 top-1.5'
-                : isTop
-                  ? ''
-                  : 'ml-auto'
-            )}
-            role="img"
-            aria-label="Chatbox broadcasting active"
-            title="Chatbox broadcasting active"
+        {isTop && bar === 'vr' ? (
+          <StatusBarTile
+            icon={
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            }
+            label="Broadcast"
+            tone={
+              floorAnchor.chatboxOnlyMode
+                ? 'warn'
+                : isBroadcastingActive
+                  ? 'ok'
+                  : 'idle'
+            }
           />
-        ) : null}
+        ) : (
+          <>
+            <svg
+              className={classNames(
+                'shrink-0 opacity-90 stroke-[2.2]',
+                isTop ? 'h-4 w-4' : 'h-5 w-5'
+              )}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+
+            {(!collapsed || isTop) && (
+              <span className="truncate">Broadcast</span>
+            )}
+
+            {/* Live broadcasting / chat-only indicator (always has a text name). */}
+            {floorAnchor.chatboxOnlyMode ? (
+              <span
+                className={classNames(
+                  'shrink-0 rounded-full border border-accent-background-20/40 bg-accent-background-20/[0.12] px-1.5 py-0.5 text-ui-2xs font-semibold leading-none text-accent-background-10',
+                  collapsed && !isTop
+                    ? 'absolute right-1 top-0.5'
+                    : isTop
+                      ? ''
+                      : 'ml-auto'
+                )}
+                title="Chat-Only Mode Active (FBT Trackers Muted)"
+              >
+                {collapsed && !isTop ? (
+                  <span className="sr-only">Chat only</span>
+                ) : (
+                  'Only'
+                )}
+                {collapsed && !isTop && <span aria-hidden="true">•</span>}
+              </span>
+            ) : floorAnchor.chatboxEnabled ||
+              floorAnchor.chatboxCustomPinnedEnabled ||
+              floorAnchor.chatboxAppleMusicEnabled ||
+              fakeBpm.enabled ? (
+              <span
+                className={classNames(
+                  'h-2 w-2 rounded-full bg-status-success',
+                  collapsed && !isTop
+                    ? 'absolute right-2 top-1.5'
+                    : isTop
+                      ? ''
+                      : 'ml-auto'
+                )}
+                role="img"
+                aria-label="Chatbox broadcasting active"
+                title="Chatbox broadcasting active"
+              />
+            ) : null}
+          </>
+        )}
       </button>
 
       {isPanelMounted && (
@@ -785,7 +846,8 @@ export function ChatboxDropdown({
           style={{ WebkitAppRegion: 'no-drag', ...topPopover } as any}
           className={classNames(
             'chatbox-panel',
-            isOpen ? 'chatbox-panel--open' : 'chatbox-panel--closing'
+            isOpen ? 'chatbox-panel--open' : 'chatbox-panel--closing',
+            barPopover(bar)
           )}
           onKeyDown={(event) => {
             if (event.key === 'Escape' && !isEditingIp) {
@@ -934,6 +996,16 @@ export function ChatboxDropdown({
                           : 'Start dictation'}
                       </button>
                     )}
+
+                    <SettingRow label="Microphone">{micSelect}</SettingRow>
+                    {dictation.settings.engine === 'local' &&
+                      !dictation.nativeInputs &&
+                      dictation.settings.inputDeviceId !== 'default' && (
+                        <p className="text-ui-2xs text-background-30">
+                          Mac built-in speech always listens to the system
+                          default mic. Switch Engine to Groq to use this one.
+                        </p>
+                      )}
 
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center justify-between text-ui-2xs text-background-30">
@@ -1282,24 +1354,7 @@ export function ChatboxDropdown({
                       </div>
                     </SettingRow>
                   )}
-                  <SettingRow label="Microphone">
-                    <select
-                      value={dictation.settings.inputDeviceId || 'default'}
-                      onChange={(e) =>
-                        dictation.setInputDeviceId(e.target.value)
-                      }
-                      onFocus={() => dictation.refreshDevices()}
-                      aria-label="Microphone"
-                      className={selectClass}
-                    >
-                      <option value="default">Default microphone</option>
-                      {dictation.availableDevices.map((dev) => (
-                        <option key={dev.deviceId} value={dev.deviceId}>
-                          {dev.label}
-                        </option>
-                      ))}
-                    </select>
-                  </SettingRow>
+                  <SettingRow label="Microphone">{micSelect}</SettingRow>
                   <SettingRow label="Translate speech">
                     <select
                       value={dictation.settings.targetLanguage}

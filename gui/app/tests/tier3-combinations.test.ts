@@ -54,13 +54,13 @@ describe('Tier 3: Cross-Feature Combinations (C1 - C5)', () => {
   describe('C2: Dark Theme + Liquid Glass Tracker Cards + Shake Glow', () => {
     it('C2.1: updates shake glow dynamically across velocities', () => {
       const velocities = [0.0, 1.2, 3.5, 8.0, 20.0];
-      const themes = ['slime', 'dark'];
+      const themes = ['bun', 'fox', 'dog'];
 
       for (const theme of themes) {
         const glowRadii = velocities.map((v) => calculateShakeHighlightGlow(v));
         assert.deepEqual(glowRadii, [0, 9, 28, 64, 160]);
-        // Glow radius calculation is invariant across supported dark themes.
-        assert.ok(theme === 'slime' || theme === 'dark');
+        // Glow radius calculation is invariant across the supported themes.
+        assert.ok(['bun', 'fox', 'dog'].includes(theme));
       }
     });
 

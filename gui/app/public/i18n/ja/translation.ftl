@@ -450,7 +450,6 @@ settings-interface-appearance = 外観
 settings-general-interface-dev_mode = 開発者モード
 settings-general-interface-dev_mode-description = このモードは、詳細なデータが必要な場合や、接続されたトラッカーをより高度なレベルで操作する場合に役立ちます。
 settings-general-interface-dev_mode-label = 開発者モード
-settings-general-interface-theme = カラーテーマ
 settings-general-interface-lang = 言語を選択
 settings-general-interface-lang-description = 使用したいデフォルトの言語を変更する
 settings-general-interface-lang-placeholder = 使用する言語を選択する
@@ -504,7 +503,7 @@ settings-osc-router-network = ネットワークポート
 # This cares about multilines
 settings-osc-router-network-description =
     データのリスニングと送信のためのポートを設定します。
-    これらはSlimeVRサーバーで使用する他のポートと同じでかまいません。
+    これらはBun Trackerサーバーで使用する他のポートと同じでかまいません。
 settings-osc-router-network-port_in =
     .label = ポートイン
     .placeholder = ポートイン (デフォルト: 9002)
@@ -599,7 +598,7 @@ onboarding-reset_tutorial-skip = ステップをスキップする
 
 ## Setup start
 
-onboarding-home = SlimeVRへようこそ
+onboarding-home = Bun Trackerへようこそ
 onboarding-home-start = セットアップ開始！
 
 ## Setup done
@@ -749,7 +748,7 @@ home-no_trackers = トラッカーを検出できません。もしくは割り�
 
 ## Trackers Still On notification
 
-trackers_still_on-modal-confirm = SlimeVRを終了する
+trackers_still_on-modal-confirm = Bun Trackerを終了する
 trackers_still_on-modal-cancel = ちょっと待って...
 
 ## Status system

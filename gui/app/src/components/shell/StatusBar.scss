@@ -1,0 +1,43 @@
+/* Popovers opened from the VR status bar: every control is a 48px pointer target. */
+.statusbar-vr {
+  button:not([role='switch']),
+  select,
+  textarea,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']) {
+    min-height: 48px;
+  }
+
+  button:not([role='switch']) {
+    min-width: 48px;
+  }
+
+  select,
+  textarea,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']) {
+    font-size: 14px;
+  }
+
+  /* Switches keep their look; an invisible pad makes them easy to hit. */
+  [role='switch'] {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -14px -10px;
+    }
+  }
+}
+
+/* The Bun theme squares every rounded-* to 12px with !important; VR buttons keep their 14px. */
+:root[data-theme]
+  [data-topbar-row='up'][data-topbar-row]
+  [class*='rounded-[14px]'] {
+  border-radius: 14px !important;
+}
+
+:root[data-theme]
+  [data-topbar-row='up'][data-topbar-row]
+  [class*='rounded-[16px]'] {
+  border-radius: 16px !important;
+}

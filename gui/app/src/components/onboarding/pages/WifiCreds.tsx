@@ -6,6 +6,11 @@ import { Input } from '@/components/commons/Input';
 import { Typography } from '@/components/commons/Typography';
 import classNames from 'classnames';
 import { WifiIcon } from '@/components/commons/icon/WifiIcon';
+import {
+  OnboardingActions,
+  OnboardingPage,
+  OnboardingPanel,
+} from '@/components/onboarding/OnboardingPanel';
 import { DongleSectionContent } from './Dongle';
 
 export function WifiCredsPage() {
@@ -15,9 +20,11 @@ export function WifiCredsPage() {
   applyProgress(0.2);
 
   return (
-    <div className="flex flex-col w-full h-full xs:justify-center items-center">
+    <OnboardingPage>
       <div
-        className={classNames('grid gap-4 max-w-6xl p-4', {
+        className={classNames('grid gap-4 w-full', {
+          'max-w-[680px]': !state.alonePage,
+          'max-w-6xl': state.alonePage,
           'xs:grid-cols-2': state.alonePage,
         })}
       >
@@ -43,7 +50,7 @@ export function WifiCredsPage() {
               whitespace="whitespace-pre-wrap"
               className="text-ui-2xs text-background-30"
             />
-            <div className="flex flex-col gap-3.5 p-6 rounded-[20px] bg-background-60/40 dark:bg-background-10/[0.03] border border-background-50/50 dark:border-background-10/[0.06] backdrop-blur-sm shadow-md sentry-mask">
+            <OnboardingPanel className="gap-3.5 sentry-mask">
               <Localized
                 id="onboarding-wifi_creds-ssid"
                 attrs={{ placeholder: true, label: true }}
@@ -79,7 +86,7 @@ export function WifiCredsPage() {
                   variant="secondary"
                 />
               </Localized>
-              <div className="flex flex-row gap-3 justify-between">
+              <OnboardingActions>
                 {!state.alonePage ? (
                   <Button
                     variant="secondary"
@@ -96,11 +103,11 @@ export function WifiCredsPage() {
                   disabled={!formState.isValid}
                   id="onboarding-wifi_creds-submit"
                 />
-              </div>
-            </div>
+              </OnboardingActions>
+            </OnboardingPanel>
           </div>
         </form>
       </div>
-    </div>
+    </OnboardingPage>
   );
 }

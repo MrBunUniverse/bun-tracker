@@ -50,19 +50,19 @@ export const InputInside = forwardRef<
   const classes = useMemo(() => {
     const variantsMap = {
       primary: classNames({
-        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-60/50 backdrop-blur-md border border-background-50/60 dark:border-background-10/10':
+        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-60/50 border border-background-50/60 dark:border-background-10/10':
           !disabled,
         'text-background-30 placeholder:text-background-30 border-background-50/30 bg-background-70/30 cursor-not-allowed':
           disabled,
       }),
       secondary: classNames({
-        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-50/50 backdrop-blur-md border border-background-50/60 dark:border-background-10/10':
+        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-50/50 border border-background-50/60 dark:border-background-10/10':
           !disabled,
         'text-background-40 placeholder:text-background-40 border-background-50/30 bg-background-70/30 cursor-not-allowed':
           disabled,
       }),
       tertiary: classNames({
-        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-40/50 backdrop-blur-md border border-background-50/60 dark:border-background-10/10':
+        'placeholder:text-background-30 placeholder:not-italic placeholder:font-normal bg-background-40/50 border border-background-50/60 dark:border-background-10/10':
           !disabled,
         'text-background-30 placeholder:text-background-30 border-background-50/30 bg-background-70/30 cursor-not-allowed':
           disabled,

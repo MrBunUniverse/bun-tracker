@@ -9,10 +9,10 @@
 
 websocket-connecting = Laster...
 websocket-connection_lost = Mistet server-tilkobling. Vennligst vent mens koblingen gjenopprettes...
-websocket-connection_lost-desc = Det ser ut som at SlimeVR serveren har krasjet. Sjekk loggene og restart programmet.
+websocket-connection_lost-desc = Det ser ut som at Bun Tracker serveren har krasjet. Sjekk loggene og restart programmet.
 websocket-timedout = Klarte ikke å koble til serveren.
-websocket-timedout-desc = Det ser ut som at SlimeVR serveren har krasjet eller har brukt for lang til på å koble til. Sjekk loggene og restart programmet.
-websocket-error-close = Avslutt SlimeVR
+websocket-timedout-desc = Det ser ut som at Bun Tracker serveren har krasjet eller har brukt for lang til på å koble til. Sjekk loggene og restart programmet.
+websocket-error-close = Avslutt Bun Tracker
 websocket-error-logs = Åpne opp "logs" mappen.
 
 ## Update notification
@@ -400,9 +400,9 @@ settings-general-interface-serial_detection-label = Seriell enhets gjenkjenning
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>Samtykker du til innsamling av anonymiserte feildata?</h1>
     
-    <b>Vi samler ikke inn personlig informasjon</b> slik som din IP-adresse eller trådløs-legitimasjon. SlimeVR verdsetter ditt personvern!
+    <b>Vi samler ikke inn personlig informasjon</b> slik som din IP-adresse eller trådløs-legitimasjon. Bun Tracker verdsetter ditt personvern!
     
-    For å gi deg den beste brukeropplevelsen, samler vi inn anonymiserte feilrapporter, ytelsesmålinger og informasjon om operativsystemet. Dette hjelper oss med å oppdage feil og problemer med SlimeVR. Disse beregningene samles inn via Sentry.io.
+    For å gi deg den beste brukeropplevelsen, samler vi inn anonymiserte feilrapporter, ytelsesmålinger og informasjon om operativsystemet. Dette hjelper oss med å oppdage feil og problemer med Bun Tracker. Disse beregningene samles inn via Sentry.io.
 settings-interface-behavior-error_tracking-label = Send feilmeldinger til utviklere
 
 ## Serial settings
@@ -439,7 +439,7 @@ settings-osc-router-network = Nettverks-porter
 # This cares about multilines
 settings-osc-router-network-description =
     Still inn portene som skal motta eller sende data.
-    Disse kan være lik som andre porter brukt i SlimeVR serveren.
+    Disse kan være lik som andre porter brukt i Bun Tracker serveren.
 settings-osc-router-network-port_in =
     .label = Port inn
     .placeholder = Port inn (normalverdi:9002)
@@ -519,7 +519,7 @@ onboarding-reset_tutorial-skip = Hopp over trinn
 
 ## Setup start
 
-onboarding-home = Velkommen til SlimeVR
+onboarding-home = Velkommen til Bun Tracker
 onboarding-home-start = La oss sette i gang!
 
 ## Setup done

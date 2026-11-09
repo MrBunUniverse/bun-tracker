@@ -1,3 +1,4 @@
+// Drawn on whole units of a 24 grid, so the pixel themes (PixelIcon) map it one cell per unit.
 export function HeadsetIcon({
   width = 24,
   disabled = false,
@@ -6,13 +7,23 @@ export function HeadsetIcon({
   disabled?: boolean;
 }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={width} viewBox="0 0 640 512">
+    <svg
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      width={width}
+      viewBox="0 2 24 20"
+    >
+      {/* Head strap over the top */}
+      <path d="M3 10A9 6 0 0 1 21 10H18.7A6.7 4.5 0 0 0 5.3 10Z" />
+      {/* Visor, with two tracking cameras and the nose gap */}
       <path
-        transform="scale(0.75, 0.75) translate(120, 96)"
-        d="M576 64H64C28.7 64 0 92.7 0 128v256c0 35.3 28.7 64 64 64h120.4c24.2 0 46.4-13.7 57.2-35.4l32-64c8.8-17.5 26.7-28.6 46.3-28.6s37.5 11.1 46.3 28.6l32 64c10.8 21.7 33 35.4 57.2 35.4H576c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64zM96 240a64 64 0 11128 0 64 64 0 11-128 0zm384-64a64 64 0 110 128 64 64 0 110-128z"
+        fillRule="evenodd"
+        d="M3.5 9H20.5A2.5 2.5 0 0 1 23 11.5V16A2.5 2.5 0 0 1 20.5 18.5H15.5Q15 15.5 12 15.5Q9 15.5 8.5 18.5H3.5A2.5 2.5 0 0 1 1 16V11.5A2.5 2.5 0 0 1 3.5 9ZM4 11H6V13H4ZM18 11H20V13H18Z"
       />
+      {/* Side straps */}
+      <path d="M0 12H1.5V15.5H0ZM22.5 12H24V15.5H22.5Z" />
       {disabled && (
-        <line x1="20" y1="20" x2="620" y2="492" stroke="red" strokeWidth="30" />
+        <line x1="1" y1="3" x2="23" y2="21" stroke="red" strokeWidth="1.2" />
       )}
     </svg>
   );

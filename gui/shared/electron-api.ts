@@ -58,109 +58,117 @@ export type DiscordPresence =
   | { enable: false }
   | { enable: true; activity: string; iconText: string | undefined };
 
-export type QuestAudioDevice = {
-  id: string;
-  model: string;
-  connection: 'usb' | 'wifi';
+// Quest StreamCast control bridge: the Remote page drives the native app, which owns capture.
+// The status fields are StreamCast's wire format (ControlStatus in its StreamCastCore package).
+export type StreamCastPhase =
+  | 'disconnected'
+  | 'discovering'
+  | 'authorizing'
+  | 'connecting'
+  | 'streaming'
+  | 'stopping'
+  | 'recovering'
+  | 'failed';
+
+export type StreamCastDevice = {
+  serial: string;
+  name: string;
+  transport: 'usb' | 'wifi';
+  /** `ready`, `unauthorized`, `offline`, or adb's own word for anything else. */
   state: string;
+  isHeadset: boolean;
 };
 
-export type QuestAudioStartOptions = {
-  serial?: string;
-  source: 'output' | 'mic';
-  codec?: 'opus' | 'aac' | 'raw';
-  bitrate?: number;
-  bufferMs?: number;
+export type StreamCastOutput = {
+  /** Absent means the system default output. */
+  uid?: string;
+  name: string;
 };
 
-export type QuestAudioStatus = {
-  isStreamingOutput: boolean;
-  isStreamingMic: boolean;
-  outputBitrate?: number;
-  micBitrate?: number;
-  outputBufferMs?: number;
-  micBufferMs?: number;
-  outputCodec?: 'opus' | 'aac' | 'raw';
-  micCodec?: 'opus' | 'aac' | 'raw';
-  activeSerial?: string;
-  scrcpyAvailable: boolean;
-  adbAvailable: boolean;
-  adbPath?: string;
-  scrcpyPath?: string;
-  error?: string;
+export type StreamCastAudioState =
+  | 'off'
+  | 'waiting'
+  | 'connecting'
+  | 'live'
+  | 'refused'
+  | 'failed';
+
+export type StreamCastAudio = {
+  enabled: boolean;
+  state: StreamCastAudioState;
+  detail: string;
+  output: StreamCastOutput;
+  outputs: StreamCastOutput[];
+  latency: string;
+  counters?: string;
 };
 
-export type QuestCaptureProfile = 'low-latency' | 'balanced' | 'quality' | 'custom';
-export type QuestCaptureEye = 'left' | 'right' | 'both' | 'manual';
-export type QuestCaptureAspect = 'source' | '16:9' | '16:10' | '4:3' | '1:1';
-export type QuestVideoCodec = 'h264' | 'h265';
-
-export type QuestCropRect = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+export type StreamCastStatus = {
+  ready: boolean;
+  session: {
+    phase: StreamCastPhase;
+    mode?: 'native' | 'upstream' | 'synthetic';
+    problem?: string;
+    active: boolean;
+    canStart: boolean;
+    canStop: boolean;
+    canRefresh: boolean;
+    canReconnectWifi: boolean;
+  };
+  devices: StreamCastDevice[];
+  selectedSerial?: string;
+  connection?: 'usb' | 'wifi';
+  wirelessProblem?: string;
+  recovery?: { attempt: number; maxAttempts: number; problem: string };
+  preset: string;
+  game: StreamCastAudio;
+  mic: StreamCastAudio;
+  video?: {
+    width: number;
+    height: number;
+    fps: number;
+    mbps: number;
+    decoder: string;
+  };
+  recording: boolean;
+  engine: string;
+  synthetic: boolean;
+  settingsIssue?: string;
+  events: { at: number; message: string }[];
 };
 
-export type QuestVideoStartOptions = {
-  serial?: string;
-  profile: QuestCaptureProfile;
-  eye: QuestCaptureEye;
-  aspect: QuestCaptureAspect;
-  manualCrop?: QuestCropRect;
-  codec: QuestVideoCodec;
-  bitrateMbps: number;
-  maxSize: number;
-  maxFps: number;
-  bufferMs: number;
-  rotation: 0 | 90 | 180 | 270;
-  flipHorizontal: boolean;
-  alwaysOnTop: boolean;
-  borderless: boolean;
-  windowWidth: number;
-  windowHeight: number;
-  renderer: 'auto' | 'metal' | 'opengl' | 'software';
-  adaptiveQuality: boolean;
-  autoReconnect: boolean;
-  maxReconnectAttempts: number;
+/** A reply from the shell. Only `connected` says anything about the stream. */
+export type StreamCastLinkReply =
+  | {
+      link: 'connected';
+      appVersion: string;
+      status: StreamCastStatus;
+      /** Why a command was refused; the status is still current. */
+      refused: string | null;
+    }
+  | { link: 'notRunning' }
+  /** Running, but a build from before this bridge. */
+  | { link: 'noBridge' }
+  | { link: 'unresponsive'; detail: string }
+  | { link: 'incompatible'; companionProtocol: number | null };
+
+export type StreamCastCommand =
+  | { command: 'refresh' | 'reconnectWifi' | 'start' | 'stop' }
+  | { command: 'select'; serial: string }
+  | { command: 'setGameOutput' | 'setMicOutput'; uid: string | null };
+
+export type StreamCastOpenResult = {
+  result: 'opened' | 'missing' | 'failed' | 'canceled' | 'wrongApp';
 };
 
-export type QuestStudioStartOptions = {
-  video: QuestVideoStartOptions;
-  gameAudio?: Omit<QuestAudioStartOptions, 'serial' | 'source'>;
-  microphone?: Omit<QuestAudioStartOptions, 'serial' | 'source'>;
-};
-
-export type QuestCaptureCapabilities = {
-  platformSupported: boolean;
-  scrcpyVersion?: string;
-  displaySize?: { width: number; height: number };
-  videoEncoders: string[];
-  error?: string;
-};
-
-export type QuestCaptureStatus = QuestAudioStatus & {
-  isStreamingVideo: boolean;
-  videoPid?: number;
-  videoStartedAt?: number;
-  videoCodec?: QuestVideoCodec;
-  videoBitrateMbps?: number;
-  videoMaxSize?: number;
-  videoMaxFps?: number;
-  videoBufferMs?: number;
-  videoEye?: QuestCaptureEye;
-  videoAspect?: QuestCaptureAspect;
-  videoCrop?: { width: number; height: number; x: number; y: number };
-  observedFps?: number;
-  adbRoundTripMs?: number;
-  connectionType?: 'usb' | 'wifi';
-  qualityAdjustments: number;
-  reconnectAttempts: number;
-  mirrorWindowTitle: string;
-  videoError?: string;
-};
-
-export type TestToneChannel = 'left' | 'right' | 'mono';
+export interface StreamCastApi {
+  status: () => Promise<StreamCastLinkReply>;
+  command: (command: StreamCastCommand) => Promise<StreamCastLinkReply>;
+  /** Launches the app or brings the running copy forward. Never starts a stream. */
+  open: () => Promise<StreamCastOpenResult>;
+  /** Asks the user where the app is, remembers it, and opens it. */
+  locate: () => Promise<StreamCastOpenResult>;
+}
 
 export interface IElectronAPI {
   onServerStatus: (cb: (data: ServerStatusEvent) => void) => () => void;
@@ -201,33 +209,13 @@ export interface IElectronAPI {
   onTrayReset?: (cb: (type: string) => void) => () => void;
   onTrayElevationStep?: (cb: (delta: number) => void) => () => void;
   onTrayElevationReset?: (cb: () => void) => () => void;
-  questAudio?: {
-    getDevices: () => Promise<QuestAudioDevice[]>;
-    connectWifi: (ip: string) => Promise<{ success: boolean; message: string }>;
-    enableWirelessFromUsb: (
-      serial: string
-    ) => Promise<{ success: boolean; message: string; address?: string }>;
-    startStream: (
-      options: QuestAudioStartOptions
-    ) => Promise<{ success: boolean; message?: string }>;
-    stopStream: (source: 'output' | 'mic' | 'all') => Promise<{ success: boolean }>;
-    getStatus: () => Promise<QuestAudioStatus>;
-    installScrcpy: () => Promise<{ success: boolean; message: string }>;
-    playTestTone: (channel: TestToneChannel, volume: number) => Promise<boolean>;
-  };
-  questCapture?: {
-    getCapabilities: (serial?: string) => Promise<QuestCaptureCapabilities>;
-    startVideo: (
-      options: QuestVideoStartOptions
-    ) => Promise<{ success: boolean; message?: string }>;
-    stopVideo: () => Promise<{ success: boolean }>;
-    startStudio: (
-      options: QuestStudioStartOptions
-    ) => Promise<{ success: boolean; errors: string[] }>;
-    stopAll: () => Promise<{ success: boolean }>;
-    getStatus: () => Promise<QuestCaptureStatus>;
-  };
+  /** Tauri shell: control bridge to the Quest StreamCast app. */
+  streamCast?: StreamCastApi;
   requestMicrophoneAccess?: () => Promise<boolean>;
+  /** Tauri shell (macOS): recording-capable audio devices, including virtual ones. */
+  audioInputs?: () => Promise<{ uid: string; name: string; isDefault: boolean }[]>;
+  /** Makes the device with this CoreAudio UID the Mac's default input. */
+  setAudioInput?: (uid: string) => Promise<void>;
   transcribeNativeSpeech?: (data: {
     audioBase64: string;
     language?: string;

@@ -26,35 +26,23 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
   describe('F1: Liquid Glass Tokens & Material Polish', () => {
     const scssContent = fs.readFileSync(SCSS_PATH, 'utf-8');
 
-    it('F1.1: defines primary --glass-bg with 0.72 alpha dark vibrancy in CSS variables', () => {
-      assert.match(scssContent, /--glass-bg:\s*rgba\(34,\s*35,\s*40,\s*0\.72\);/);
+    it('F1.1: base :root defines the glass background aliases', () => {
+      assert.match(scssContent, /--glass-bg:\s*var\(--material-primary\);/);
+      assert.match(scssContent, /--glass-bg-strong:\s*var\(--material-secondary\);/);
+    });
+
+    it('F1.2: base :root defines the frosted border tokens', () => {
+      assert.match(scssContent, /--glass-border:\s*var\(--material-border-subtle\);/);
       assert.match(
         scssContent,
-        /--glass-bg-strong:\s*rgba\(48,\s*49,\s*56,\s*0\.85\);/
+        /--glass-border-strong:\s*var\(--material-border-primary\);/
       );
     });
 
-    it('F1.2: defines --glass-blur token as 20px and frosted border tokens', () => {
-      assert.match(scssContent, /--glass-blur:\s*20px;/);
-      assert.match(
-        scssContent,
-        /--glass-border:\s*rgba\(255,\s*255,\s*255,\s*0\.10?\);/
-      );
-      assert.match(
-        scssContent,
-        /--glass-border-strong:\s*rgba\(255,\s*255,\s*255,\s*0\.18\);/
-      );
-    });
-
-    it('F1.3: defines .glass-panel and .glass-panel-strong utility classes with backdrop-filter', () => {
-      assert.match(
-        scssContent,
-        /\.glass-panel\s*\{[^}]*backdrop-filter:\s*blur\(var\(--glass-blur\)\)/
-      );
-      assert.match(
-        scssContent,
-        /\.glass-panel-strong\s*\{[^}]*backdrop-filter:\s*blur\(calc\(var\(--glass-blur\)\s*\*\s*1\.2\)\)/
-      );
+    it('F1.3: no frosted-glass blur; only the global guard that turns it off', () => {
+      assert.doesNotMatch(scssContent, /backdrop-filter:\s*blur/);
+      assert.match(scssContent, /\*::after\s*\{\s*backdrop-filter:\s*none !important;/);
+      assert.match(scssContent, /\.glass-panel\s*\{/);
     });
 
     it('F1.4: defines .glass-pill and .glass-interactive classes with micro-state transitions', () => {
@@ -111,6 +99,17 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
         'utf-8'
       );
       assert.ok(emptyStateFile.includes('active:scale-[0.985]'));
+    });
+
+    it('F1.8b: tracker card keeps signal right of the name at any name length', () => {
+      const emptyStateFile = fs.readFileSync(
+        path.join(GUI_ROOT, 'src', 'components', 'home', 'HomeEmptyState.tsx'),
+        'utf-8'
+      );
+      // A wrapping flex row pushed signal under long names; a fixed two-column grid cannot wrap.
+      assert.ok(emptyStateFile.includes('grid-cols-[minmax(0,1fr)_auto]'));
+      assert.ok(!emptyStateFile.includes('flex flex-wrap items-start justify-between'));
+      assert.ok(emptyStateFile.includes('title={trackerName}'));
     });
 
     it('F1.11: verifies tracker cards and table rows slide in from left and right with Apple HIG cinematic easing', () => {
@@ -223,12 +222,12 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
   // F3: Minimal Single-Window Layout Grid
   // -------------------------------------------------------------
   describe('F3: Minimal Single-Window Layout Grid', () => {
-    it('F3.1: defines grid area mapping (t, c, s, b) in MainLayout; navigation lives in the sidebar', () => {
+    it('F3.1: defines grid area mapping (c, s, b) in MainLayout; navigation and the status bar live in the app shell', () => {
       const layoutFile = fs.readFileSync(
         path.join(GUI_ROOT, 'src', 'components', 'MainLayout.tsx'),
         'utf-8'
       );
-      assert.ok(layoutFile.includes("gridArea: 't'"));
+      assert.ok(!layoutFile.includes("gridArea: 't'"));
       assert.ok(!layoutFile.includes("gridArea: 'n'"));
       assert.ok(layoutFile.includes("gridArea: 'c'"));
       assert.ok(layoutFile.includes("gridArea: 's'"));
@@ -735,19 +734,6 @@ describe('Tier 1: Feature Coverage (F1 - F8)', () => {
       // Blur is the costliest effect for the macOS compositor.
       const scssContent = fs.readFileSync(SCSS_PATH, 'utf-8');
       assert.match(scssContent, /backdrop-filter:\s*none\s*!important/);
-    });
-
-    it('F8.9: disables Quest native controls when the build has no Quest bridge', () => {
-      const remoteFile = fs.readFileSync(
-        path.join(GUI_ROOT, 'src', 'components', 'remote', 'RemotePage.tsx'),
-        'utf-8'
-      );
-      assert.ok(remoteFile.includes('!!electron.api.questAudio'));
-      assert.ok(remoteFile.includes('!!electron.api.questCapture'));
-      assert.ok(remoteFile.includes('Quest streaming is not available in this build'));
-      assert.ok(remoteFile.includes('disabled={isConnectingWifi || !questNative}'));
-      assert.ok(remoteFile.includes('disabled={isInstallingScrcpy || !questNative}'));
-      assert.ok(remoteFile.includes('disabled={!questNative}'));
     });
   });
 });

@@ -8,7 +8,6 @@ import {
   SettingsPagePaneLayout,
 } from '@/components/settings/SettingsPageLayout';
 import { defaultConfig, DeveloperModeConfig, useConfig } from '@/hooks/config';
-import { ThemeSelector } from '@/components/commons/ThemeSelector';
 import { SquaresIcon } from '@/components/commons/icon/SquaresIcon';
 import { NumberSelector } from '@/components/commons/NumberSelector';
 import { useLocaleConfig } from '@/i18n/config';
@@ -22,7 +21,6 @@ import { useElectron } from '@/hooks/electron';
 
 interface InterfaceSettingsForm {
   appearance: {
-    theme: string;
     textSize: number;
     animations: boolean;
     fonts: string;
@@ -52,10 +50,6 @@ export function InterfaceSettings() {
   const { control, watch, handleSubmit } = useForm<InterfaceSettingsForm>({
     defaultValues: {
       appearance: {
-        theme:
-          config?.theme === 'light'
-            ? defaultConfig.theme
-            : (config?.theme ?? defaultConfig.theme),
         textSize: config?.textSize ?? defaultConfig.textSize,
         animations: config?.animations ?? defaultConfig.animations,
         fonts: config?.fonts.join(',') ?? defaultConfig.fonts.join(','),
@@ -140,10 +134,6 @@ export function InterfaceSettings() {
       feedbackSoundVolume: values.notifications.feedbackSoundVolume,
       connectedTrackersWarning: values.notifications.connectedTrackersWarning,
 
-      theme:
-        values.appearance.theme === 'light'
-          ? defaultConfig.theme
-          : values.appearance.theme,
       fonts: values.appearance.fonts.split(','),
       textSize: values.appearance.textSize,
       animations: values.appearance.animations,
@@ -441,80 +431,6 @@ export function InterfaceSettings() {
             <Typography variant="main-title">
               {l10n.getString('settings-interface-appearance')}
             </Typography>
-
-            <div className="pb-4">
-              <Typography variant="section-title">
-                {l10n.getString('settings-general-interface-theme')}
-              </Typography>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'claude'}
-                  colors="!bg-claude"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'macos'}
-                  colors="!bg-macos"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'slime'}
-                  colors="!bg-slime"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'slime-green'}
-                  colors="!bg-slime-green"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'slime-yellow'}
-                  colors="!bg-slime-yellow"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'slime-orange'}
-                  colors="!bg-slime-orange"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'slime-red'}
-                  colors="!bg-slime-red"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'dark'}
-                  colors="!bg-dark"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'trans'}
-                  colors="!bg-trans-flag"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'asexual'}
-                  colors="!bg-asexual-flag"
-                />
-                <ThemeSelector
-                  control={control}
-                  name="appearance.theme"
-                  value={'snep'}
-                  colors="!bg-snep"
-                />
-              </div>
-            </div>
 
             <Typography variant="section-title">
               {l10n.getString('settings-interface-appearance-font')}

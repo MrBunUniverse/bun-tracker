@@ -167,23 +167,6 @@ function SidebarIcon({ name }: { name: string }) {
           <path d="M12 2a10 10 0 0 1 0 20v-20z" fill="currentColor" />
         </svg>
       );
-    case 'home':
-      return (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      );
     case 'checklist':
       return (
         <svg
@@ -283,23 +266,6 @@ function SidebarIcon({ name }: { name: string }) {
           <line x1="15" y1="1" x2="15" y2="4" />
           <line x1="9" y1="20" x2="9" y2="23" />
           <line x1="15" y1="20" x2="15" y2="23" />
-        </svg>
-      );
-    case 'capture':
-      return (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="4" width="18" height="13" rx="2" />
-          <path d="M8 21h8M12 17v4" />
-          <circle cx="12" cy="10.5" r="2.5" />
         </svg>
       );
     case 'wizard':
@@ -504,13 +470,6 @@ export function SettingsSidebar() {
         category: 'interface',
       },
       {
-        id: 'settings-sidebar-home',
-        to: '/settings/interface/home',
-        scrollTo: 'home',
-        iconName: 'home',
-        category: 'interface',
-      },
-      {
         id: 'settings-sidebar-checklist',
         to: '/settings/interface/home',
         scrollTo: 'checklist',
@@ -550,12 +509,6 @@ export function SettingsSidebar() {
         id: 'settings-sidebar-firmware-tool',
         to: '/settings/firmware-tool',
         iconName: 'firmware',
-        category: 'utils',
-      },
-      {
-        id: 'settings-sidebar-quest-capture',
-        to: '/settings/quest-capture',
-        iconName: 'capture',
         category: 'utils',
       },
       {
@@ -626,7 +579,7 @@ export function SettingsSidebar() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search Settings"
-          className="w-full pl-8 pr-7 py-1.5 rounded-[10px] bg-[var(--material-secondary)] border border-[var(--material-border-subtle)] focus:border-accent-background-20/40 text-ui-2xs placeholder-background-30 text-background-10 focus:outline-none transition-all leading-normal"
+          className="settings-search w-full pl-8 pr-7 py-1.5 rounded-[12px] bg-[var(--material-secondary)] border border-[var(--material-border-subtle)] focus:border-accent-background-20/40 text-ui-2xs placeholder-background-30 text-background-10 focus:outline-none transition-all leading-normal"
         />
         {searchQuery && (
           <button

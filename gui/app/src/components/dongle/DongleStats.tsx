@@ -1,7 +1,15 @@
 import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'react';
 import { StatusDot } from '@/components/commons/StatusDot';
+import { USBIcon } from '@/components/commons/icon/UsbIcon';
+import { StatusBarTile } from '@/components/shell/StatusBarTile';
 import { useTopBarPopover } from '@/hooks/top-bar-popover';
+import {
+  barPopover,
+  barRoot,
+  barTrigger,
+  useStatusBarMode,
+} from '@/components/shell/status-bar-mode';
 
 // The dongle bridge (tools/esp32-dongle/bridge.py) serves its stats here.
 const STATS_URL = 'http://127.0.0.1:6970';
@@ -83,6 +91,7 @@ export function DonglePill() {
   const snap = useDongleStats(open);
   const rootRef = useRef<HTMLDivElement>(null);
   const popover = useTopBarPopover(rootRef, open, 560);
+  const bar = useStatusBarMode();
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +116,7 @@ export function DonglePill() {
       ref={rootRef}
       className={classNames(
         'chatbox-control chatbox-control--top relative flex shrink-0 items-center',
+        barRoot(bar),
         open && 'chatbox-control--open'
       )}
       style={{ WebkitAppRegion: 'no-drag' } as any}
@@ -118,22 +128,45 @@ export function DonglePill() {
         aria-haspopup="dialog"
         title="ESP32 dongle stats"
         className={classNames(
-          'flex h-8 cursor-pointer select-none items-center gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
-          open
-            ? 'bg-accent-background-20/[0.12] text-accent-background-10'
-            : 'text-background-10 hover:bg-background-10/[0.06]'
+          'flex cursor-pointer select-none items-center',
+          bar
+            ? barTrigger(bar, open)
+            : 'h-8 gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
+          bar === 'vr'
+            ? ''
+            : open
+              ? 'bg-accent-background-20/[0.12] text-accent-background-10'
+              : 'text-background-10 hover:bg-background-10/[0.06]'
         )}
+        aria-label={snap ? `Dongle ${snap.trackers.length}` : 'Dongle'}
       >
-        <StatusDot
-          tone={snap ? 'ok' : 'idle'}
-          label={snap ? `Dongle ${snap.trackers.length}` : 'Dongle'}
-        />
+        {bar === 'vr' ? (
+          <StatusBarTile
+            icon={<USBIcon size={20} />}
+            label="Dongle"
+            tone={snap ? 'ok' : 'idle'}
+          />
+        ) : (
+          <>
+            <span aria-hidden="true" className="flex shrink-0 fill-current">
+              <USBIcon size={16} />
+            </span>
+            <StatusDot
+              tone={snap ? 'ok' : 'idle'}
+              label={snap ? `Dongle ${snap.trackers.length}` : 'Dongle'}
+              className="min-w-0 [&>span:last-child]:truncate"
+            />
+          </>
+        )}
       </button>
       {open && (
         <div
           role="dialog"
           aria-label="ESP32 dongle stats"
-          className="chatbox-panel chatbox-panel--open"
+          className={classNames(
+            'chatbox-panel chatbox-panel--open',
+            barPopover(bar)
+          )}
           style={popover}
         >
           <div className="chatbox-header flex items-center">
@@ -201,7 +234,7 @@ function Metric({
 
 const ms = (v: number | null) => (v === null ? '–' : `${v} ms`);
 
-/** Starts the bridge through the Spike shell; the popup's stats appear once the next poll reaches it. */
+/** Starts the bridge through the Tauri shell; the popup's stats appear once the next poll reaches it. */
 function StartBridgeButton() {
   const start = window.electronAPI?.startDongleBridge;
   const [state, setState] = useState<'idle' | 'starting' | 'started'>('idle');

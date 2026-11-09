@@ -1,5 +1,10 @@
 import { useOnboarding } from '@/hooks/onboarding';
 import { Typography } from '@/components/commons/Typography';
+import {
+  OnboardingActions,
+  OnboardingPage,
+  OnboardingPanel,
+} from '@/components/onboarding/OnboardingPanel';
 import { QuizButton } from './SlimeSetQuestion';
 import { SteamIcon } from '@/components/commons/icon/SteamIcon';
 import { HeadsetIcon } from '@/components/commons/icon/HeadsetIcon';
@@ -19,8 +24,8 @@ export function QuizRuntimeQuestion() {
   };
 
   return (
-    <div className="grid w-full h-full justify-center items-center">
-      <div className="flex flex-col gap-8 max-w-xl p-2">
+    <OnboardingPage>
+      <OnboardingPanel className="gap-6">
         <div className="flex flex-col gap-2">
           <Typography variant="main-title" id="onboarding-quiz-runtime-title" />
         </div>
@@ -43,14 +48,14 @@ export function QuizRuntimeQuestion() {
             </div>
           </div>
         </div>
-        <div className="flex">
+        <OnboardingActions>
           <Button
             to={'/onboarding/quiz/usage'}
             variant="secondary"
             id="onboarding-quiz_back"
           />
-        </div>
-      </div>
-    </div>
+        </OnboardingActions>
+      </OnboardingPanel>
+    </OnboardingPage>
   );
 }

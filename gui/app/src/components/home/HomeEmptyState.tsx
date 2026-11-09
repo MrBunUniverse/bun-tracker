@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { RippleDots } from '@/components/commons/RippleDots';
+import { CSSProperties, useRef } from 'react';
+import { ContourDots } from '@/components/commons/ContourDots';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAtomValue, useAtom } from 'jotai';
 import {
@@ -10,25 +10,47 @@ import {
   liveTrackerAtom,
   trackerKey,
   active3DTrackerKeysAtom,
-  cardMorphOriginAtom,
-  CardMorphOrigin,
 } from '@/store/app-store';
 import { useSidebarPushAnimation } from '@/hooks/sidebar-animation';
 import { demoModeAtom, toggleDemoModeAtom } from '@/store/demo-trackers';
-import { useTracker } from '@/hooks/tracker';
+import { useMotionGlow, useTracker } from '@/hooks/tracker';
 import { useTrackerPresets } from '@/hooks/presets';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
 import { PawEars } from '@/components/commons/PawEars';
 import { PixelIcon } from '@/components/commons/PixelIcon';
 import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
-import { isPawTheme, useConfig } from '@/hooks/config';
+import { useConfig } from '@/hooks/config';
+import { isPawTheme } from '@/hooks/theme';
 import { CardIMUVisualizer } from '@/components/widgets/IMUVisualizerWidget';
+import { batteryLevel, batteryRedness } from '@/utils/battery-cells';
 import {
+  BodyPart,
   TrackerDataT,
   DeviceDataT,
   TrackerStatus as TrackerStatusEnum,
 } from 'solarxr-protocol';
 import classNames from 'classnames';
+
+// Demo icon gesture strength: degrees turned at a full-strength episode and px shifted. The headset is
+// subtle (~4°), controllers swing widest (~25° on a strong move), legs and feet add a sideways weight shift.
+function demoGestureStrength(bodyPart: BodyPart | undefined) {
+  switch (bodyPart) {
+    case BodyPart.HEAD:
+      return { deg: 6, px: 0, reach: 0.55 };
+    case BodyPart.LEFT_HAND:
+    case BodyPart.RIGHT_HAND:
+      return { deg: 26, px: 2, reach: 1 };
+    case BodyPart.LEFT_UPPER_LEG:
+    case BodyPart.RIGHT_UPPER_LEG:
+    case BodyPart.LEFT_LOWER_LEG:
+    case BodyPart.RIGHT_LOWER_LEG:
+    case BodyPart.LEFT_FOOT:
+    case BodyPart.RIGHT_FOOT:
+      return { deg: 14, px: 2, reach: 0.85 };
+    default:
+      return { deg: 11, px: 0, reach: 0.8 };
+  }
+}
 
 export function ClaudeTrackerWindowCard({
   tracker,
@@ -37,22 +59,20 @@ export function ClaudeTrackerWindowCard({
 }: {
   tracker: TrackerDataT;
   device?: DeviceDataT;
-  onClick?: (origin: CardMorphOrigin) => void;
+  onClick?: () => void;
 }) {
-  const { useName, useIsMoving, useIdentAdjRotationEulerDegrees } =
-    useTracker(tracker);
+  const { useName, useIdentAdjRotationEulerDegrees } = useTracker(tracker);
   const trackerName = useName();
-  const moving = useIsMoving();
   // The icon leans with the tracker's roll (after reset), capped so it stays readable.
   const roll = useIdentAdjRotationEulerDegrees()?.z ?? 0;
   const tilt = Math.max(-25, Math.min(25, roll));
+  const { config } = useConfig();
   const isDemo = useAtomValue(demoModeAtom);
   const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
   const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
   const rssi = device?.hardwareStatus?.rssi;
 
-  // Demo motion simulation: active trackers cycle motion naturally for demonstration
-  const [demoMoving, setDemoMoving] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [active3DKeys, setActive3DKeys] = useAtom(active3DTrackerKeysAtom);
   const trackerKey = tracker.trackerId
     ? `${tracker.trackerId.deviceId?.id ?? device?.id?.id ?? 'd'}:${tracker.trackerId.trackerNum ?? 0}`
@@ -68,61 +88,35 @@ export function ClaudeTrackerWindowCard({
     );
   };
 
-  useEffect(() => {
-    if (
-      !isDemo ||
-      tracker.status === TrackerStatusEnum.DISCONNECTED ||
-      (batteryPct != null && batteryPct <= 0)
-    ) {
-      setDemoMoving(false);
-      return;
-    }
-
-    const offset = (Number(tracker.trackerId?.deviceId?.id ?? 1) * 700) % 3500;
-    let isMounted = true;
-    let intervalId: NodeJS.Timeout;
-
-    const timeoutId = setTimeout(() => {
-      if (!isMounted) return;
-      intervalId = setInterval(() => {
-        if (!isMounted) return;
-        setDemoMoving(true);
-        setTimeout(() => {
-          if (isMounted) setDemoMoving(false);
-        }, 1200);
-      }, 7000);
-    }, offset);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [isDemo, tracker.status, tracker.trackerId?.deviceId?.id, batteryPct]);
-
-  const isMoving = moving || demoMoving;
   const isDisconnected = tracker.status === TrackerStatusEnum.DISCONNECTED;
-  // Demo trackers report no rotation, so their icon sways left and right instead, each at its own phase.
-  const demoSway =
-    isDemo && !isDisconnected && !(batteryPct != null && batteryPct <= 0);
-  const swayDelay = `-${(Number(tracker.trackerId?.deviceId?.id ?? 1) * 1300) % 5000}ms`;
+  // Demo trackers report no rotation, so one scene clock (sampleDemoScene) moves the icon in short
+  // irregular turns and lights the halo and rim from that same motion; holds go quiet. Each card has its own
+  // strength, direction and phase. Animations off, offline or empty battery keep it still.
+  const demoGesture =
+    config?.animations !== false &&
+    isDemo &&
+    !isDisconnected &&
+    !(batteryPct != null && batteryPct <= 0);
+  const gestureId = Number(tracker.trackerId?.deviceId?.id ?? 1);
+  const strength = demoGestureStrength(tracker.info?.bodyPart);
+  const sign = gestureId % 2 === 0 ? 1 : -1;
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const isMoving = useMotionGlow(
+    tracker,
+    cardRef,
+    demoGesture
+      ? {
+          id: gestureId,
+          deg: strength.deg * sign,
+          px: strength.px * sign,
+          reach: strength.reach,
+          icon: iconRef,
+        }
+      : null
+  );
 
   const ping = device?.hardwareStatus?.ping;
-  const problems = trackerProblems({ isDisconnected, batteryPct, ping });
-
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const origin: CardMorphOrigin = {
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-      borderRadius:
-        window.getComputedStyle(e.currentTarget).borderRadius || '12px',
-      trackerIdKey: `${device?.id?.id ?? 'dev'}_${tracker.trackerId?.trackerNum ?? 0}`,
-    };
-    onClick?.(origin);
-  };
+  const problems = trackerProblems({ isDisconnected, ping });
 
   const voltageText =
     batteryVoltage != null && batteryVoltage > 0
@@ -133,14 +127,18 @@ export function ClaudeTrackerWindowCard({
   // Orange only marks motion; a quiet card means a healthy tracker.
   return (
     <div
-      onClick={handleCardClick}
+      ref={cardRef}
+      onClick={onClick}
       className={classNames(
-        'home-tracker-card group relative flex h-full flex-col overflow-hidden rounded-[12px] border bg-background-60 transition-[border-color,box-shadow] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
-        isMoving
-          ? 'tracker-card-moving'
-          : 'border-background-10/[0.16] hover:border-background-10/[0.3]'
+        'home-tracker-card group relative flex h-full flex-col overflow-hidden rounded-[18px] border bg-background-60 transition-[border-color,box-shadow,opacity,filter] duration-500 cursor-pointer select-none active:scale-[0.985] active:duration-150',
+        'border-background-10/[0.16] hover:border-background-10/[0.3]',
+        isMoving && 'tracker-card-moving',
+        // Offline: the whole card dims and greys out instead of showing a chip; hover lifts it to stay readable.
+        isDisconnected && 'opacity-40 grayscale hover:opacity-75'
       )}
+      title={isDisconnected ? 'Offline' : undefined}
     >
+      {isDisconnected && <span className="sr-only">Offline</span>}
       <div className="home-tracker-card__banner relative flex h-28 items-center justify-center bg-background-80">
         {problems.length > 0 && (
           <div className="card-problems absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
@@ -175,20 +173,19 @@ export function ClaudeTrackerWindowCard({
           </div>
         ) : (
           <span
-            style={
-              demoSway
-                ? { animationDelay: swayDelay }
-                : { rotate: `${tilt.toFixed(0)}deg` }
-            }
+            ref={iconRef}
+            style={isDemo ? undefined : { rotate: `${tilt.toFixed(0)}deg` }}
             className={classNames(
-              'tracker-accent flex items-center justify-center transition-[rotate] duration-200',
-              demoSway && 'demo-icon-sway',
-              isMoving
-                ? classNames(
-                    'tracker-moving text-motion fill-motion',
-                    !demoSway && 'tracker-wiggle'
+              'tracker-accent flex items-center justify-center',
+              // Every demo card uses the demo style: plain orange, lit and posed only while its scene moves.
+              isDemo
+                ? 'demo-icon-gesture text-background-20 fill-background-20'
+                : classNames(
+                    'transition-[rotate] duration-200',
+                    isMoving
+                      ? 'tracker-moving tracker-wiggle text-motion fill-motion'
+                      : 'text-background-20 fill-background-20'
                   )
-                : 'text-background-20 fill-background-20'
             )}
           >
             <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={52} />
@@ -214,24 +211,33 @@ export function ClaudeTrackerWindowCard({
       </div>
 
       <div className="flex flex-col gap-2 px-3 py-2.5">
-        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+        {/* One row at every width: the name takes the free space and truncates; signal stays on the right. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2">
           <h3
-            className="min-w-0 max-w-full truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
+            className="truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
             title={trackerName}
           >
             {trackerName}
           </h3>
-          <div className="flex shrink-0 items-center gap-2 font-mono text-[12px] leading-none tnum">
+          <div className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] leading-none tnum">
             <SignalBars rssi={isDisconnected ? null : rssi} />
             <span
               title="Ping"
-              className={
+              className={classNames(
+                'min-w-[4ch] text-right',
                 ping != null && ping > HIGH_PING_MS
                   ? 'text-status-warning'
                   : 'text-background-20'
-              }
+              )}
             >
-              {ping != null && ping > 0 ? `${ping}ms` : '--'}
+              {ping != null && ping > 0 ? (
+                <>
+                  {ping}
+                  <span className="card-ping-unit">ms</span>
+                </>
+              ) : (
+                '--'
+              )}
             </span>
           </div>
         </div>
@@ -240,66 +246,92 @@ export function ClaudeTrackerWindowCard({
           voltage={voltageText}
         />
       </div>
+      {/* Motion rim: lit from the top centre, wider and further down the sides as --motion-level rises. */}
+      <span
+        aria-hidden="true"
+        className="tracker-motion-rim"
+        style={{ '--battery-low': batteryRedness(batteryPct) } as CSSProperties}
+      />
     </div>
   );
 }
 
-/** Battery as a battery shape whose fill is the charge, with the % beside it; voltage is in the tooltip. */
-function BatteryBar({
+/** Battery as a quiet outlined icon with a proportional fill and the % beside it; voltage is in the tooltip. */
+export function BatteryBar({
   pct,
   voltage,
 }: {
   pct?: number | null;
   voltage?: string | null;
 }) {
-  const known = pct != null;
-  const level = known ? Math.max(0, Math.min(100, Math.round(pct))) : 0;
+  const level = batteryLevel(pct);
+  const known = level != null;
   const [fill, text] =
-    level < LOW_BATTERY_PCT
-      ? ['bg-status-critical', 'text-status-critical']
-      : level <= 40
-        ? ['bg-status-warning', 'text-status-warning']
-        : ['bg-accent-background-30', 'text-background-10'];
-  // Pixel battery: ten square cells in the theme's accent, like the pixel icons. Square corners on purpose.
-  const lit = known ? Math.ceil(level / 10) : 0;
+    level == null
+      ? ['', 'text-background-30']
+      : level < LOW_BATTERY_PCT
+        ? ['fill-status-critical', 'text-status-critical']
+        : level <= 40
+          ? ['fill-status-warning', 'text-status-warning']
+          : ['fill-accent-background-30', 'text-background-10'];
+  const label = known
+    ? `Battery ${level}%${voltage ? ` · ${voltage}` : ''}`
+    : 'Battery unknown';
   return (
     <div
-      className="flex items-center gap-2"
-      title={
-        known
-          ? `Battery ${level}%${voltage ? ` · ${voltage}` : ''}`
-          : 'Battery unknown'
-      }
+      className="flex h-4 items-center justify-end gap-2 whitespace-nowrap"
+      title={label}
+      role="img"
+      aria-label={label}
     >
-      <div className="flex min-w-0 flex-1 items-center">
-        <div
+      <div className="flex items-center gap-1.5">
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          width="29"
+          height="16"
+          viewBox="0 0 30 16"
+          className={known ? 'text-background-10' : 'text-background-30'}
+        >
+          <g opacity="0.65">
+            <rect
+              x="1"
+              y="2"
+              width="25"
+              height="12"
+              rx="3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M29 6V10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </g>
+          {level != null && (
+            <rect
+              x="3"
+              y="4"
+              width={(level / 100) * 21}
+              height="8"
+              rx="1.5"
+              className={fill}
+            />
+          )}
+        </svg>
+        <span
           className={classNames(
-            'flex h-3.5 flex-1 gap-[2px] border-2 p-[2px] [border-radius:0!important]',
-            known
-              ? 'border-background-10/[0.35]'
-              : 'border-dashed border-background-10/[0.2]'
+            'min-w-[4ch] text-right font-mono text-[12px] leading-none tnum',
+            text
           )}
         >
-          {Array.from({ length: 10 }, (_, cell) => (
-            <span
-              key={cell}
-              className={classNames(
-                'h-full flex-1 transition-colors duration-500',
-                cell < lit ? fill : 'bg-background-10/[0.06]'
-              )}
-            />
-          ))}
-        </div>
-        <div className="h-1.5 w-[3px] shrink-0 bg-background-10/[0.35]" />
+          {known ? `${level}%` : '--'}
+        </span>
       </div>
-      <span
-        className={classNames(
-          'w-9 shrink-0 text-right font-mono text-[12px] tnum',
-          known ? text : 'text-background-30'
-        )}
-      >
-        {known ? `${level}%` : '--'}
-      </span>
     </div>
   );
 }
@@ -307,31 +339,18 @@ function BatteryBar({
 const LOW_BATTERY_PCT = 15;
 const HIGH_PING_MS = 50;
 
-/** Chips appear only for something the user should act on. */
+/** Chips appear only for something the user should act on. Low battery shows in the battery bar instead, and
+    offline as a dimmed card. */
 function trackerProblems({
   isDisconnected,
-  batteryPct,
   ping,
 }: {
   isDisconnected: boolean;
-  batteryPct?: number | null;
   ping?: number | null;
 }) {
-  if (isDisconnected) {
-    return [
-      {
-        label: 'Offline',
-        tone: 'border-background-10/[0.12] text-background-30',
-      },
-    ];
-  }
+  // Offline shows as a dimmed card, not a chip.
+  if (isDisconnected) return [];
   const problems: { label: string; tone: string }[] = [];
-  if (batteryPct != null && batteryPct < LOW_BATTERY_PCT) {
-    problems.push({
-      label: 'Low batt',
-      tone: 'border-status-critical/30 text-status-critical',
-    });
-  }
   if (ping != null && ping > HIGH_PING_MS) {
     problems.push({
       label: 'High ping',
@@ -342,7 +361,7 @@ function trackerProblems({
 }
 
 /** Four signal bars from RSSI; the dBm value is in the tooltip. */
-function SignalBars({ rssi }: { rssi?: number | null }) {
+export function SignalBars({ rssi }: { rssi?: number | null }) {
   const bars =
     rssi == null || rssi === 0
       ? 0
@@ -403,16 +422,13 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
   const connected = useAtomValue(connectedIMUCountAtom);
   const bun = isPawTheme(config?.theme);
   const animate = config?.animations !== false;
-  const logoRef = useRef<HTMLSpanElement>(null);
   return (
     <section
       aria-labelledby="tracker-empty-title"
-      className="relative isolate flex w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-[14px] border border-[var(--material-border-subtle)] bg-background-70 px-6 py-10 text-center shadow-[inset_0_1px_0_0_rgba(250,249,245,0.04)] sm:py-12"
+      className="tracker-empty-state relative isolate flex w-full flex-1 flex-col items-center justify-center overflow-hidden rounded-[14px] border border-[var(--material-border-subtle)] bg-background-70 px-6 py-10 text-center shadow-[inset_0_1px_0_0_rgba(250,249,245,0.04)] sm:py-12"
     >
-      {/* Bun: the logo hops and lands every 4.2 s, and the water ripple starts at the landing (see tracker-logo-hop). */}
-      {bun && (
-        <RippleDots glyphs originEl={logoRef} gapMin={4200} gapMax={4200} />
-      )}
+      {/* Bun: the same drifting pixel clouds as the welcome tab. The logo hops every 4.2 s (see tracker-logo-hop). */}
+      {bun && <ContourDots stirrable={false} />}
       <div className="relative flex h-14 w-14 items-center justify-center">
         {!bun && (
           <span
@@ -421,7 +437,6 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
           />
         )}
         <span
-          ref={logoRef}
           className={classNames(
             'tracker-empty-logo relative flex h-14 w-14 items-center justify-center rounded-full border border-accent-background-20/30 bg-accent-background-20/10',
             bun && animate && 'tracker-logo-hop'
@@ -490,14 +505,14 @@ function TrackerEmptyState({ onSimulateDemo }: { onSimulateDemo: () => void }) {
         <NavLink
           to="/onboarding/trackers-assign"
           title="Assign body parts once a tracker connects"
-          className="inline-flex h-8 items-center rounded-[8px] border border-[var(--material-border-primary)] px-3.5 text-ui-xs font-medium text-background-20 transition-colors hover:bg-background-10/[0.06] hover:text-background-10"
+          className="home-empty-action inline-flex h-8 items-center rounded-[12px] border border-[var(--material-border-primary)] px-3.5 text-ui-xs font-medium text-background-20 transition-colors hover:bg-background-10/[0.06] hover:text-background-10"
         >
           Assign trackers
         </NavLink>
         <button
           type="button"
           onClick={onSimulateDemo}
-          className="inline-flex h-8 cursor-pointer items-center rounded-[8px] px-3 text-ui-xs font-medium text-background-20 transition-colors hover:bg-background-10/[0.08] hover:text-background-10"
+          className="home-empty-action inline-flex h-8 cursor-pointer items-center rounded-[12px] px-3 text-ui-xs font-medium text-background-20 transition-colors hover:bg-background-10/[0.08] hover:text-background-10"
         >
           Simulate demo trackers
         </button>
@@ -527,7 +542,7 @@ function LiveTrackerCard({
   onClick,
 }: {
   trackerKey: string;
-  onClick: (tracker: TrackerDataT, origin: CardMorphOrigin) => void;
+  onClick: (tracker: TrackerDataT) => void;
 }) {
   const live = useAtomValue(liveTrackerAtom(trackerKey));
   if (!live) return null;
@@ -535,7 +550,7 @@ function LiveTrackerCard({
     <ClaudeTrackerWindowCard
       tracker={live.tracker}
       device={live.device}
-      onClick={(origin) => onClick(live.tracker, origin)}
+      onClick={() => onClick(live.tracker)}
     />
   );
 }
@@ -567,70 +582,10 @@ export function HomeEmptyState({
     cardLayoutTransitionKey ??
     (trackersTabAnim.animKey > 0 ? trackersTabAnim.animKey : null);
 
-  const [, setCardMorphOrigin] = useAtom(cardMorphOriginAtom);
-
-  const [growingCard, setGrowingCard] = useState<{
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-    borderRadius: string;
-    phase: 'start' | 'expanding';
-  } | null>(null);
-
-  const sendToSettings = (tracker: TrackerDataT, origin?: CardMorphOrigin) => {
-    if (origin) {
-      setCardMorphOrigin(origin);
-    }
-
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-
-    if (prefersReducedMotion || !origin) {
-      navigate(
-        `/tracker/${tracker.trackerId?.trackerNum}/${tracker.trackerId?.deviceId?.id}`
-      );
-      return;
-    }
-
-    setGrowingCard({
-      top: origin.top,
-      left: origin.left,
-      width: origin.width,
-      height: origin.height,
-      borderRadius: origin.borderRadius || '12px',
-      phase: 'start',
-    });
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setGrowingCard((prev) =>
-          prev
-            ? {
-                ...prev,
-                top: 0,
-                left: 0,
-                width: window.innerWidth,
-                height: window.innerHeight,
-                borderRadius: '0px',
-                phase: 'expanding',
-              }
-            : null
-        );
-      });
-    });
-
-    setTimeout(() => {
-      navigate(
-        `/tracker/${tracker.trackerId?.trackerNum}/${tracker.trackerId?.deviceId?.id}`
-      );
-    }, 280);
-
-    setTimeout(() => {
-      setGrowingCard(null);
-    }, 450);
-  };
+  const sendToSettings = (tracker: TrackerDataT) =>
+    navigate(
+      `/tracker/${tracker.trackerId?.trackerNum}/${tracker.trackerId?.deviceId?.id}`
+    );
 
   const viewContentMotion = (depth: number): React.CSSProperties | undefined =>
     viewSwitchKey == null
@@ -673,11 +628,6 @@ export function HomeEmptyState({
                   <h2 className="font-serif text-ui-lg sm:text-ui-lg font-normal tracking-tight text-background-10">
                     Trackers
                   </h2>
-                  {demoMode && !hasRealTrackers && (
-                    <span className="px-2 py-0.5 rounded-full text-ui-2xs font-mono font-medium tracking-wide bg-accent-background-20/15 text-accent-background-10 border border-accent-background-20/30 animate-pulse">
-                      DEMO MODE
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -749,28 +699,6 @@ export function HomeEmptyState({
           )}
         </div>
       </div>
-
-      {growingCard && (
-        <div
-          className="fixed pointer-events-none z-[9999] will-change-[top,left,width,height,border-radius,box-shadow]"
-          style={{
-            top: growingCard.top,
-            left: growingCard.left,
-            width: growingCard.width,
-            height: growingCard.height,
-            borderRadius: growingCard.borderRadius,
-            backgroundColor: 'rgb(var(--background-80))',
-            boxShadow:
-              growingCard.phase === 'start'
-                ? '0 12px 36px rgba(0, 0, 0, 0.22)'
-                : '0 0 0 rgba(0, 0, 0, 0)',
-            transition:
-              growingCard.phase === 'expanding'
-                ? 'top 320ms cubic-bezier(0.2, 0.95, 0.3, 1), left 320ms cubic-bezier(0.2, 0.95, 0.3, 1), width 320ms cubic-bezier(0.2, 0.95, 0.3, 1), height 320ms cubic-bezier(0.2, 0.95, 0.3, 1), border-radius 320ms cubic-bezier(0.2, 0.95, 0.3, 1), box-shadow 320ms cubic-bezier(0.2, 0.95, 0.3, 1)'
-                : 'none',
-          }}
-        />
-      )}
     </div>
   );
 }

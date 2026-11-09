@@ -21,8 +21,13 @@ export function SettingsPageLayout({
   const { state } = useLocation();
 
   useEffect(() => {
-    const typedState: { scrollTo: string } = state;
-    if (!pageRef.current || !typedState || !typedState.scrollTo) {
+    const typedState: { scrollTo: string; resumeSettings?: boolean } = state;
+    if (
+      !pageRef.current ||
+      !typedState ||
+      !typedState.scrollTo ||
+      typedState.resumeSettings
+    ) {
       return;
     }
     const elem = pageRef.current.querySelector(

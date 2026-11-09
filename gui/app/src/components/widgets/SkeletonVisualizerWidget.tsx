@@ -13,6 +13,7 @@ import {
   Group,
   PerspectiveCamera,
   Quaternion,
+  Raycaster,
   Scene,
   Spherical,
   Vector2,
@@ -37,6 +38,9 @@ import { useFeedDemand } from '@/hooks/feed-demand';
 import { useConfig } from '@/hooks/config';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import { Tween } from '@tweenjs/tween.js';
+import { createCanvasResizer } from '@/utils/canvas-resize';
+import { wheelZoomFactor } from '@/utils/wheel-zoom';
+import { BoneHighlight } from '@/utils/proportion-highlight';
 import { EyeIcon } from '@/components/commons/icon/EyeIcon';
 
 const GROUND_COLOR = '#2F5F86';
@@ -124,6 +128,15 @@ function initializePreview(
   scene.add(skeletonGroup);
   scene.add(skeleton[0]);
 
+  // Bones to keep bright while the rest dim; null leaves the usual rainbow. Re-applied to every rebuilt helper.
+  let highlight: BoneHighlight | null = null;
+  const setHighlight = (next: BoneHighlight | null) => {
+    if (!renderer || next === highlight) return;
+    highlight = next;
+    skeletonHelper.setHighlight(highlight);
+    markDirty(3);
+  };
+
   let heightOffset = 0;
   let skeletonOffset = 0;
   const updateSkeletonHeading = (bones: Map<BodyPart, BoneT>) => {
@@ -141,7 +154,12 @@ function initializePreview(
         : chest?.rotationG;
     if (!sourceRotation) return;
 
-    const quat = QuaternionFromQuatT(sourceRotation).normalize().invert();
+    const quat = QuaternionFromQuatT(sourceRotation).normalize();
+    // Looking up or down (lying on the floor), the heading is undefined and the twist below swings wildly, which
+    // spun the whole preview. Keep the last heading until the forward axis is level enough to read again.
+    const forward = new Vector3(0, 0, 1).applyQuaternion(quat);
+    if (Math.hypot(forward.x, forward.z) < 0.5) return;
+    quat.invert();
 
     // Project the inverse rotation onto the world Y axis, matching the
     // original face-forward transform while avoiding pitch/roll in the group.
@@ -167,6 +185,7 @@ function initializePreview(
 
     skeletonHelper = new BasedSkeletonHelper(newSkeleton[0]);
     skeletonHelper.resolution.copy(resolution);
+    skeletonHelper.setHighlight(highlight);
     skeletonGroup.add(skeletonHelper);
     scene.add(newSkeleton[0]);
     updateSkeletonHeading(bones);
@@ -230,13 +249,16 @@ function initializePreview(
   const FRAME_LIFT = 0.25;
   // The narrowest panel shape the framing fits (width over height).
   const FRAME_MIN_ASPECT = 0.5;
-  // Lying down: the body is long and flat, so the view turns to look straight down on it.
-  const LYING_RATIO = 0.5;
+  // Lying down: the body is long and flat, so the view turns to look straight down on it. It switches with
+  // hysteresis on the raw size, so an arm moving near the line cannot flip the view back and forth.
+  const LYING_ON = 0.5;
+  const LYING_OFF = 0.8;
+  let lying = false;
   // Spring times in seconds. The zoom opens fast so nothing is cut off and closes slowly, so
   // swinging limbs don't make it breathe in and out. The position glides slower still.
-  const FRAME_MOVE_TIME = 0.7;
-  const FRAME_OPEN_TIME = 0.35;
-  const FRAME_CLOSE_TIME = 1.6;
+  const FRAME_MOVE_TIME = 1.2;
+  const FRAME_OPEN_TIME = 0.6;
+  const FRAME_CLOSE_TIME = 2.5;
 
   // Smoothed framing state: the camera follows these, never the raw (noisy) bounds.
   const frameCenter = new Vector3();
@@ -244,6 +266,13 @@ function initializePreview(
   let frameRadius = 1;
   let frameRadiusVelocity = 0;
   let frameReady = false;
+  // Camera distance when framing began; the zoom is fitted at this distance.
+  let frameBaseDistance = 1;
+  // The wheel's zoom on top of the fit. The wheel changes the lens zoom, not the distance, so zooming in keeps the
+  // mild perspective of the far camera instead of the fisheye look of moving it close.
+  let frameUserZoom = 1;
+  // Turning auto-frame back on glides from the user's current view instead of jumping.
+  let frameGlide = false;
   // True while the framing is still moving; the loop then renders at display rate.
   let frameMoving = false;
   // Eye level: the camera sits level with the aim point, looking straight at the body, not
@@ -262,7 +291,7 @@ function initializePreview(
   let userTurnEnd = 0;
   // The raw bounds jump with every bone packet and every swinging hand. They're low-passed over this many seconds
   // before the springs follow them, so the camera glides instead of twitching.
-  const FRAME_FILTER_TIME = 0.3;
+  const FRAME_FILTER_TIME = 0.8;
   const frameGoal = new Vector3();
   let radiusGoal = 1;
 
@@ -293,30 +322,46 @@ function initializePreview(
   const frameView = (v: SkeletonPreviewView, aspect: number, rawDt: number) => {
     frameBox.makeEmpty();
     skeletonGroup.updateMatrixWorld();
+    // The width the camera actually sees: spread along its horizontal right axis. The world box's
+    // x/z extent also counts arms reaching toward the camera, which zoomed the view out in play.
+    const rightX = v.camera.position.z - v.controls.target.z;
+    const rightZ = v.controls.target.x - v.camera.position.x;
+    const rightLength = Math.hypot(rightX, rightZ) || 1;
+    let viewMin = Infinity;
+    let viewMax = -Infinity;
     skeleton.forEach((bone) => {
       bone.getWorldPosition(framePoint);
       // The helper draws bones through the group's heading, so measure them the same way.
-      frameBox.expandByPoint(
-        framePoint.applyMatrix4(skeletonGroup.matrixWorld)
-      );
+      framePoint.applyMatrix4(skeletonGroup.matrixWorld);
+      frameBox.expandByPoint(framePoint);
+      const across =
+        (framePoint.x * rightX + framePoint.z * rightZ) / rightLength;
+      viewMin = Math.min(viewMin, across);
+      viewMax = Math.max(viewMax, across);
     });
     if (frameBox.isEmpty()) {
       frameMoving = false;
       return;
     }
-    const dt = Math.min(Math.max(rawDt, 0.001), 0.05);
+    // Up to the render loop's own 0.1 s cap, so the springs keep real time at the 30 fps used while a game has focus.
+    const dt = Math.min(Math.max(rawDt, 0.001), 0.1);
     frameBox.getCenter(frameTarget);
     frameBox.getSize(frameSize);
     // Half-extents of the body: tall and narrow when standing, long and flat when lying.
     const halfHeight = Math.max(frameSize.y / 2, MIN_FRAME_RADIUS);
     const halfWide =
       Math.max(frameSize.x, frameSize.z, 2 * MIN_FRAME_RADIUS) / 2;
-    const lying = halfHeight < LYING_RATIO * halfWide;
+    const flatness = frameSize.y / Math.max(frameSize.x, frameSize.z, 1e-3);
+    lying = flatness < (lying ? LYING_OFF : LYING_ON);
     // Fit the body's height when standing, and its length when lying. The width is the other
     // constraint: a narrow panel shows less of it, so that can push the zoom out.
     const major = lying ? halfWide : halfHeight;
     const needHeight = major * FRAME_MARGIN + FRAME_PADDING;
-    const needWidth = halfWide * FRAME_MARGIN + FRAME_PADDING;
+    // Lying uses the top view, where the world box is what shows; standing uses the camera's own width.
+    const seenWide = lying
+      ? halfWide
+      : Math.max(viewMax - viewMin, 2 * MIN_FRAME_RADIUS) / 2;
+    const needWidth = seenWide * FRAME_MARGIN + FRAME_PADDING;
     // A panel that is still opening is nearly zero wide, which would zoom the camera far out. Clamp the
     // shape the width can ask for; standing bodies are height-limited, so normal panels don't change.
     // Raising the aim leaves less room below it, so the zoom grows by the same amount and the feet stay in view.
@@ -329,16 +374,25 @@ function initializePreview(
 
     const tanHalf = Math.tan((v.camera.fov * Math.PI) / 360);
     // The first framing of a view jumps straight to the framed pose. Gliding in from the default view
-    // took seconds to settle, so the skeleton looked unframed on open.
-    const firstFrame = !frameReady;
-    if (firstFrame) {
+    // took seconds to settle, so the skeleton looked unframed on open. Re-enabling glides from where the user left it.
+    const firstFrame = !frameReady && !frameGlide;
+    if (!frameReady) {
+      frameBaseDistance = v.camera.position.distanceTo(v.controls.target);
       frameGoal.copy(frameTarget);
       radiusGoal = wantRadius;
-      frameCenter.copy(frameTarget);
       frameVelocity.set(0, 0, 0);
-      frameRadius = wantRadius;
       frameRadiusVelocity = 0;
       framePitchVelocity = 0;
+      if (frameGlide) {
+        // Start the springs at the current view: same aim, same visible half-height.
+        frameCenter.copy(v.controls.target);
+        frameRadius = (frameBaseDistance * tanHalf) / v.camera.zoom;
+      } else {
+        frameCenter.copy(frameTarget);
+        frameRadius = wantRadius;
+      }
+      frameGlide = false;
+      frameUserZoom = 1;
       frameReady = true;
     }
     const filter = 1 - Math.exp(-dt / FRAME_FILTER_TIME);
@@ -416,9 +470,9 @@ function initializePreview(
     frameOffset.setFromSpherical(frameSpherical);
     v.camera.position.copy(v.controls.target).add(frameOffset);
 
-    // frameRadius is the half-height in view, so the zoom is the view height that fits it.
-    const distance = frameSpherical.radius;
-    v.camera.zoom = (distance * tanHalf) / frameRadius;
+    // frameRadius is the half-height in view at the base distance.
+    v.camera.zoom =
+      ((frameBaseDistance * tanHalf) / frameRadius) * frameUserZoom;
 
     // Keep drawing until the camera settles.
     frameMoving =
@@ -432,19 +486,27 @@ function initializePreview(
 
   const setAutoFrame = (enable?: boolean) => {
     autoFrame = typeof enable === 'boolean' ? enable : !autoFrame;
-    frameReady = false;
+    // A view that was framed before glides back; the very first framing still jumps into place.
+    if (autoFrame) {
+      frameGlide = frameReady;
+      frameReady = false;
+    }
     markDirty(10);
     return autoFrame;
   };
 
-  const render = (deltaSeconds?: number) => {
+  // `advance: false` only redraws the current pose (controls, framing springs and tweens stay put); used right after
+  // a resize cleared the buffer.
+  const render = (deltaSeconds?: number, advance = true) => {
     views.forEach((v) => {
       if (v.hidden || !renderer) return;
       // Pass delta in seconds if available so OrbitControls updates smoothly and predictably
-      if (typeof deltaSeconds === 'number' && deltaSeconds > 0) {
-        v.controls.update(deltaSeconds);
-      } else {
-        v.controls.update();
+      if (advance) {
+        if (typeof deltaSeconds === 'number' && deltaSeconds > 0) {
+          v.controls.update(deltaSeconds);
+        } else {
+          v.controls.update();
+        }
       }
 
       const left = Math.floor(resolution.x * v.left);
@@ -453,7 +515,7 @@ function initializePreview(
       const height = Math.floor(resolution.y * v.height);
       if (width <= 0 || height <= 0) return;
 
-      if (autoFrame) {
+      if (advance && autoFrame) {
         frameView(
           v,
           width / height,
@@ -467,7 +529,7 @@ function initializePreview(
       renderer.setScissor(left, bottom, width, height);
       renderer.setScissorTest(true);
 
-      v.tween.update();
+      if (advance) v.tween.update();
 
       v.camera.aspect = width / height;
       v.camera.updateProjectionMatrix();
@@ -479,7 +541,7 @@ function initializePreview(
   let previousFrameTime = 0;
 
   // Bones glide to each new pose instead of snapping to it, which reads as jitter between 40 Hz bone packets.
-  // Frame-rate independent, so it eases the same at 60 fps and at the 10 fps used while the window is in the background.
+  // Frame-rate independent, so it eases the same at 60 fps and at the 30 fps used while the window is in the background.
   let bonesMoving = false;
   const easeBones = (deltaSeconds: number) => {
     const alpha = 1 - Math.exp(-deltaSeconds / BONE_SMOOTH_TIME);
@@ -491,21 +553,22 @@ function initializePreview(
     if (moving) markDirty(2);
   };
 
+  // setSize clears the canvas, so the new size is redrawn in the same task (before paint) rather than waiting for a
+  // throttled frame; the extra dirty frames then let auto-frame settle on the new aspect.
+  const resizeCanvas = createCanvasResizer(
+    (width, height) => {
+      resolution.set(width, height);
+      skeletonHelper.resolution.copy(resolution);
+      renderer?.setSize(width, height);
+    },
+    () => {
+      render(0, false);
+      markDirty(8);
+    },
+    { width: resolution.x, height: resolution.y }
+  );
   const syncCanvasSize = () => {
-    if (!renderer) return;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    if (
-      width <= 0 ||
-      height <= 0 ||
-      (width === resolution.x && height === resolution.y)
-    ) {
-      return;
-    }
-    resolution.set(width, height);
-    skeletonHelper.resolution.copy(resolution);
-    renderer.setSize(width, height);
-    markDirty(8);
+    if (renderer) resizeCanvas(canvas.clientWidth, canvas.clientHeight);
   };
 
   function animate() {
@@ -521,12 +584,12 @@ function initializePreview(
       document.hasFocus &&
       document.hasFocus();
 
-    // Throttle by attention: unfocused (e.g. while gaming) is the common
-    // background case, so keep the preview light on the GPU there.
+    // Throttle by attention: unfocused (e.g. while gaming) is the common background case, so it runs
+    // at 30 fps there. 10 fps read as stutter on a second monitor during play.
     const adaptiveBaseInterval = isHidden
       ? 1000
       : !isFocused
-        ? 100
+        ? 33.3
         : autoOrbit
           ? 33.3
           : 16.6;
@@ -540,7 +603,9 @@ function initializePreview(
 
     const now = performance.now();
     const elapsed = now - lastRenderTimeRef;
-    if (elapsed < effectiveInterval) {
+    // A display frame lands a hair early about half the time; without slack that frame is skipped, so "60 fps" became
+    // an uneven mix of 16 and 33 ms frames that read as jitter while moving.
+    if (elapsed < effectiveInterval - FRAME_SLACK_MS) {
       // Wait out the frame interval with one timer instead of a rAF on every display frame.
       if (waitTimer === null) {
         waitTimer = window.setTimeout(() => {
@@ -588,24 +653,99 @@ function initializePreview(
     });
   };
   canvas.addEventListener('pointermove', handlePointerMove);
+  // Wheel and trackpad pinch zoom the lens of the view under the pointer (see frameUserZoom).
+  const handleWheel = (event: WheelEvent) => {
+    const view = views.find((v) => v.controls.enabled && !v.hidden);
+    if (!view) return;
+    event.preventDefault();
+    const factor = wheelZoomFactor(
+      event.deltaY,
+      event.deltaMode,
+      (event as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY,
+      event.ctrlKey
+    );
+    if (autoFrame) {
+      frameUserZoom = Math.min(Math.max(frameUserZoom * factor, 0.3), 8);
+    } else {
+      view.camera.zoom = Math.min(
+        Math.max(view.camera.zoom * factor, 0.05),
+        20
+      );
+    }
+    markDirty(4);
+  };
+  canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+  // Bone picking, on only for previews that set a handler (Manual Proportions). A click is a press and release
+  // that barely moved, so turning the camera never picks.
+  let onBonePick: ((part: BodyPart) => void) | null = null;
+  const raycaster = new Raycaster();
+  // Pixels of slack around the 4 px lines, so thin bones are easy to hit.
+  (raycaster.params as { Line2?: { threshold: number } }).Line2 = {
+    threshold: 8,
+  };
+  const pickNdc = new Vector2();
+  const partAt = (event: PointerEvent): BodyPart | null => {
+    const x = event.offsetX / resolution.x;
+    const y = 1 - event.offsetY / resolution.y;
+    const view = views.find(
+      (v) =>
+        !v.hidden &&
+        x >= v.left &&
+        x <= v.left + v.width &&
+        y >= v.bottom &&
+        y <= v.bottom + v.height
+    );
+    if (!view) return null;
+    pickNdc.set(
+      ((x - view.left) / view.width) * 2 - 1,
+      ((y - view.bottom) / view.height) * 2 - 1
+    );
+    raycaster.setFromCamera(pickNdc, view.camera);
+    for (const hit of raycaster.intersectObject(skeletonHelper, false)) {
+      const part = skeletonHelper.ownerAt(hit.faceIndex ?? -1);
+      if (part !== null) return part;
+    }
+    return null;
+  };
+  let pressX = 0;
+  let pressY = 0;
+  const handlePickDown = (event: PointerEvent) => {
+    pressX = event.clientX;
+    pressY = event.clientY;
+  };
+  const handlePickUp = (event: PointerEvent) => {
+    if (!onBonePick || event.button !== 0) return;
+    if (Math.hypot(event.clientX - pressX, event.clientY - pressY) > 4) return;
+    const part = partAt(event);
+    if (part !== null) onBonePick(part);
+  };
+  const handlePickHover = (event: PointerEvent) => {
+    if (!onBonePick || event.buttons !== 0) return;
+    canvas.style.cursor = partAt(event) !== null ? 'pointer' : '';
+  };
+  canvas.addEventListener('pointerdown', handlePickDown);
+  canvas.addEventListener('pointerup', handlePickUp);
+  canvas.addEventListener('pointermove', handlePickHover);
+  const setBonePick = (handler: ((part: BodyPart) => void) | null) => {
+    onBonePick = handler;
+    if (!handler) canvas.style.cursor = '';
+  };
   // ResizeObserver can miss the final frame of the drawer width transition, so check the size once it
   // ends; reopening a zero-width preview then always restores rendering.
   document.addEventListener('transitionend', syncCanvasSize);
 
   return {
     resize: (width: number, height: number) => {
-      if (width <= 0 || height <= 0) return;
-      resolution.set(width, height);
-      skeletonHelper.resolution.copy(resolution);
-      if (!renderer) return;
-      renderer.setSize(width, height);
-      markDirty(5);
+      if (renderer) resizeCanvas(width, height);
     },
     setFrameInterval: (interval: number) => {
       frameInterval = interval;
       markDirty(5);
     },
     rebuildSkeleton,
+    setHighlight,
+    setBonePick,
     // Re-centering on every update would cancel the user's own turning, so
     // the heading is only re-synced on rebuild and after a reset.
     syncHeading: updateSkeletonHeading,
@@ -638,6 +778,10 @@ function initializePreview(
         waitTimer = null;
       }
       canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('pointerdown', handlePickDown);
+      canvas.removeEventListener('pointerup', handlePickUp);
+      canvas.removeEventListener('pointermove', handlePickHover);
       document.removeEventListener('transitionend', syncCanvasSize);
       views.forEach((view) => view.controls.dispose());
       views.length = 0;
@@ -676,6 +820,8 @@ function initializePreview(
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.maxDistance = 20;
+      // Zoom is the lens (handleWheel), not a dolly.
+      controls.enableZoom = false;
       controls.dampingFactor = 0.2;
       controls.enableDamping = true;
       controls.addEventListener('change', () => markDirty(4));
@@ -730,9 +876,10 @@ const boneMap = (bones: BoneT[]) =>
 const BASE_FRAMERATE = 60;
 const LOW_FRAMERATE = 30;
 // Seconds for a bone to cover most of the way to a new pose. Higher is smoother and more cinematic, and lags more.
-const BONE_SMOOTH_TIME = 0.04;
+const BONE_SMOOTH_TIME = 0.12;
 // Auto-frame's camera glide draws at the base rate, not the low one.
 const SMOOTH_FRAME_INTERVAL = 1000 / BASE_FRAMERATE;
+const FRAME_SLACK_MS = 4;
 
 export type PreviewContext = ReturnType<typeof initializePreview>;
 

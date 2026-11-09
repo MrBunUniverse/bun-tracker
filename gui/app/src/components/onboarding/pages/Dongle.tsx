@@ -5,15 +5,20 @@ import { Typography } from '@/components/commons/Typography';
 import classNames from 'classnames';
 import { USBIcon } from '@/components/commons/icon/UsbIcon';
 import { WarningBox } from '@/components/commons/TipBox';
+import {
+  OnboardingActions,
+  OnboardingPage,
+  OnboardingPanel,
+} from '@/components/onboarding/OnboardingPanel';
 import { MoreSetsConfirm } from './quiz/MoreSetsConfirm';
 
 export function DongleSectionContent() {
   const { state } = useOnboarding();
 
   return (
-    <div className="flex flex-col gap-6 min-w-0 w-full p-8 rounded-[20px] bg-[var(--material-tertiary)] border border-[var(--material-border-subtle)] shadow-sm overflow-hidden">
+    <OnboardingPanel className="gap-6 min-w-0 overflow-hidden">
       <div className="flex gap-4 items-center">
-        <div className="bg-accent-background-20/15 border border-accent-background-20/30 rounded-2xl p-3 text-accent-background-30">
+        <div className="bg-accent-background-20/15 border border-accent-background-20/30 rounded-2xl p-3 text-background-10">
           <USBIcon size={28} />
         </div>
         <div>
@@ -32,7 +37,16 @@ export function DongleSectionContent() {
           <WarningBox whitespace>WARNING</WarningBox>
         </Localized>
       </div>
-      <div className="flex pt-2 justify-end">
+      <OnboardingActions>
+        {!state.alonePage ? (
+          <Button
+            variant="secondary"
+            to={'/onboarding/quiz/slime-set'}
+            id="onboarding-wifi_creds-back-v2"
+          />
+        ) : (
+          <div />
+        )}
         {state.alonePage && (
           <Button
             variant="primary"
@@ -41,8 +55,8 @@ export function DongleSectionContent() {
           />
         )}
         {!state.alonePage && <MoreSetsConfirm />}
-      </div>
-    </div>
+      </OnboardingActions>
+    </OnboardingPanel>
   );
 }
 
@@ -52,8 +66,8 @@ export function DonglePage() {
   applyProgress(0.5);
 
   return (
-    <div className="flex flex-col w-full h-full xs:justify-center items-center">
+    <OnboardingPage>
       <DongleSectionContent />
-    </div>
+    </OnboardingPage>
   );
 }

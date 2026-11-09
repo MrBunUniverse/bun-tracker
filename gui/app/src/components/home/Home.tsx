@@ -3,6 +3,7 @@ import { useLocalization } from '@fluent/react';
 import { TrackerDataT } from 'solarxr-protocol';
 import { useConfig } from '@/hooks/config';
 import { Typography } from '@/components/commons/Typography';
+import { ContourDots } from '@/components/commons/ContourDots';
 import { TrackersTable } from '@/components/tracker/TrackersTable';
 import { Atom, useAtomValue, useAtom } from 'jotai';
 import {
@@ -29,6 +30,7 @@ import { useWebsocketAPI } from '@/hooks/websocket-api';
 
 import { Sidebar } from '@/components/Sidebar';
 import { useBreakpoint } from '@/hooks/breakpoint';
+import { useElemSize } from '@/hooks/layout';
 import { useTrackingChecklist } from '@/hooks/tracking-checklist';
 
 function CardViewIcon({ className }: { className?: string }) {
@@ -124,6 +126,10 @@ export function Home() {
   const trackers = useAtomValue(assignedTrackerSetAtom);
   const unassignedTrackers = useAtomValue(unassignedTrackerSetAtom);
   const navigate = useNavigate();
+  // Quiet clouds behind the card grid only. The empty state has its own clouds, and the table has none.
+  const cloudLayer =
+    config?.homeLayout !== 'table' &&
+    trackers.length + unassignedTrackers.length > 0;
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const fadeRef = useRef<HTMLDivElement>(null);
@@ -309,7 +315,8 @@ export function Home() {
       const saved = localStorage.getItem('slimevr-sidebar-width');
       if (saved) {
         const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && parsed >= 300 && parsed <= 520) {
+        // The upper bound is the container cap below, applied at render.
+        if (!isNaN(parsed) && parsed >= 300) {
           return parsed;
         }
       }
@@ -319,44 +326,22 @@ export function Home() {
     return null;
   });
 
-  const [windowSize, setWindowSize] = useState(() => ({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }));
+  // The dashboard's own width, so the inspector cap follows zoom, nav and window changes alike.
+  const { ref: homeViewRef, width: dashboardWidth } =
+    useElemSize<HTMLDivElement>();
 
   const [isDragging, setIsDragging] = useState(false);
   const [isTrackerSetupOpen, setIsTrackerSetupOpen] = useState(false);
   const dragStartXRef = useRef<number>(0);
   const dragStartWidthRef = useRef<number>(0);
   const sidebarContainerRef = useRef<HTMLDivElement | null>(null);
+  // Leave 320px for the tracker area. The width is unmeasured on the first render, so fall back to the window.
   const maxSidebarWidth = Math.max(
     300,
-    Math.min(520, Math.floor(windowSize.width * 0.38))
+    (dashboardWidth || window.innerWidth) - 320
   );
+  // Render-time clamp only: the stored size is kept, so a shrink doesn't erase it.
   const resolvedSidebarWidth = Math.min(sidebarWidth || 360, maxSidebarWidth);
-
-  useEffect(() => {
-    // At most one update per frame while the window is being dragged.
-    let frame = 0;
-    const updateWindowSize = () => {
-      if (frame) return;
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-      });
-    };
-    window.addEventListener('resize', updateWindowSize);
-    return () => {
-      window.removeEventListener('resize', updateWindowSize);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (sidebarWidth != null && sidebarWidth > maxSidebarWidth) {
-      setSidebarWidth(maxSidebarWidth);
-    }
-  }, [sidebarWidth, maxSidebarWidth]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -441,18 +426,11 @@ export function Home() {
   }, [isSidebarVisible]);
 
   return (
-    <div className="home-view relative h-full flex flex-col min-h-0 overflow-hidden">
+    <div
+      ref={homeViewRef}
+      className="home-view relative h-full flex flex-col min-h-0 overflow-hidden"
+    >
       <HomeSettingsModal open={settingsOpenState} />
-
-      {/* Demo: a striped band, so simulated trackers can't be mistaken for live data. */}
-      {isDemo && (
-        <div
-          role="status"
-          className="animate-demo-stripes shrink-0 border-b border-status-warning/30 py-1 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-status-warning"
-        >
-          Demo · simulated trackers, not live data
-        </div>
-      )}
 
       {/* Minimalist Flush Header Bar - No Floating Dock - Spans 100% full width, fixed position */}
       <div
@@ -461,7 +439,7 @@ export function Home() {
         aria-label="Tracking controls"
       >
         {/* Left Section: Compact tracker status, always visible */}
-        <div className="home-command-bar__group home-command-bar__status relative shrink-0">
+        <div className="home-command-bar__group home-command-bar__status relative flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setIsTrackerSetupOpen((open) => !open)}
@@ -502,6 +480,30 @@ export function Home() {
               ⌄
             </span>
           </button>
+
+          {/* Demo state beside the live count, so simulated trackers never read as live data. */}
+          {isDemo && (
+            <div className="group relative shrink-0">
+              <span
+                tabIndex={0}
+                aria-describedby="home-demo-badge-tip"
+                className="flex min-h-7 items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-status-warning/25 bg-status-warning/10 px-2 py-0.5 text-ui-2xs font-medium text-status-warning select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20"
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-status-warning"
+                  aria-hidden="true"
+                />
+                Demo
+              </span>
+              <span
+                id="home-demo-badge-tip"
+                role="tooltip"
+                className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden whitespace-nowrap rounded-[8px] border border-[var(--material-border-primary)] bg-background-60 px-2.5 py-1.5 text-ui-2xs text-background-10 shadow-md group-hover:block group-focus-within:block"
+              >
+                Simulated trackers — not live data
+              </span>
+            </div>
+          )}
 
           {isTrackerSetupOpen && (
             <>
@@ -581,7 +583,7 @@ export function Home() {
         >
           {/* Card / Table Layout Segmented Control */}
           <div
-            className="home-view-switcher flex items-center gap-0.5 overflow-hidden rounded-[9px] border p-0.5 border-background-10/[0.08] bg-background-10/[0.04]"
+            className="home-view-switcher flex items-center gap-0.5 overflow-hidden rounded-[12px] border p-0.5 border-background-10/[0.08] bg-background-10/[0.04]"
             role="tablist"
             aria-label={l10n.getString('home-view-select')}
           >
@@ -602,7 +604,7 @@ export function Home() {
               }}
               style={getViewAnimProps('card').style}
               className={classNames(
-                'home-view-switcher__button flex min-h-9 items-center justify-center gap-2 rounded-[7px] px-2.5 py-1.5 text-ui-2xs font-medium transition-[background-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                'home-view-switcher__button flex min-h-9 items-center justify-center gap-2 rounded-[9px] px-2.5 py-1.5 text-ui-2xs font-medium transition-[background-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
                 config?.homeLayout !== 'table'
                   ? 'bg-white dark:bg-background-10/[0.12] text-background-10 shadow-xs'
                   : 'text-background-30 hover:text-background-10',
@@ -632,7 +634,7 @@ export function Home() {
               }}
               style={getViewAnimProps('table').style}
               className={classNames(
-                'home-view-switcher__button flex min-h-9 items-center justify-center gap-2 rounded-[7px] px-2.5 py-1.5 text-ui-2xs font-medium transition-[background-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                'home-view-switcher__button flex min-h-9 items-center justify-center gap-2 rounded-[9px] px-2.5 py-1.5 text-ui-2xs font-medium transition-[background-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
                 config?.homeLayout === 'table'
                   ? 'bg-white dark:bg-background-10/[0.12] text-background-10 shadow-xs'
                   : 'text-background-30 hover:text-background-10',
@@ -657,7 +659,7 @@ export function Home() {
             }}
             style={getViewAnimProps('skeleton').style}
             className={classNames(
-              'home-skeleton-toggle relative flex min-h-9 min-w-9 items-center justify-center rounded-[9px] border px-2 py-1.5 text-ui-2xs font-medium transition-[background-color,border-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+              'home-skeleton-toggle relative flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[12px] border p-0 text-ui-2xs font-medium transition-[background-color,border-color,color,box-shadow,transform] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
               showSidebar
                 ? 'bg-accent-background-20/15 text-accent-background-10 border-accent-background-20/30 shadow-xs'
                 : 'bg-background-10/[0.04] text-background-30 hover:text-background-10 border-background-10/[0.08]',
@@ -695,7 +697,14 @@ export function Home() {
       {/* Lower Workspace Split: Left = Tracker Scroll Area, Right = 3D Skeleton Live View */}
       <div className="relative flex-grow min-h-0 flex flex-row overflow-hidden">
         {/* Left Column: Scroll Area Container */}
-        <div className="relative flex-grow min-w-0 flex flex-col h-full">
+        <div
+          className={classNames(
+            'relative flex-grow min-w-0 flex flex-col h-full',
+            cloudLayer && 'isolate home-pane-clouds'
+          )}
+        >
+          {/* Sits behind the fixed pane, not the scrolling list, so the canvas is pane-sized. */}
+          {cloudLayer && <ContourDots quiet />}
           {/* Top Fade Gradient Scrim */}
           <div
             ref={fadeRef}
@@ -853,10 +862,7 @@ export function Home() {
               className="flex h-full min-w-0 flex-col overflow-hidden border-l border-[var(--material-border-subtle)] bg-background-70"
             >
               {(hasBeenOpened || isSidebarVisible) && (
-                <Sidebar
-                  onResetPreviewWidth={handleDoubleClick}
-                  visible={isSidebarVisible}
-                />
+                <Sidebar visible={isSidebarVisible} />
               )}
             </div>
           </div>

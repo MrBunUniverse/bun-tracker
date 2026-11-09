@@ -9,6 +9,7 @@ import {
   evaluateQuestDiagnostics,
 } from './helpers/test-utils.ts';
 import type { MockTrackerData } from './helpers/test-utils.ts';
+import { normalizeTheme } from '../src/hooks/theme.ts';
 
 const SCSS_PATH = new URL('../src/index.scss', import.meta.url);
 
@@ -273,9 +274,24 @@ describe('Tier 2: Boundary & Corner Cases (B1 - B5)', () => {
       assert.equal(darkGlassBorder, 'rgba(255, 255, 255, 0.10)');
     });
 
-    it('B5.2: keeps the removed light theme out of the stylesheet', () => {
+    it('B5.2: keeps the retired palettes out of the stylesheet', () => {
       const scss = readFileSync(SCSS_PATH, 'utf-8');
-      assert.ok(!scss.includes(":root[data-theme='light']"));
+      for (const theme of [
+        'light',
+        'claude',
+        'macos',
+        'slime',
+        'slime-green',
+        'slime-yellow',
+        'slime-orange',
+        'slime-red',
+        'dark',
+        'trans',
+        'asexual',
+        'snep',
+      ]) {
+        assert.ok(!scss.includes(`[data-theme='${theme}']`), theme);
+      }
     });
 
     it('B5.3: verifies text contrast preservation in dark mode against glass panel background', () => {
@@ -290,35 +306,24 @@ describe('Tier 2: Boundary & Corner Cases (B1 - B5)', () => {
     });
 
     it('B5.4: validates consecutive rapid theme toggles maintain valid token configurations', () => {
-      const themes = [
-        'dark',
-        'light',
-        'dark',
-        'light',
-        'dark',
-        'light',
-        'dark',
-        'light',
-        'dark',
-        'light',
-      ];
-      let currentTheme = 'dark';
+      const themes = ['bun', 'fox', 'dog', 'fox', 'bun', 'dog', 'dog', 'fox'];
+      let currentTheme = 'bun';
       for (const t of themes) {
-        currentTheme = t;
-        assert.ok(currentTheme === 'dark' || currentTheme === 'light');
+        currentTheme = normalizeTheme(t);
+        assert.equal(currentTheme, t);
       }
-      assert.equal(currentTheme, 'light');
+      assert.equal(currentTheme, 'fox');
     });
 
     it('B5.5: verifies theme persistence storage schema in app config', () => {
       const configObj = {
-        theme: 'dark',
+        theme: 'fox',
         homeLayout: 'default',
         debug: false,
       };
       const serialized = JSON.stringify(configObj);
       const deserialized = JSON.parse(serialized);
-      assert.equal(deserialized.theme, 'dark');
+      assert.equal(deserialized.theme, 'fox');
       assert.equal(deserialized.homeLayout, 'default');
     });
   });

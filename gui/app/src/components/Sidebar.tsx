@@ -25,6 +25,7 @@ import { useBHV } from '@/hooks/bvh';
 import { usePauseTracking } from '@/hooks/pause-tracking';
 import { PlayIcon } from './commons/icon/PlayIcon';
 import { Rotate360Icon } from './commons/icon/Rotate360Icon';
+import { AutoFrameIcon } from './commons/icon/AutoFrameIcon';
 import { useLocalization } from '@fluent/react';
 
 export function PreviewControls({
@@ -129,7 +130,7 @@ export function PreviewControls({
                   : 'bvh-stop_recording'
               )}
               className={classNames(
-                'flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                'flex min-h-10 items-center justify-center gap-1.5 rounded-[12px] px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
                 bvhState !== 'idle'
                   ? 'bg-status-critical/20 text-status-critical'
                   : 'hover:bg-background-60'
@@ -159,7 +160,7 @@ export function PreviewControls({
               paused ? 'tracking-paused' : 'tracking-unpaused'
             )}
             className={classNames(
-              'flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+              'flex min-h-10 items-center justify-center gap-1.5 rounded-[12px] px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
               paused
                 ? 'bg-accent-background-20/20 text-accent-background-10'
                 : 'bg-background-60 hover:bg-background-50'
@@ -183,7 +184,7 @@ export function PreviewControls({
                 isOrbiting ? 'preview-auto_orbit_stop' : 'preview-auto_orbit'
               )}
               className={classNames(
-                'flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                'flex min-h-10 items-center justify-center gap-1.5 rounded-[12px] px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
                 isOrbiting
                   ? 'bg-accent-background-20/20 text-accent-background-10'
                   : 'hover:bg-background-60 text-background-10'
@@ -210,32 +211,18 @@ export function PreviewControls({
               aria-pressed={isFraming}
               title={
                 isFraming
-                  ? 'Auto-frame is on: the camera follows the whole body. Turn off to zoom by hand.'
+                  ? 'Auto-frame is on: the camera follows the whole body. Scroll to zoom.'
                   : 'Auto-frame: keep the whole body in view'
               }
               className={classNames(
-                'flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
+                'flex min-h-10 items-center justify-center gap-1.5 rounded-[12px] px-2.5 text-ui-2xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20',
                 isFraming
                   ? 'bg-accent-background-20/20 text-accent-background-10'
                   : 'hover:bg-background-60 text-background-10'
               )}
               onClick={() => onToggleFrame()}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" />
-                <circle cx="12" cy="9" r="1.6" />
-                <path d="M12 11v4M9.5 13h5M12 15l-2 2.5M12 15l2 2.5" />
-              </svg>
+              <AutoFrameIcon width={16} />
               <span>Auto-frame</span>
             </button>
           )}
@@ -244,7 +231,7 @@ export function PreviewControls({
             disabled
             aria-label={l10n.getString('preview-mocap_mode_soon')}
             title={l10n.getString('preview-mocap_mode_soon')}
-            className="flex min-h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ui-2xs font-medium text-background-40 opacity-60 cursor-not-allowed"
+            className="flex min-h-10 items-center justify-center gap-1.5 rounded-[12px] px-2.5 text-ui-2xs font-medium text-background-40 opacity-60 cursor-not-allowed"
           >
             <HumanIcon width={16} />
             <span>{l10n.getString('preview-mocap_mode_soon')}</span>
@@ -255,13 +242,7 @@ export function PreviewControls({
   );
 }
 
-function PreviewSection({
-  open,
-  onResetPreviewWidth,
-}: {
-  open: boolean;
-  onResetPreviewWidth?: () => void;
-}) {
+function PreviewSection({ open }: { open: boolean }) {
   const { l10n } = useLocalization();
   const { config, setConfig } = useConfig();
   const [renderDisabled, setRenderDisabled] = useState(
@@ -339,30 +320,6 @@ function PreviewSection({
         >
           <EyeIcon width={18} closed={!renderDisabled} />
         </button>
-        {onResetPreviewWidth && (
-          <button
-            type="button"
-            aria-label={l10n.getString('home-reset-preview-width')}
-            title={l10n.getString('home-reset-preview-width')}
-            className="flex min-h-9 min-w-9 items-center justify-center rounded-full bg-background-60 text-background-20 transition-colors hover:bg-background-50 hover:text-background-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20"
-            onClick={onResetPreviewWidth}
-          >
-            {/* A width arrow: the circular arrow already means "reset" in the toolbar. */}
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M4 12h16M7.5 8.5 4 12l3.5 3.5M16.5 8.5 20 12l-3.5 3.5" />
-            </svg>
-          </button>
-        )}
       </div>
       <PreviewControls
         open={open}
@@ -383,10 +340,8 @@ type InspectorTab = 'preview' | 'checklist';
  * (setup steps). Opens on the checklist while setup is incomplete.
  */
 export function Sidebar({
-  onResetPreviewWidth,
   visible = true,
 }: {
-  onResetPreviewWidth?: () => void;
   // False while the docked inspector is collapsed but kept mounted: the skeleton then stops rendering
   // and stops asking for bones.
   visible?: boolean;
@@ -445,51 +400,53 @@ export function Sidebar({
         'Skeleton preview and setup checklist'
       )}
     >
-      <div
-        role="tablist"
-        aria-label={l10n.getString(
-          'inspector-label',
-          null,
-          'Skeleton preview and setup checklist'
-        )}
-        className="flex shrink-0 gap-1 border-b border-[var(--material-border-subtle)] px-2 pt-2"
-      >
-        {tabs.map((item, index) => {
-          const selected = tab === item.id;
-          return (
-            <button
-              key={item.id}
-              ref={(el) => (tabRefs.current[item.id] = el)}
-              id={`inspector-tab-${item.id}`}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={`inspector-panel-${item.id}`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setTab(item.id)}
-              onKeyDown={(event) => onKeyDown(event, index)}
-              className={classNames(
-                '-mb-px flex h-9 items-center gap-2 rounded-t-[8px] border-b-2 px-3 text-ui-xs font-medium cursor-pointer select-none',
-                selected
-                  ? 'border-accent-background-20 text-background-10'
-                  : 'border-transparent text-background-30 hover:text-background-10'
-              )}
-            >
-              {item.label}
-              {item.id === 'checklist' && needsAttention && (
-                <span
-                  className="h-2 w-2 rounded-full bg-status-warning"
-                  role="img"
-                  aria-label={l10n.getString(
-                    'inspector-checklist-attention',
-                    null,
-                    'Needs attention'
-                  )}
-                />
-              )}
-            </button>
-          );
-        })}
+      <div className="shrink-0 border-b border-[var(--material-border-subtle)] px-2 py-2">
+        <div
+          role="tablist"
+          aria-label={l10n.getString(
+            'inspector-label',
+            null,
+            'Skeleton preview and setup checklist'
+          )}
+          className="grid grid-cols-2 gap-0.5 rounded-[12px] border border-[var(--material-border-subtle)] bg-background-10/[0.04] p-[3px]"
+        >
+          {tabs.map((item, index) => {
+            const selected = tab === item.id;
+            return (
+              <button
+                key={item.id}
+                ref={(el) => (tabRefs.current[item.id] = el)}
+                id={`inspector-tab-${item.id}`}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                aria-controls={`inspector-panel-${item.id}`}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => setTab(item.id)}
+                onKeyDown={(event) => onKeyDown(event, index)}
+                className={classNames(
+                  'flex h-7 min-w-0 items-center justify-center gap-2 rounded-[8px] px-3 text-ui-xs font-medium cursor-pointer select-none',
+                  selected
+                    ? 'bg-background-60 text-background-10 shadow-xs'
+                    : 'text-background-30 hover:text-background-10'
+                )}
+              >
+                {item.label}
+                {item.id === 'checklist' && needsAttention && (
+                  <span
+                    className="h-2 w-2 rounded-full bg-status-warning"
+                    role="img"
+                    aria-label={l10n.getString(
+                      'inspector-checklist-attention',
+                      null,
+                      'Needs attention'
+                    )}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div
@@ -499,12 +456,7 @@ export function Sidebar({
         hidden={tab !== 'preview'}
         className="min-h-0 flex-1"
       >
-        {tab === 'preview' && (
-          <PreviewSection
-            open={visible}
-            onResetPreviewWidth={onResetPreviewWidth}
-          />
-        )}
+        {tab === 'preview' && <PreviewSection open={visible} />}
       </div>
       <div
         id="inspector-panel-checklist"

@@ -1,6 +1,7 @@
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
 import { Button } from './Button';
 import { Typography } from './Typography';
+import { Slider } from './Slider';
 import { useCallback, useMemo } from 'react';
 import { useLocaleConfig } from '@/i18n/config';
 
@@ -111,6 +112,18 @@ export function NumberSelector<T extends FieldValues = FieldValues>({
               )}
             </div>
           </div>
+          {typeof step === 'number' && max > min && (
+            <Slider
+              label={label || name}
+              value={value}
+              min={min}
+              max={max}
+              step={step}
+              disabled={disabled}
+              valueText={valueLabelFormat?.(value)}
+              onChange={onChange}
+            />
+          )}
         </div>
       )}
     />

@@ -9,10 +9,10 @@
 
 websocket-connecting = 正在连接到服务器
 websocket-connection_lost = 与服务器的连接丢失，正在尝试重新连接...
-websocket-connection_lost-desc = 看起来 SlimeVR 服务器崩溃了。检查日志并重新启动程序
+websocket-connection_lost-desc = 看起来 Bun Tracker 服务器崩溃了。检查日志并重新启动程序
 websocket-timedout = 无法连接到服务器
-websocket-timedout-desc = 看起来 SlimeVR 服务器崩溃或超时了。检查日志并重新启动程序
-websocket-error-close = 退出 SlimeVR
+websocket-timedout-desc = 看起来 Bun Tracker 服务器崩溃或超时了。检查日志并重新启动程序
+websocket-error-close = 退出 Bun Tracker
 websocket-error-logs = 打开日志文件夹
 
 ## Update notification
@@ -417,7 +417,7 @@ tracker-settings-name_section-description = 给它起一个可爱的名字吧=w=
 tracker-settings-name_section-placeholder = CC 封印着漆黑之力的漆黑左臂
 tracker-settings-name_section-label = 追踪器名称
 tracker-settings-forget = 忘记追踪器
-tracker-settings-forget-description = 从 SlimeVR 服务器中移除该追踪器，并在服务器重启前不再连接这一追踪器。追踪器的配置信息不会被清除。
+tracker-settings-forget-description = 从 Bun Tracker 服务器中移除该追踪器，并在服务器重启前不再连接这一追踪器。追踪器的配置信息不会被清除。
 tracker-settings-forget-label = 忘记追踪器
 tracker-settings-update-unavailable-v2 = 未找到可用版本
 tracker-settings-update-incompatible = 电路板不兼容，无法升级。
@@ -506,7 +506,6 @@ settings-sidebar-osc_vmc = VMC
 settings-sidebar-utils = 工具
 settings-sidebar-serial = 串口控制台
 settings-sidebar-appearance = 外观
-settings-sidebar-home = 主界面
 settings-sidebar-checklist = 追踪检查清单
 settings-sidebar-notifications = 通知
 settings-sidebar-behavior = 行为
@@ -711,7 +710,6 @@ settings-interface-appearance = 外观
 settings-general-interface-dev_mode = 开发者模式
 settings-general-interface-dev_mode-description = 如果你需要深入的资料或对连接的追踪器进行进阶调整，开启此模式将会非常有用。
 settings-general-interface-dev_mode-label = 开发者模式
-settings-general-interface-theme = 主题颜色
 settings-general-interface-show-navbar-onboarding = 在导航栏上显示 “{ navbar-onboarding }”
 settings-general-interface-show-navbar-onboarding-description = 本选项设置是否将 "{ navbar-onboarding }" 按钮显示在导航栏上。
 settings-general-interface-show-navbar-onboarding-label = 显示 “{ navbar-onboarding }”
@@ -741,17 +739,17 @@ settings-general-interface-feedback_sound-description = 开启此选项会在触
 settings-general-interface-feedback_sound-label = 声音反馈
 settings-general-interface-feedback_sound-volume = 提示音音量
 settings-general-interface-connected_trackers_warning = 已连接追踪器警告
-settings-general-interface-connected_trackers_warning-description = 启用本选项后，每次当退出 SlimeVR 时仍有追踪器连接着会显示通知，提醒你在使用完毕时关闭追踪器电源来节省电池电量。
+settings-general-interface-connected_trackers_warning-description = 启用本选项后，每次当退出 Bun Tracker 时仍有追踪器连接着会显示通知，提醒你在使用完毕时关闭追踪器电源来节省电池电量。
 settings-general-interface-connected_trackers_warning-label = 退出时，有追踪器连接中则显示警告
 
 ## Behavior settings
 
 settings-interface-behavior = 行为
 settings-general-interface-use_tray = 最小化至任务栏
-settings-general-interface-use_tray-description = 关闭 SlimeVR 窗口时，SlimeVR 服务器将会隐藏至任务栏图标而不会直接退出，可以继续使用。
+settings-general-interface-use_tray-description = 关闭 Bun Tracker 窗口时，Bun Tracker 服务器将会隐藏至任务栏图标而不会直接退出，可以继续使用。
 settings-general-interface-use_tray-label = 最小化至任务栏
 settings-general-interface-discord_presence = 向Discord发送状态
-settings-general-interface-discord_presence-description = 告诉你的Discord客户端你正在使用SlimeVR，同时显示你正在使用的IMU追踪器数量。
+settings-general-interface-discord_presence-description = 告诉你的Discord客户端你正在使用Bun Tracker，同时显示你正在使用的IMU追踪器数量。
 settings-general-interface-discord_presence-label = 向Discord发送状态
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -762,9 +760,9 @@ settings-interface-behavior-error_tracking = 通过 Sentry.io 收集错误信息
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>您是否同意收集匿名的错误信息？</h1>
     
-    <b>我们不会收集您的个人信息</b> ，例如您的 IP 地址或 WiFi 信息。SlimeVR 重视您的隐私！
+    <b>我们不会收集您的个人信息</b> ，例如您的 IP 地址或 WiFi 信息。Bun Tracker 重视您的隐私！
     
-    为了提供最佳用户体验，我们会收集匿名错误报告、性能指标和操作系统信息。这有助于我们检测 SlimeVR 的错误和问题。这些指标将通过 Sentry.io 收集。
+    为了提供最佳用户体验，我们会收集匿名错误报告、性能指标和操作系统信息。这有助于我们检测 Bun Tracker 的错误和问题。这些指标将通过 Sentry.io 收集。
 settings-interface-behavior-error_tracking-label = 向开发人员发送错误信息
 settings-interface-behavior-bvh_directory = BVH 记录保存目录
 settings-interface-behavior-bvh_directory-description = 选择保存 BVH 记录文件的目录
@@ -812,7 +810,7 @@ settings-osc-router-network = 网络端口
 # This cares about multilines
 settings-osc-router-network-description =
     设置用于监听和向 VRChat 发送数据的端口
-    这些端口可以与 SlimeVR 服务器中使用的其他端口相同。
+    这些端口可以与 Bun Tracker 服务器中使用的其他端口相同。
 settings-osc-router-network-port_in =
     .label = 输入端口
     .placeholder = 输入端口（默认 9002）
@@ -867,7 +865,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     修改 VMC (Virtual Motion Capture) 协定的相关设置
-    以发送 SlimeVR 的骨骼数据，并接收来自其他应用程序的骨骼数据
+    以发送 Bun Tracker 的骨骼数据，并接收来自其他应用程序的骨骼数据
 settings-osc-vmc-enable = 启用
 settings-osc-vmc-enable-description = 切换数据的发送和接收
 settings-osc-vmc-enable-label = 启用
@@ -925,10 +923,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = 重置设置
 settings-utils-advanced-reset_warning-cancel = 取消
 settings-utils-advanced-open_data-v1 = 配置文件夹
-settings-utils-advanced-open_data-description-v1 = 在文件管理器中打开SlimeVR的配置文件夹，查看配置文件。
+settings-utils-advanced-open_data-description-v1 = 在文件管理器中打开Bun Tracker的配置文件夹，查看配置文件。
 settings-utils-advanced-open_data-label = 打开文件夹
 settings-utils-advanced-open_logs = 日志文件夹
-settings-utils-advanced-open_logs-description = 在文件管理器中打开SlimeVR的日志文件夹，查看SlimeVR的日志文件。
+settings-utils-advanced-open_logs-description = 在文件管理器中打开Bun Tracker的日志文件夹，查看Bun Tracker的日志文件。
 settings-utils-advanced-open_logs-label = 打开文件夹
 
 ## Home Screen
@@ -951,7 +949,7 @@ onboarding-wip = 仍在开发中
 onboarding-previous_step = 上一步
 onboarding-setup_warning =
     <b>警告：</b> 需要进行设置以得到良好的追踪质量，
-    如果这是您第一次使用 SlimeVR 则需要先进行设置。
+    如果这是您第一次使用 Bun Tracker 则需要先进行设置。
 onboarding-setup_warning-skip = 跳过设置
 onboarding-setup_warning-cancel = 继续设置
 
@@ -972,16 +970,16 @@ onboarding-quiz-slimeset-answer-butterfly = Butterfly (蝴蝶)
 onboarding-quiz-slimeset-answer-wifi = 通过ESP/WiFi连接的追踪器
 onboarding-quiz-slimeset-answer-dongle = 通过USB接收器连接的追踪器
 onboarding-quiz-usage-title = 将使用SlimeVR进行何种应用？
-onboarding-quiz-usage-description = 如果打算将SlimeVR用至不同用途，可之后在设置中进行修改。
+onboarding-quiz-usage-description = 如果打算将Bun Tracker用至不同用途，可之后在设置中进行修改。
 onboarding-quiz-usage-answer-VRC = VR游戏（如VRChat）
 onboarding-quiz-usage-answer-mocap_vtubing = 动作捕捉与虚拟偶像直播
 onboarding-quiz-runtime-title = 将通过SteamVR运行游戏，还是在直接在头显上运行？
 onboarding-quiz-runtime-answer-steamvr = SteamVR
 onboarding-quiz-runtime-answer-standalone = 头显独立运行
 onboarding-quiz-mocap_preferences-title = 动作捕捉偏好
-onboarding-quiz-mocap_preferences-desc = 设置使用SlimeVR进行动作捕捉或虚拟偶像直播的方式
+onboarding-quiz-mocap_preferences-desc = 设置使用Bun Tracker进行动作捕捉或虚拟偶像直播的方式
 onboarding-quiz-mocap_preferences-playspace-title = 将在怎样的空间内使用？
-onboarding-quiz-mocap_preferences-playspace-desc = 如果选择站立使用，SlimeVR会试图追踪你的行走动作，而不是固定在原地。
+onboarding-quiz-mocap_preferences-playspace-desc = 如果选择站立使用，Bun Tracker会试图追踪你的行走动作，而不是固定在原地。
 onboarding-quiz-mocap_preferences-playspace-sitting = 坐下
 onboarding-quiz-mocap_preferences-playspace-standing = 站立
 onboarding-quiz-mocap_preferences-vrm_model-title = 你有将要使用的VRM模型吗？（可选）
@@ -1051,7 +1049,7 @@ install-info_udev-rules_modal-dont-show-again_checkbox = 不再显示
 
 ## Setup start
 
-onboarding-home = 欢迎来到 SlimeVR
+onboarding-home = 欢迎来到 Bun Tracker
 onboarding-home-start = 我准备好了！
 
 ## Setup done
@@ -1303,8 +1301,8 @@ onboarding-automatic_proportions-requirements-title = 准备工作
 onboarding-automatic_proportions-requirements-descriptionv2 =
     你需要足够的追踪器以追踪脚部（通常至少为 5 个）。
     你已经穿戴好并打开追踪器和头戴设备的电源。
-    你的追踪器和头戴设备都已经连接到 SlimeVR 服务器并正常工作（没有卡顿、断联等问题）。
-    你的头戴设备正在向 SlimeVR 服务器回报位置信息（通常需要 SteamVR 正在运行且通过 SlimeVR 的 SteamVR 驱动连接到 SlimeVR）。
+    你的追踪器和头戴设备都已经连接到 Bun Tracker 服务器并正常工作（没有卡顿、断联等问题）。
+    你的头戴设备正在向 Bun Tracker 服务器回报位置信息（通常需要 SteamVR 正在运行且通过 Bun Tracker 的 SteamVR 驱动连接到 Bun Tracker）。
     你的追踪器正常工作并能反应实际运动（进行过完整重置和佩戴重置，踢腿、弯腰、坐下等动作时虚拟骨骼向正确的方向弯曲）。
 onboarding-automatic_proportions-requirements-next = 我已阅读
 onboarding-automatic_proportions-check_height-title-v3 = 测量你的头戴显示器的高度
@@ -1372,7 +1370,7 @@ onboarding-automatic_proportions-smol_warning-cancel = 返回
 ## User height calibration
 
 onboarding-user_height-title = 你的身高是多少？
-onboarding-user_height-description = 我们需要你的身高来计算躯干比例，以准确呈现你的动作。你可以让 SlimeVR 自动计算身高，也可以手动输入。
+onboarding-user_height-description = 我们需要你的身高来计算躯干比例，以准确呈现你的动作。你可以让 Bun Tracker 自动计算身高，也可以手动输入。
 onboarding-user_height-need_head_tracker = 进行校准需要具备定位功能的头戴显示器与控制器。
 onboarding-user_height-calculate = 自动计算我的身高
 onboarding-user_height-next_step = 保存并继续
@@ -1443,8 +1441,8 @@ home-settings-close = 关闭
 trackers_still_on-modal-title = 有追踪器的电源还开着
 trackers_still_on-modal-description =
     至少有一个追踪器的电源还开着。
-    确定要退出 SlimeVR 吗？
-trackers_still_on-modal-confirm = 退出 SlimeVR
+    确定要退出 Bun Tracker 吗？
+trackers_still_on-modal-confirm = 退出 Bun Tracker
 trackers_still_on-modal-cancel = 等会…
 
 ## Status system
@@ -1457,7 +1455,7 @@ status_system-StatusSteamVRDisconnected =
     }
 status_system-StatusTrackerError = { $trackerName } 追踪器发生错误
 status_system-StatusUnassignedHMD = VR头显应被分配为头部追踪器。
-status_system-StatusPublicNetwork = 您当前的网络类型设置为“公开”。 这可能会导致SlimeVR功能出现异常。<PublicFixLink>点击这里查看如何进行设置。</PublicFixLink>
+status_system-StatusPublicNetwork = 您当前的网络类型设置为“公开”。 这可能会导致Bun Tracker功能出现异常。<PublicFixLink>点击这里查看如何进行设置。</PublicFixLink>
 
 ## Firmware tool globals
 
@@ -1593,12 +1591,12 @@ tray_or_exit_modal-cancel = 取消
 unknown_device-modal-title = 发现了一个新的追踪器！
 unknown_device-modal-description =
     发现一个MAC地址为 <b>{ $deviceId }</b> 的新追踪器。
-    要将它连接到 SlimeVR 吗？
+    要将它连接到 Bun Tracker 吗？
 unknown_device-modal-confirm = 是的！
 unknown_device-modal-forget = 忽略它
 # VRChat config warnings
 vrc_config-page-title = VRChat设置警告
-vrc_config-page-desc = 本页会显示当前VRChat设置的状态，并显示哪些设置与SlimeVR存在冲突。为获得最好的体验，建议修复此处显示的所有警告后再进行使用。
+vrc_config-page-desc = 本页会显示当前VRChat设置的状态，并显示哪些设置与Bun Tracker存在冲突。为获得最好的体验，建议修复此处显示的所有警告后再进行使用。
 vrc_config-page-help = 找不到设置信息？
 vrc_config-page-help-desc = 请查阅 <a>此处的说明文档</a>
 vrc_config-page-big_menu = 追踪与IK（大菜单）
@@ -1652,9 +1650,9 @@ error_collection_modal-cancel = 还是算了
 tracking_checklist = 追踪检查清单
 tracking_checklist-settings = 追踪检查清单设置
 tracking_checklist-settings-close = 关闭
-tracking_checklist-status-incomplete = 使用 SlimeVR 前的准备工作尚未完成！
+tracking_checklist-status-incomplete = 使用 Bun Tracker 前的准备工作尚未完成！
 tracking_checklist-status-partial = 你有 { $count } 个警告！
-tracking_checklist-status-complete = 已经准备好使用 SlimeVR！
+tracking_checklist-status-complete = 已经准备好使用 Bun Tracker！
 tracking_checklist-MOUNTING_CALIBRATION = 进行佩戴校准
 tracking_checklist-FEET_MOUNTING_CALIBRATION = 进行脚部佩戴校准
 tracking_checklist-FULL_RESET = 进行完整重置
@@ -1678,7 +1676,7 @@ tracking_checklist-NETWORK_PROFILE_PUBLIC = 更改网络配置文件类型
 tracking_checklist-NETWORK_PROFILE_PUBLIC-desc =
     检测到您的部分网卡被设为“公用网络”：
     { $adapters }
-    这可能会影响 SlimeVR 的正常运行。
+    这可能会影响 Bun Tracker 的正常运行。
     <PublicFixLink>点击此处查看如何更改设置。</PublicFixLink>
 tracking_checklist-NETWORK_PROFILE_PUBLIC-open = 打开控制面板
 tracking_checklist-STAY_ALIGNED_CONFIGURED = 调整持续校准设置

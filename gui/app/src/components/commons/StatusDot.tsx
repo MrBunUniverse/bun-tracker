@@ -2,7 +2,7 @@ import classNames from 'classnames';
 
 export type StatusTone = 'ok' | 'warn' | 'critical' | 'idle';
 
-const toneClass: Record<StatusTone, string> = {
+export const toneClass: Record<StatusTone, string> = {
   ok: 'bg-status-success',
   warn: 'bg-status-warning',
   critical: 'bg-status-critical',
@@ -37,7 +37,7 @@ export function StatusDot({
           tone === 'critical' ? 'rounded-[2px] rotate-45' : 'rounded-full'
         )}
       />
-      <span className="topbar-label">{label}</span>
+      <span>{label}</span>
     </span>
   );
 }

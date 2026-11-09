@@ -9,10 +9,10 @@
 
 websocket-connecting = Sunucuya bağlanılıyor...
 websocket-connection_lost = Sunucuyla bağlantı kesildi. Tekrar bağlanılmaya çalışılıyor...
-websocket-connection_lost-desc = SlimeVR sunucusu çöktü. Kayıtları kontrol edip programı yeniden başlat.
+websocket-connection_lost-desc = Bun Tracker sunucusu çöktü. Kayıtları kontrol edip programı yeniden başlat.
 websocket-timedout = Sunucuya bağlanılamadı
-websocket-timedout-desc = SlimeVR sunucusu çöktü veya zaman aşımına uğradı. Kayıtları kontrol et ve programı yeniden başlat.
-websocket-error-close = SlimeVR'ı kapat
+websocket-timedout-desc = Bun Tracker sunucusu çöktü veya zaman aşımına uğradı. Kayıtları kontrol et ve programı yeniden başlat.
+websocket-error-close = Bun Tracker'ı kapat
 websocket-error-logs = Kayıtlar klasörünü aç
 
 ## Update notification

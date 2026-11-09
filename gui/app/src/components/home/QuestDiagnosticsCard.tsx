@@ -8,7 +8,14 @@ import { SegmentedControl } from '@/components/commons/SegmentedControl';
 import { SettingGroup, SettingRow } from '@/components/commons/SettingRow';
 import { Slider } from '@/components/commons/Slider';
 import { Toggle } from '@/components/commons/Toggle';
+import { StatusBarTile } from '@/components/shell/StatusBarTile';
 import { useTopBarPopover } from '@/hooks/top-bar-popover';
+import {
+  barPopover,
+  barRoot,
+  barTrigger,
+  useStatusBarMode,
+} from '@/components/shell/status-bar-mode';
 
 const buttonBase =
   'inline-flex h-8 items-center justify-center rounded-[8px] px-3 text-ui-xs font-medium transition-colors cursor-pointer select-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-20/70';
@@ -16,6 +23,23 @@ const ghostButton = `${buttonBase} text-background-20 hover:bg-background-10/[0.
 const solidButton = `${buttonBase} bg-background-10/[0.1] text-background-10 hover:bg-background-10/[0.16]`;
 const sentButton = `${buttonBase} bg-status-success/15 text-status-success`;
 const stepButton = `${buttonBase} !h-7 !w-7 shrink-0 !px-0 bg-background-10/[0.08] text-background-20 hover:bg-background-10/[0.14] hover:text-background-10`;
+
+function QuestIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4l-2-3h-2l-2 3H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
 
 export function QuestDiagnosticsCard() {
   const {
@@ -112,6 +136,7 @@ export function QuestDiagnosticsCard() {
   const [advancedTab, setAdvancedTab] = useState<'motion' | 'vrchat'>('motion');
   const rootRef = useRef<HTMLDivElement>(null);
   const popover = useTopBarPopover(rootRef, open, 760);
+  const bar = useStatusBarMode();
 
   // Closes on an outside click or Esc.
   useEffect(() => {
@@ -135,7 +160,10 @@ export function QuestDiagnosticsCard() {
   return (
     <div
       ref={rootRef}
-      className="relative flex shrink-0 items-center"
+      className={classNames(
+        'relative flex shrink-0 items-center',
+        barRoot(bar)
+      )}
       style={{ WebkitAppRegion: 'no-drag' } as any}
     >
       <button
@@ -144,56 +172,65 @@ export function QuestDiagnosticsCard() {
         aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
         title="Quest controls"
+        aria-label="Quest controls"
         className={classNames(
-          'flex h-8 cursor-pointer select-none items-center gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
-          open
-            ? 'bg-background-10/[0.08] text-background-10'
-            : 'text-background-10 hover:bg-background-10/[0.06]'
+          'flex cursor-pointer select-none items-center',
+          bar
+            ? barTrigger(bar, open)
+            : 'h-8 gap-2 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium',
+          bar === 'vr'
+            ? ''
+            : open
+              ? 'bg-background-10/[0.08] text-background-10'
+              : 'text-background-10 hover:bg-background-10/[0.06]'
         )}
       >
-        {/* Headset icon, shown only when the top bar is compact and the label is hidden. */}
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="topbar-compact-only h-4 w-4 shrink-0"
-        >
-          <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4l-2-3h-2l-2 3H5a2 2 0 0 1-2-2z" />
-        </svg>
-        <span className="topbar-label whitespace-nowrap">Quest controls</span>
-        <span className="topbar-label tnum whitespace-nowrap text-ui-2xs text-background-30">
-          {floorAnchor.floorOffset >= 0 ? '+' : ''}
-          {(floorAnchor.floorOffset * 100).toFixed(0)}cm · {floorAnchor.oscRate}
-          Hz
-        </span>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 16 16"
-          fill="none"
-          className={classNames(
-            'h-3.5 w-3.5 shrink-0 text-background-30 transition-transform duration-200',
-            open && 'rotate-180'
-          )}
-        >
-          <path
-            d="m4 6 4 4 4-4"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {bar === 'vr' ? (
+          <StatusBarTile icon={<QuestIcon />} label="Quest" />
+        ) : (
+          <>
+            <QuestIcon className="h-4 w-4 shrink-0" />
+            <span className="truncate">Quest controls</span>
+            <span
+              className={classNames(
+                'tnum truncate whitespace-nowrap text-ui-2xs text-background-30',
+                bar === 'desk' && 'hidden sm:inline'
+              )}
+            >
+              {floorAnchor.floorOffset >= 0 ? '+' : ''}
+              {(floorAnchor.floorOffset * 100).toFixed(0)}cm ·{' '}
+              {floorAnchor.oscRate}
+              Hz
+            </span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              fill="none"
+              className={classNames(
+                'h-3.5 w-3.5 shrink-0 text-background-30 transition-transform duration-200',
+                open && 'rotate-180'
+              )}
+            >
+              <path
+                d="m4 6 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </>
+        )}
       </button>
 
       {open && (
         <div
           role="dialog"
           aria-label="Quest controls"
-          className="fixed z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          className={classNames(
+            'fixed z-[80] overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg',
+            barPopover(bar)
+          )}
           style={popover}
         >
           <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-x-10 gap-y-4">

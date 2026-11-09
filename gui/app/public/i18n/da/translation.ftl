@@ -352,7 +352,6 @@ settings-general-gesture_control-yawResetEnabled = Aktivér tryk for at yaw rese
 settings-general-interface-dev_mode = Udvikler-tilstand
 settings-general-interface-dev_mode-description = Denne tilstand kan være nyttig, hvis du har brug for dybdegående data eller for at interagere med tilsluttede trackere på et mere avanceret niveau.
 settings-general-interface-dev_mode-label = Udvikler-tilstand
-settings-general-interface-theme = Farvetema
 settings-general-interface-lang = Vælg sprog
 settings-general-interface-lang-description = Skift det standardsprog, du vil bruge.
 settings-general-interface-lang-placeholder = Vælg det sprog, der skal bruges
@@ -399,7 +398,7 @@ settings-osc-router-network = Netværksporte
 # This cares about multilines
 settings-osc-router-network-description =
     Vælg de porte der skal bruges til at lytte og sende data.
-    Disse kan være de samme som de andre porte der bruges på SlimeVR-serveren.
+    Disse kan være de samme som de andre porte der bruges på Bun Tracker-serveren.
 settings-osc-router-network-port_in =
     .label = Port ind
     .placeholder = Port ind (standard: 9002)
@@ -438,7 +437,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     Skift indstillinger, der er specifikke for VMC-protokollen (Virtual Motion Capture)
-        for at sende SlimeVRs data og modtage data fra andre apps.
+        for at sende Bun Trackers data og modtage data fra andre apps.
 settings-osc-vmc-enable = Aktiver
 settings-osc-vmc-enable-description = Skift afsendelse og modtagelse af data.
 settings-osc-vmc-enable-label = Aktiver
@@ -476,7 +475,7 @@ onboarding-continue = Fortsæt
 onboarding-previous_step = Forrige trin
 onboarding-setup_warning =
     <b>Advarsel:</b> Den indledende opsætning er nødvendig for god tracking,
-    det er nødvendigt, hvis det er første gang, du bruger SlimeVR.
+    det er nødvendigt, hvis det er første gang, du bruger Bun Tracker.
 onboarding-setup_warning-skip = Spring opsætning over
 onboarding-setup_warning-cancel = Fortsæt konfigurationen
 
@@ -504,7 +503,7 @@ onboarding-reset_tutorial = Start forfra
 
 ## Setup start
 
-onboarding-home = Velkommen til SlimeVR
+onboarding-home = Velkommen til Bun Tracker
 onboarding-home-start = Lad os komme i gang!
 
 ## Setup done

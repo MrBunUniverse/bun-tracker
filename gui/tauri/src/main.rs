@@ -6,6 +6,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::webview::PageLoadEvent;
 use tauri::{
     AppHandle, LogicalPosition, Manager, State, TitleBarStyle, WebviewUrl, WebviewWindow,
     WebviewWindowBuilder,
@@ -16,8 +17,10 @@ use tauri_plugin_opener::OpenerExt;
 // Injected before the page loads. Provides window.electronAPI, the same surface Electron's preload exposes.
 const SHIM: &str = include_str!("../shim/electron-shim.js");
 
+mod audio_input;
 mod bridge_python;
 mod server_process;
+mod streamcast;
 
 // Serializes read-modify-write cycles on the JSON store files.
 struct StoreLock(Mutex<()>);
@@ -182,11 +185,11 @@ async fn start_dongle_bridge(app: AppHandle) -> Result<String, String> {
         if matches!(running, Ok(s) if s.success()) {
             return Err("The bridge is already running.".into());
         }
-        // The ESP32's USB serial chip shows up as cu.usbserial* (CH340) or cu.usbmodem*.
+        // The ESP32's USB serial chip shows up as cu.usbserial* (CH340, Apple driver), cu.wchusbserial* (WCH driver) or cu.usbmodem*.
         let mut ports: Vec<String> = fs::read_dir("/dev")
             .map_err(|e| e.to_string())?
             .filter_map(|e| e.ok()?.file_name().into_string().ok())
-            .filter(|n| n.starts_with("cu.usbserial") || n.starts_with("cu.usbmodem"))
+            .filter(|n| n.starts_with("cu.usbserial") || n.starts_with("cu.usbmodem") || n.starts_with("cu.wchusbserial"))
             .map(|n| format!("/dev/{n}"))
             .collect();
         ports.sort();
@@ -480,10 +483,19 @@ fn save_zoom(app: &AppHandle, index: usize) -> Result<(), String> {
     write_store(&path, &map)
 }
 
+// The native traffic lights ignore the zoom, so the page gets it as --ui-zoom to keep its title-bar inset fixed on screen.
+fn publish_zoom(window: &WebviewWindow, index: usize) {
+    let _ = window.eval(&format!(
+        "document.documentElement.style.setProperty('--ui-zoom', '{}')",
+        ZOOM_STEPS[index]
+    ));
+}
+
 fn apply_zoom(app: &AppHandle, index: usize) -> tauri::Result<()> {
     *app.state::<ZoomIndex>().0.lock().unwrap() = index;
     if let Some(window) = app.get_webview_window("main") {
         window.set_zoom(ZOOM_STEPS[index])?;
+        publish_zoom(&window, index);
     }
     // Saving is best effort. The zoom still applies for this run if the write fails.
     let _ = save_zoom(app, index);
@@ -575,12 +587,19 @@ fn main() {
             // Start where the window was last closed or quit, at the same size.
             let saved = saved_window(app.handle());
             let mut builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("SlimeVR")
+                .title("Bun Tracker")
                 .inner_size(1280.0, 800.0)
                 // 640 px is half of a 1280 px display, so macOS split view fits. Below that the top bar clips.
                 .min_inner_size(640.0, 480.0)
                 .decorations(cfg!(target_os = "macos"))
-                .initialization_script(SHIM);
+                .initialization_script(SHIM)
+                // A reload (Cmd+R or Vite) starts a fresh page, so it needs the zoom again.
+                .on_page_load(|window, payload| {
+                    if payload.event() == PageLoadEvent::Finished {
+                        let index = *window.state::<ZoomIndex>().0.lock().unwrap();
+                        publish_zoom(&window, index);
+                    }
+                });
             if let Some(g) = saved {
                 builder = builder.inner_size(g.width, g.height).position(g.x, g.y);
             }
@@ -588,8 +607,8 @@ fn main() {
             let builder = builder
                 .title_bar_style(TitleBarStyle::Overlay)
                 .hidden_title(true)
-                // Centres the lights in the 28 px strip. Electron's hiddenInset uses y 7, but Tauri places them about 2 px higher.
-                .traffic_light_position(LogicalPosition::new(20.0, 15.0));
+                // Centres the lights in the 46 px nav row, which doubles as the title bar.
+                .traffic_light_position(LogicalPosition::new(20.0, 24.0));
             let window = builder.build()?;
             window.set_zoom(ZOOM_STEPS[index])?;
             if saved.is_some_and(|g| !on_a_screen(&window, g)) {
@@ -624,7 +643,7 @@ fn main() {
                 &[
                     &Submenu::with_items(
                         handle,
-                        "SlimeVR Spike",
+                        "Bun Tracker",
                         true,
                         &[
                             &PredefinedMenuItem::hide(handle, None)?,
@@ -691,9 +710,15 @@ fn main() {
             apple_music,
             restart_server,
             start_dongle_bridge,
+            streamcast::streamcast_status,
+            streamcast::streamcast_command,
+            streamcast::streamcast_open,
+            streamcast::streamcast_locate,
+            audio_input::audio_inputs,
+            audio_input::set_audio_input,
         ])
         .build(tauri::generate_context!())
-        .expect("error while building the SlimeVR Tauri spike")
+        .expect("error while building Bun Tracker")
         .run(|app, event| {
             // Quitting (Cmd+Q) saves the last size and spot too, not only closing the window.
             if let tauri::RunEvent::Exit = event {

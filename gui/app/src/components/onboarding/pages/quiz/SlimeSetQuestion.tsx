@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { USBIcon } from '@/components/commons/icon/UsbIcon';
 import { useNavigate } from 'react-router-dom';
 import { useLocalization } from '@fluent/react';
+import { OnboardingPanel } from '@/components/onboarding/OnboardingPanel';
 
 export function QuizButton({
   name,
@@ -29,7 +30,7 @@ export function QuizButton({
           : 'bg-background-60/40 dark:bg-background-10/[0.03] border-background-50/50 dark:border-background-10/[0.06] hover:border-background-40 dark:hover:border-background-10/[0.15] hover:bg-background-60/60 dark:hover:bg-background-10/[0.05]'
       )}
     >
-      <div className="w-full flex items-center justify-center flex-1 py-2">
+      <div className="w-full flex items-center justify-center flex-1 py-2 text-background-10">
         {icon}
       </div>
 
@@ -178,7 +179,7 @@ export function QuizSlimeSetQuestion() {
     <div
       onClick={skipAnimation}
       className={classNames(
-        'relative flex flex-col items-center justify-center min-h-full w-full px-4 sm:px-6 py-6 sm:py-8 select-none overflow-hidden',
+        'relative flex flex-col items-center justify-center min-h-full w-full px-6 smol:px-12 py-6 sm:py-8 select-none overflow-hidden',
         isAnimating && 'cursor-pointer'
       )}
     >
@@ -193,7 +194,7 @@ export function QuizSlimeSetQuestion() {
       />
 
       {/* Main Elevated Glass Card */}
-      <div className="relative z-10 flex flex-col max-w-[680px] w-full mx-auto p-6 sm:p-8 rounded-[28px] bg-background-70/70 dark:bg-background-10/[0.02] border border-background-50/50 dark:border-background-10/[0.08] backdrop-blur-xl shadow-xl">
+      <OnboardingPanel>
         {/* Header with Terminal-style Title & Subtitle */}
         <div className="flex flex-col items-center text-center">
           <h1 className="font-serif text-ui-lg sm:text-ui-xl font-normal tracking-tight text-background-10 min-h-[40px] flex items-center justify-center text-center">
@@ -323,7 +324,7 @@ export function QuizSlimeSetQuestion() {
             </div>
           </div>
         </div>
-      </div>
+      </OnboardingPanel>
     </div>
   );
 }

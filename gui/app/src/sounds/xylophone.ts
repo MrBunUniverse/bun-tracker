@@ -202,6 +202,9 @@ export default class Xylophone {
   private oscillator: OscillatorNode | undefined;
   private gainNode: GainNode | undefined;
   private context: AudioContext = new window.AudioContext();
+  // An idle running AudioContext keeps an audio render thread (and coreaudiod) busy, so it is suspended
+  // between sounds and resumed for the next one.
+  private playing = 0;
 
   /**
    * Plays a series of notes in an `IMeasure`. If an array of `IMeasure`s is given then
@@ -273,6 +276,8 @@ export default class Xylophone {
     volume,
   }: INote): Promise<void> {
     return new Promise((resolve) => {
+      this.playing++;
+      if (this.context.state === 'suspended') void this.context.resume();
       offset = this.context.currentTime + offset;
 
       this.oscillator = this.context.createOscillator();
@@ -309,7 +314,10 @@ export default class Xylophone {
       this.oscillator.start(offset);
       this.gainNode.gain.exponentialRampToValueAtTime(0.001 * gain, offset + length);
       this.oscillator.stop(offset + length);
-      this.oscillator.onended = () => resolve();
+      this.oscillator.onended = () => {
+        if (--this.playing === 0) void this.context.suspend();
+        resolve();
+      };
     });
   }
 }

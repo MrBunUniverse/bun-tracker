@@ -1,10 +1,9 @@
 import { useLocalization } from '@fluent/react';
 import { ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useIsMac } from '@/hooks/platform';
-import { useSidebar } from '@/hooks/sidebar';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { NAV_ITEMS } from './nav-items';
-import { SideNav } from './SideNav';
+import { StatusBar } from './StatusBar';
+import { TopNav } from './TopNav';
 
 function isTypingTarget(target: EventTarget | null) {
   return (
@@ -15,15 +14,13 @@ function isTypingTarget(target: EventTarget | null) {
 }
 
 /**
- * Wraps every screen. Provides the skip link, the `main` landmark, the sidebar
- * (when that navigation layout is selected) and the global shortcuts:
- * Cmd/Ctrl+B toggles the sidebar and Cmd/Ctrl+1..4 jump between pages.
+ * Wraps every screen. Provides the skip link, the top navigation, the `main`
+ * landmark and the global Cmd/Ctrl+1..5 shortcuts that jump between pages.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { l10n } = useLocalization();
   const navigate = useNavigate();
-  const isMac = useIsMac();
-  const { toggleSidebar } = useSidebar();
+  const { pathname } = useLocation();
 
   // Lets CSS pause decorative animations while the window is hidden.
   useEffect(() => {
@@ -45,12 +42,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (event.key.toLowerCase() === 'b') {
-        event.preventDefault();
-        toggleSidebar();
-        return;
-      }
-
       const item = NAV_ITEMS.find(
         (candidate) => candidate.shortcut === event.key
       );
@@ -61,30 +52,23 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navigate, toggleSidebar]);
+  }, [navigate]);
 
   return (
     <div className="flex h-full w-full flex-col">
-      {isMac && (
-        <div
-          className="h-7 w-full shrink-0 select-none bg-background-70 border-b border-[var(--material-border-subtle)]"
-          style={{ WebkitAppRegion: 'drag' } as any}
-          data-electron-drag-region
-        />
-      )}
+      <a
+        href="#main-content"
+        className="skip-link text-ui-xs font-medium"
+        onClick={(event) => {
+          // The app uses hash routing, so a bare #anchor must not navigate.
+          event.preventDefault();
+          document.getElementById('main-content')?.focus();
+        }}
+      >
+        {l10n.getString('nav-skip-to-content', null, 'Skip to content')}
+      </a>
+      <TopNav />
       <div className="flex min-h-0 w-full flex-1">
-        <a
-          href="#main-content"
-          className="skip-link text-ui-xs font-medium"
-          onClick={(event) => {
-            // The app uses hash routing, so a bare #anchor must not navigate.
-            event.preventDefault();
-            document.getElementById('main-content')?.focus();
-          }}
-        >
-          {l10n.getString('nav-skip-to-content', null, 'Skip to content')}
-        </a>
-        <SideNav />
         <main
           id="main-content"
           tabIndex={-1}
@@ -93,6 +77,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      {/* The setup wizard has no status bar. */}
+      {!pathname.startsWith('/onboarding') && <StatusBar />}
     </div>
   );
 }

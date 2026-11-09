@@ -1,6 +1,11 @@
 import { useOnboarding } from '@/hooks/onboarding';
 import { Typography } from '@/components/commons/Typography';
 import { Button } from '@/components/commons/Button';
+import {
+  OnboardingActions,
+  OnboardingPage,
+  OnboardingPanel,
+} from '@/components/onboarding/OnboardingPanel';
 import { QuizButton } from './SlimeSetQuestion';
 import { useNavigate } from 'react-router-dom';
 import { HeadsetIcon } from '@/components/commons/icon/HeadsetIcon';
@@ -24,8 +29,8 @@ export function QuizUsageQuestion() {
   };
 
   return (
-    <div className="grid w-full h-full justify-center items-center">
-      <div className="flex flex-col gap-8 max-w-xl p-2">
+    <OnboardingPage>
+      <OnboardingPanel className="gap-6">
         <div className="flex flex-col gap-2">
           <Typography variant="main-title" id="onboarding-quiz-usage-title" />
           <Typography
@@ -49,14 +54,14 @@ export function QuizUsageQuestion() {
             />
           </div>
         </div>
-        <div className="flex">
+        <OnboardingActions>
           <Button
             to={'/onboarding/quiz/slime-set'}
             variant="secondary"
             id="onboarding-quiz_back"
           />
-        </div>
-      </div>
-    </div>
+        </OnboardingActions>
+      </OnboardingPanel>
+    </OnboardingPage>
   );
 }

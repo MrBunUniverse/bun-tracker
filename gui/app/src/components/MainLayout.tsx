@@ -7,7 +7,6 @@ import {
   RpcMessage,
   SettingsRequestT,
 } from 'solarxr-protocol';
-import { TopBar } from './TopBar';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import './MainLayout.scss';
 import { Toolbar } from './Toolbar';
@@ -18,6 +17,7 @@ export function MainLayout({
   children,
   background = true,
   full = false,
+  flush = false,
   isMobile = undefined,
 }: {
   children: ReactNode;
@@ -25,6 +25,8 @@ export function MainLayout({
   isMobile?: boolean;
   showToolbarSettings?: boolean;
   full?: boolean;
+  /** Drops the inset, rounding and frame so the content meets the top bar and window edges. */
+  flush?: boolean;
 }) {
   const location = useLocation();
   const { completion } = useTrackingChecklist();
@@ -68,15 +70,14 @@ export function MainLayout({
         'checklist-ok': completion === 'complete',
       })}
     >
-      <div style={{ gridArea: 't' }}>
-        <TopBar />
-      </div>
-
       <div
         style={{ gridArea: 'c' }}
         className={classNames(
-          'overflow-hidden mx-2 my-2 mobile:m-0 min-w-0 min-h-0 h-full',
-          'flex flex-col rounded-2xl transition-[background-color,border-radius,box-shadow] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]',
+          'overflow-hidden min-w-0 min-h-0 h-full',
+          'flex flex-col transition-[background-color,border-radius,box-shadow] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]',
+          flush
+            ? 'main-layout__content--flush'
+            : 'mx-2 my-2 mobile:m-0 rounded-2xl',
           background && 'glass-panel'
         )}
       >

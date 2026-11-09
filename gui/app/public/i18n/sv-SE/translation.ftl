@@ -9,10 +9,10 @@
 
 websocket-connecting = Ansluter till server
 websocket-connection_lost = Anslutning förlorad till server. Försöker återansluta
-websocket-connection_lost-desc = Det verkar som att SlimeVR servern kraschade. Kolla loggen och starta om programmet.
+websocket-connection_lost-desc = Det verkar som att Bun Tracker servern kraschade. Kolla loggen och starta om programmet.
 websocket-timedout = Kunde ej koppla till servern.
-websocket-timedout-desc = Det verkar som att SlimeVR servern kraschade eller löpte ur tidsgränsen. Kolla loggen och starta om programmet.
-websocket-error-close = Stäng SlimeVR
+websocket-timedout-desc = Det verkar som att Bun Tracker servern kraschade eller löpte ur tidsgränsen. Kolla loggen och starta om programmet.
+websocket-error-close = Stäng Bun Tracker
 websocket-error-logs = Öppna logg-mappen
 
 ## Update notification
@@ -389,7 +389,7 @@ tracker-settings-name_section-description = Ge den ett gulligt smeknamn :)
 tracker-settings-name_section-placeholder = Bokstensmannens vänstra ben
 tracker-settings-name_section-label = Sensorns namn
 tracker-settings-forget = Glöm spårning
-tracker-settings-forget-description = Tar bort trackern från SlimeVR-servern och förhindrar den från att ansluta till den tills servern startas om. Konfigurationen av trackern kommer inte att gå förlorad.
+tracker-settings-forget-description = Tar bort trackern från Bun Tracker-servern och förhindrar den från att ansluta till den tills servern startas om. Konfigurationen av trackern kommer inte att gå förlorad.
 tracker-settings-forget-label = Glöm spårning
 tracker-settings-update-low-battery = Kan ej uppdatera. Batteriet är under 50%
 tracker-settings-update-up_to_date = Uppdaterad
@@ -638,7 +638,6 @@ settings-interface-appearance = Utseende
 settings-general-interface-dev_mode = Utvecklarläge
 settings-general-interface-dev_mode-description = Det här läget kan vara användbart om du behöver djupgående data eller vill interagera med anslutna trackers på en mer avancerad nivå.
 settings-general-interface-dev_mode-label = Utvecklarläge
-settings-general-interface-theme = Färg tema
 settings-general-interface-show-navbar-onboarding = Visa { navbar-onboarding } på navigeringsfältet
 settings-general-interface-show-navbar-onboarding-description = Detta förändras om { navbar-onboarding } knappen visas på navigeringsfältet
 settings-general-interface-show-navbar-onboarding-label = Visa { navbar-onboarding }
@@ -668,17 +667,17 @@ settings-general-interface-feedback_sound-description = Detta alternativ spelar 
 settings-general-interface-feedback_sound-label = Feedback-ljud
 settings-general-interface-feedback_sound-volume = Volym för återkopplingsljud
 settings-general-interface-connected_trackers_warning = Varning för uppkopplade spårare
-settings-general-interface-connected_trackers_warning-description = Detta alternativ kommer att visa ett popup-fönster varje gång du försöker lämna SlimeVR medan du har en eller flera anslutna trackers. Det påminner dig om att stänga av dina trackers när du är klar för att spara batteritid.
+settings-general-interface-connected_trackers_warning-description = Detta alternativ kommer att visa ett popup-fönster varje gång du försöker lämna Bun Tracker medan du har en eller flera anslutna trackers. Det påminner dig om att stänga av dina trackers när du är klar för att spara batteritid.
 settings-general-interface-connected_trackers_warning-label = Varning för uppkopplade trackers vid utresa
 
 ## Behavior settings
 
 settings-interface-behavior = Beteende
 settings-general-interface-use_tray = Minimera till systemfältet
-settings-general-interface-use_tray-description = Låter dig stänga fönstret utan att stänga SlimeVR-servern så att du kan fortsätta använda den utan att GUI stör dig.
+settings-general-interface-use_tray-description = Låter dig stänga fönstret utan att stänga Bun Tracker-servern så att du kan fortsätta använda den utan att GUI stör dig.
 settings-general-interface-use_tray-label = Minimera till systemfältet
 settings-general-interface-discord_presence = Dela aktivitet på Discord
-settings-general-interface-discord_presence-description = Berättar för din Discord-klient att du använder SlimeVR tillsammans med antalet IMU-trackers du använder.
+settings-general-interface-discord_presence-description = Berättar för din Discord-klient att du använder Bun Tracker tillsammans med antalet IMU-trackers du använder.
 settings-general-interface-discord_presence-label = Dela aktivitet på Discord
 settings-interface-behavior-error_tracking = Error samling via Sentry.io
 settings-interface-behavior-error_tracking-description_v2 =
@@ -720,7 +719,7 @@ settings-osc-router-enable-description = Växla vidarebefordran av meddelanden.
 settings-osc-router-enable-label = Aktivera
 settings-osc-router-network = Nätverksportar
 # This cares about multilines
-settings-osc-router-network-description = Ställ in portarna för att lyssna och skicka data. Dessa kan vara desamma som andra portar som används i SlimeVR-servern.
+settings-osc-router-network-description = Ställ in portarna för att lyssna och skicka data. Dessa kan vara desamma som andra portar som används i Bun Tracker-servern.
 settings-osc-router-network-address = Nätverksadress
 settings-osc-router-network-address-description = Ange den adress som data ska skickas till.
 settings-osc-router-network-address-placeholder = IPV4-adress
@@ -815,10 +814,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = Återställ inställningar
 settings-utils-advanced-reset_warning-cancel = Avbryt
 settings-utils-advanced-open_data-v1 = Config mapp
-settings-utils-advanced-open_data-description-v1 = Öppna SlimeVR's config mapp i filutforskaren, som innehåller konfigurationen.
+settings-utils-advanced-open_data-description-v1 = Öppna Bun Tracker's config mapp i filutforskaren, som innehåller konfigurationen.
 settings-utils-advanced-open_data-label = Öppna mapp
 settings-utils-advanced-open_logs = Logg-mapp
-settings-utils-advanced-open_logs-description = Öppna SlimeVR's config mapp i filutforskaren, som innehåller appens loggar
+settings-utils-advanced-open_logs-description = Öppna Bun Tracker's config mapp i filutforskaren, som innehåller appens loggar
 settings-utils-advanced-open_logs-label = Öppna mapp
 
 ## Home Screen
@@ -835,7 +834,7 @@ onboarding-wip = Pågående arbete
 onboarding-previous_step = Föregående steget
 onboarding-setup_warning =
     <b>Varning:</b> Den inledande installationen krävs för bra spårning,
-    den behövs om det är första gången du använder SlimeVR.
+    den behövs om det är första gången du använder Bun Tracker.
 onboarding-setup_warning-skip = Hoppa över inställning
 onboarding-setup_warning-cancel = Fortsätt inställning
 
@@ -871,7 +870,7 @@ onboarding-reset_tutorial-0 =
 
 ## Setup start
 
-onboarding-home = Välkommen till SlimeVR
+onboarding-home = Välkommen till Bun Tracker
 onboarding-home-start = Låt oss komma igång!
 
 ## Setup done
@@ -1199,7 +1198,7 @@ tray_or_exit_modal-description = Detta gör att du kan välja om du vill avsluta
 
 unknown_device-modal-description =
     Det finns en ny tracker med MAC-adress <b>{ $deviceId }</b>.
-    Vill du ansluta den till SlimeVR?
+    Vill du ansluta den till Bun Tracker?
 vrc_config-page-help = Hittar inte inställningen?
 vrc_config-page-help-desc = Kolla vår <a>dokumentation på detta området!</a>
 vrc_config-page-big_menu = Tracking & IK (stora menyn)

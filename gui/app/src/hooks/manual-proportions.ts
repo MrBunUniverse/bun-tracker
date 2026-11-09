@@ -9,6 +9,7 @@ import { useWebsocketAPI } from './websocket-api';
 import { useEffect, useMemo, useState } from 'react';
 import { useConfig } from './config';
 import { countMetric } from '@/utils/sentry';
+import { BONE_MAPPING } from '@/utils/proportion-highlight';
 
 type LabelBase = {
   value: number;
@@ -32,20 +33,6 @@ export type GroupPartLabel = LabelBase & {
 };
 
 export type Label = BoneLabel | GroupLabel | GroupPartLabel;
-
-const BONE_MAPPING: Map<string, SkeletonBone[]> = new Map([
-  [
-    'skeleton_bone-torso_group',
-    [
-      SkeletonBone.UPPER_CHEST,
-      SkeletonBone.CHEST,
-      SkeletonBone.HIP,
-      SkeletonBone.WAIST,
-    ],
-  ],
-  ['skeleton_bone-leg_group', [SkeletonBone.UPPER_LEG, SkeletonBone.LOWER_LEG]],
-  ['skeleton_bone-arm_group', [SkeletonBone.UPPER_ARM, SkeletonBone.LOWER_ARM]],
-]);
 
 export type UpdateBoneParams = { newValue: number } & (
   | { type: 'bone'; bone: SkeletonBone }

@@ -9,10 +9,10 @@
 
 websocket-connecting = جاري التحميل...
 websocket-connection_lost = تعطل الخادم!
-websocket-connection_lost-desc = يبدو أن خادم SlimeVR تعطل. تحقق من السجلات وأعد تشغيل البرنامج
+websocket-connection_lost-desc = يبدو أن خادم Bun Tracker تعطل. تحقق من السجلات وأعد تشغيل البرنامج
 websocket-timedout = تعذر الاتصال بالخادم
-websocket-timedout-desc = يبدو أن خادم SlimeVR قد تعطل أو انتهت مهلته. تحقق من السجلات وأعد تشغيل البرنامج
-websocket-error-close = الخروج من SlimeVR
+websocket-timedout-desc = يبدو أن خادم Bun Tracker قد تعطل أو انتهت مهلته. تحقق من السجلات وأعد تشغيل البرنامج
+websocket-error-close = الخروج من Bun Tracker
 websocket-error-logs = افتح مجلد السجلات
 
 ## Update notification
@@ -314,7 +314,7 @@ tracker-settings-name_section-description = أعطها لقب لطيف :)
 tracker-settings-name_section-placeholder = ساق نايتي بيست اليسرى
 tracker-settings-name_section-label = اسم جهاز التعقب
 tracker-settings-forget = انسي جهاز التعقب
-tracker-settings-forget-description = يزيل جهاز التعقب من خادم SlimeVR ويمنعه من الاتصال به حتى يتم إعادة تشغيل الخادم. لن تضيع تكوين جهاز التعقب.
+tracker-settings-forget-description = يزيل جهاز التعقب من خادم Bun Tracker ويمنعه من الاتصال به حتى يتم إعادة تشغيل الخادم. لن تضيع تكوين جهاز التعقب.
 tracker-settings-forget-label = ننسى جهاز التعقب
 tracker-settings-update-up_to_date = حديث
 tracker-settings-update = التحديث الآن
@@ -581,7 +581,6 @@ settings-interface-appearance = مظهر
 settings-general-interface-dev_mode = وضع المطوّر
 settings-general-interface-dev_mode-description = يمكن أن يكون هذا الوضع مفيدًا إذا كنت بحاجة إلى بيانات متعمقة أو للتفاعل مع أجهزة التعقب المتصلة على مستوى أكثر تقدمًا.
 settings-general-interface-dev_mode-label = وضع المطوّر
-settings-general-interface-theme = موضوع اللون
 settings-general-interface-show-navbar-onboarding = إظهار "{ navbar-onboarding }" على قائمة التنقل
 settings-general-interface-show-navbar-onboarding-description = يغير هذا إذا ظهر الزر "{ navbar-onboarding }" على قائمة التنقل.
 settings-general-interface-show-navbar-onboarding-label = إظهار "{ navbar-onboarding }"
@@ -611,17 +610,17 @@ settings-general-interface-feedback_sound-description = سيصدر هذا الخ
 settings-general-interface-feedback_sound-label = صوت ردود الفعل
 settings-general-interface-feedback_sound-volume = حجم صوت ردود الفعل
 settings-general-interface-connected_trackers_warning = تحذير عن أجهزة التعقب المتصلة
-settings-general-interface-connected_trackers_warning-description = سيعرض هذا الخيار نافذة كل مرة تحاول فيها الخروج من SlimeVR أثناء وجود جهاز أو أكثر من أجهزة التعقب المتصلة. سيذكرك بإيقاف تشغيل أجهزة التعقب عند الانتهاء للحفاظ على عمر البطارية.
+settings-general-interface-connected_trackers_warning-description = سيعرض هذا الخيار نافذة كل مرة تحاول فيها الخروج من Bun Tracker أثناء وجود جهاز أو أكثر من أجهزة التعقب المتصلة. سيذكرك بإيقاف تشغيل أجهزة التعقب عند الانتهاء للحفاظ على عمر البطارية.
 settings-general-interface-connected_trackers_warning-label = تحذير عن أجهزة التعقب المتصلة عند الخروج
 
 ## Behavior settings
 
 settings-interface-behavior = السلوك
 settings-general-interface-use_tray = تصغير إلى علبة النظام
-settings-general-interface-use_tray-description = يتيح لك إغلاق النافذة دون إغلاق خادم SlimeVR حتى تتمكن من الاستمرار في استخدامه دون إزعاجك من واجهة المستخدم الرسومية.
+settings-general-interface-use_tray-description = يتيح لك إغلاق النافذة دون إغلاق خادم Bun Tracker حتى تتمكن من الاستمرار في استخدامه دون إزعاجك من واجهة المستخدم الرسومية.
 settings-general-interface-use_tray-label = تصغير إلى علبة النظام
 settings-general-interface-discord_presence = مشاركة النشاط على Discord
-settings-general-interface-discord_presence-description = يخبر عميل Discord الخاص بك أنك تستخدم SlimeVR جنبا إلى جنب مع عدد أجهزة تعقب IMU التي تستخدمها.
+settings-general-interface-discord_presence-description = يخبر عميل Discord الخاص بك أنك تستخدم Bun Tracker جنبا إلى جنب مع عدد أجهزة تعقب IMU التي تستخدمها.
 settings-general-interface-discord_presence-label = مشاركة النشاط على Discord
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -637,9 +636,9 @@ settings-interface-behavior-error_tracking = جمع الأخطاء عبر Sentry
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>هل توافق على جمع بيانات الخطأ مجهولة المصدر؟</h1>
     
-    <b>نحن لا نجمع معلومات شخصية</b> مثل عنوان IP الخاص بك أو بيانات الاعتماد اللاسلكية. يقدر SlimeVR خصوصيتك!
+    <b>نحن لا نجمع معلومات شخصية</b> مثل عنوان IP الخاص بك أو بيانات الاعتماد اللاسلكية. يقدر Bun Tracker خصوصيتك!
     
-    لتوفير أفضل تجربة للمستخدم، نقوم بجمع تقارير الأخطاء ومقاييس الأداء ومعلومات نظام التشغيل مجهولة المصدر. يساعدنا هذا في اكتشاف الأخطاء والمشكلات المتعلقة ب SlimeVR. يتم جمع هذه المقاييس عبر Sentry.io.
+    لتوفير أفضل تجربة للمستخدم، نقوم بجمع تقارير الأخطاء ومقاييس الأداء ومعلومات نظام التشغيل مجهولة المصدر. يساعدنا هذا في اكتشاف الأخطاء والمشكلات المتعلقة ب Bun Tracker. يتم جمع هذه المقاييس عبر Sentry.io.
 settings-interface-behavior-error_tracking-label = إرسال الأخطاء إلى المطورين
 
 ## Serial settings
@@ -787,10 +786,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = إعادة تعيين الإعدادات
 settings-utils-advanced-reset_warning-cancel = إلغاء
 settings-utils-advanced-open_data-v1 = مجلد التكوين
-settings-utils-advanced-open_data-description-v1 = فتح مجلد إعدادات SlimeVR في مستكشف الملفات ، والذي يحتوي على الإعدادات
+settings-utils-advanced-open_data-description-v1 = فتح مجلد إعدادات Bun Tracker في مستكشف الملفات ، والذي يحتوي على الإعدادات
 settings-utils-advanced-open_data-label = فتح المجلد
 settings-utils-advanced-open_logs = مجلد السجلات
-settings-utils-advanced-open_logs-description = افتح مجلد سجلات SlimeVR في مستكشف الملفات ، والذي يحتوي على سجلات التطبيق
+settings-utils-advanced-open_logs-description = افتح مجلد سجلات Bun Tracker في مستكشف الملفات ، والذي يحتوي على سجلات التطبيق
 settings-utils-advanced-open_logs-label = فتح المجلد
 
 ## Home Screen
@@ -1106,8 +1105,8 @@ onboarding-automatic_proportions-requirements-title = المتطلبات
 onboarding-automatic_proportions-requirements-descriptionv2 =
     لديك على الأقل ما يكفي من أجهزة التعقب لتتبع قدميك (بشكل عام 5 أجهزة تعقب).
     لديك أجهزة التعقب  وجهاز الواقع الافتراضي الخاص بك وترتديهم.
-    أجهزة التعقب وجهاز الواقع الافتراضي متصلة بخادم SlimeVR وتعمل بشكل صحيح (مثلاً، لا يوجد تأتأة أو قطع اتصال ، إلخ).
-    يقوم جهاز الواقع الافتراضي بالإبلاغ عن البيانات الموضعية إلى خادم SlimeVR (وهذا يعني عموما تشغيل SteamVR وتوصيله ب SlimeVR باستخدام برنامج تشغيل SteamVR الخاص ب SlimeVR).
+    أجهزة التعقب وجهاز الواقع الافتراضي متصلة بخادم Bun Tracker وتعمل بشكل صحيح (مثلاً، لا يوجد تأتأة أو قطع اتصال ، إلخ).
+    يقوم جهاز الواقع الافتراضي بالإبلاغ عن البيانات الموضعية إلى خادم Bun Tracker (وهذا يعني عموما تشغيل SteamVR وتوصيله ب Bun Tracker باستخدام برنامج تشغيل SteamVR الخاص ب Bun Tracker).
     يعمل التتبع الخاص بك ويمثل تحركاتك بدقة (على سبيل المثال ، لقد أجريت إعادة تعيين كاملة وتتحرك في الاتجاه الصحيح عند الركل, الانحناء, الجلوس, إلخ).
 onboarding-automatic_proportions-requirements-next = لقد قرأت المتطلبات
 onboarding-automatic_proportions-check_height-title-v3 = قم بقياس ارتفاع سماعة الرأس
@@ -1195,8 +1194,8 @@ home-no_trackers = لم يتم الكشف أو تعيين عن أي جهاز ت�
 trackers_still_on-modal-title = أجهزة التعقب لا تزال قيد التشغيل
 trackers_still_on-modal-description =
     لا يزال واحد أو أكثر من أجهزة التعقب قيد التشغيل.
-    هل مازلت تريد الخروج من SlimeVR؟
-trackers_still_on-modal-confirm = الخروج من SlimeVR
+    هل مازلت تريد الخروج من Bun Tracker؟
+trackers_still_on-modal-confirm = الخروج من Bun Tracker
 trackers_still_on-modal-cancel = انتظر...
 
 ## Status system
@@ -1263,7 +1262,7 @@ tray_or_exit_modal-cancel = إلغاء
 unknown_device-modal-title = تم العثور على جهاز تعقب جديد!
 unknown_device-modal-description =
     هناك جهاز تعقب جديد مع عنوان MAC <b>{ $deviceId }</b>.
-    هل تريد توصيله ب SlimeVR؟
+    هل تريد توصيله ب Bun Tracker؟
 unknown_device-modal-confirm = أكيد
 unknown_device-modal-forget = تجاهلها
 

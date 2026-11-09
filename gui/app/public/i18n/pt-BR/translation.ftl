@@ -9,10 +9,10 @@
 
 websocket-connecting = Carregando...
 websocket-connection_lost = O servidor parou de funcionar!
-websocket-connection_lost-desc = Parece que o servidor do SlimeVR parou de funcionar. Verifique os logs e reinicie o programa.
+websocket-connection_lost-desc = Parece que o servidor do Bun Tracker parou de funcionar. Verifique os logs e reinicie o programa.
 websocket-timedout = Não foi possível conectar-se ao servidor
-websocket-timedout-desc = Parece que o servidor do SlimeVR parou de funcionar ou atingiu o tempo limite. Verifique os logs e reinicie o programa.
-websocket-error-close = Sair do SlimeVR
+websocket-timedout-desc = Parece que o servidor do Bun Tracker parou de funcionar ou atingiu o tempo limite. Verifique os logs e reinicie o programa.
+websocket-error-close = Sair do Bun Tracker
 websocket-error-logs = Abrir a pasta de logs
 
 ## Update notification
@@ -426,7 +426,7 @@ tracker-settings-name_section-description = Dê um apelido fofo :)
 tracker-settings-name_section-placeholder = Coxa esquerda de NightyBeast
 tracker-settings-name_section-label = Nome do tracker
 tracker-settings-forget = Esquecer o tracker
-tracker-settings-forget-description = Remove o tracker do servidor SlimeVR e impede que ele se conecte a ele até que o servidor seja reiniciado. A configuração do tracker não será perdida.
+tracker-settings-forget-description = Remove o tracker do servidor Bun Tracker e impede que ele se conecte a ele até que o servidor seja reiniciado. A configuração do tracker não será perdida.
 tracker-settings-forget-label = Esquecer o tracker
 tracker-settings-update-unavailable-v2 = Nenhuma versão nova encontrada
 tracker-settings-update-incompatible = Não é possível atualizar. Placa ou versão de firmware incompatível
@@ -515,7 +515,6 @@ settings-sidebar-osc_vmc = VMC
 settings-sidebar-utils = Utilidades
 settings-sidebar-serial = Console Serial
 settings-sidebar-appearance = Aparência
-settings-sidebar-home = Tela Inicial
 settings-sidebar-checklist = Checklist do Rastreamento
 settings-sidebar-notifications = Notificações
 settings-sidebar-behavior = Comportamento
@@ -727,7 +726,6 @@ settings-interface-appearance = Aparência
 settings-general-interface-dev_mode = Modo de desenvolvedor
 settings-general-interface-dev_mode-description = Este modo pode ser útil se precisar de dados específicos ou para interagir com trackers conectados a um nível mais avançado
 settings-general-interface-dev_mode-label = Modo de Desenvolvedor
-settings-general-interface-theme = Cor do tema
 settings-general-interface-show-navbar-onboarding = Mostrar "{ navbar-onboarding }" na barra de navegação
 settings-general-interface-show-navbar-onboarding-description = Isso muda se o botão "{ navbar-onboarding }" for exibido na barra de navegação.
 settings-general-interface-show-navbar-onboarding-label = Mostrar "{ navbar-onboarding }"
@@ -757,17 +755,17 @@ settings-general-interface-feedback_sound-description = Essa opção reproduzir�
 settings-general-interface-feedback_sound-label = Som de feedback
 settings-general-interface-feedback_sound-volume = Volume do som de feedback
 settings-general-interface-connected_trackers_warning = Aviso de trackers conectados
-settings-general-interface-connected_trackers_warning-description = Essa opção exibirá um pop-up toda vez que você tentar fechar o SlimeVR enquanto tiver um ou mais trackers conectados. Ela o lembrará de desligar os trackers quando você terminar para preservar a vida útil da bateria.
+settings-general-interface-connected_trackers_warning-description = Essa opção exibirá um pop-up toda vez que você tentar fechar o Bun Tracker enquanto tiver um ou mais trackers conectados. Ela o lembrará de desligar os trackers quando você terminar para preservar a vida útil da bateria.
 settings-general-interface-connected_trackers_warning-label = Aviso de trackers conectados ao fechar
 
 ## Behavior settings
 
 settings-interface-behavior = Comportamento
 settings-general-interface-use_tray = Minimizar para bandeja do sistema
-settings-general-interface-use_tray-description = Permite que você feche a janela sem fechar o servidor do SlimeVR, para que possa continuar usando-o sem que a interface gráfica o incomode.
+settings-general-interface-use_tray-description = Permite que você feche a janela sem fechar o servidor do Bun Tracker, para que possa continuar usando-o sem que a interface gráfica o incomode.
 settings-general-interface-use_tray-label = Minimizar para a bandeja do sistema
 settings-general-interface-discord_presence = Compartilhar atividade no Discord
-settings-general-interface-discord_presence-description = Informa ao seu Discord que o SlimeVR está aberto, juntamente com o número de trackers IMU que você está utilizando.
+settings-general-interface-discord_presence-description = Informa ao seu Discord que o Bun Tracker está aberto, juntamente com o número de trackers IMU que você está utilizando.
 settings-general-interface-discord_presence-label = Compartilhar atividade no Discord
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -779,9 +777,9 @@ settings-interface-behavior-error_tracking = Coleta de erros via Sentry.io
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>Você consente com a coleta de dados de erro anonimizados?</h1>
     
-    <b>Não coletamos informações pessoais</b>, como seu endereço IP ou credenciais de rede sem fio. O SlimeVR valoriza sua privacidade!
+    <b>Não coletamos informações pessoais</b>, como seu endereço IP ou credenciais de rede sem fio. O Bun Tracker valoriza sua privacidade!
     
-    Para oferecer a melhor experiência possível, coletamos relatórios de erro anonimizados, métricas de desempenho e informações sobre o sistema operacional. Isso nos ajuda a identificar bugs e problemas no SlimeVR. Essas métricas são coletadas por meio do Sentry.io.
+    Para oferecer a melhor experiência possível, coletamos relatórios de erro anonimizados, métricas de desempenho e informações sobre o sistema operacional. Isso nos ajuda a identificar bugs e problemas no Bun Tracker. Essas métricas são coletadas por meio do Sentry.io.
 settings-interface-behavior-error_tracking-label = Enviar erros para os desenvolvedores
 settings-interface-behavior-bvh_directory = Diretório para salvar gravações BVH
 settings-interface-behavior-bvh_directory-description = Escolha um diretório para salvar suas gravações BVH, em vez de precisar escolher onde salvá-las a cada vez.
@@ -829,7 +827,7 @@ settings-osc-router-network = Portas de rede
 # This cares about multilines
 settings-osc-router-network-description =
     Defina as portas para receber e enviar dados.
-    Elas podem ser as mesmas portas usadas no servidor do SlimeVR.
+    Elas podem ser as mesmas portas usadas no servidor do Bun Tracker.
 settings-osc-router-network-port_in =
     .label = Porta de Entrada
     .placeholder = Porta de entrada (padrão: 9002)
@@ -884,7 +882,7 @@ settings-osc-vmc = Captura virtual de movimentos
 # This cares about multilines
 settings-osc-vmc-description =
     Altere as configurações específicas do protocolo VMC (Virtual Motion Capture)
-    para enviar dados de esqueleto do SlimeVR e receber dados de esqueleto de outros aplicativos.
+    para enviar dados de esqueleto do Bun Tracker e receber dados de esqueleto de outros aplicativos.
 settings-osc-vmc-enable = Ativar
 settings-osc-vmc-enable-description = Ative o envio e o recebimento de dados.
 settings-osc-vmc-enable-label = Ativar
@@ -942,10 +940,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = Resetar configurações
 settings-utils-advanced-reset_warning-cancel = Cancelar
 settings-utils-advanced-open_data-v1 = Pasta de configuração
-settings-utils-advanced-open_data-description-v1 = Abre a pasta de configuração do SlimeVR no explorador de arquivos, contendo as configurações
+settings-utils-advanced-open_data-description-v1 = Abre a pasta de configuração do Bun Tracker no explorador de arquivos, contendo as configurações
 settings-utils-advanced-open_data-label = Abrir pasta
 settings-utils-advanced-open_logs = Pasta de logs
-settings-utils-advanced-open_logs-description = Abre a pasta de logs do SlimeVR no explorador de arquivos, contendo os logs do aplicativo
+settings-utils-advanced-open_logs-description = Abre a pasta de logs do Bun Tracker no explorador de arquivos, contendo os logs do aplicativo
 settings-utils-advanced-open_logs-label = Abrir pasta
 
 ## Home Screen
@@ -968,7 +966,7 @@ onboarding-wip = Em desenvolvimento
 onboarding-previous_step = Passo anterior
 onboarding-setup_warning =
     <b>Aviso:</b> A configuração inicial é necessária para um rastreamento adequado,
-    isso é necessário se for a primeira vez usando o SlimeVR.
+    isso é necessário se for a primeira vez usando o Bun Tracker.
 onboarding-setup_warning-skip = Pular configurações
 onboarding-setup_warning-cancel = Continuar configurações
 
@@ -989,16 +987,16 @@ onboarding-quiz-slimeset-answer-butterfly = Butterfly
 onboarding-quiz-slimeset-answer-wifi = Slime baseado em Wi-Fi
 onboarding-quiz-slimeset-answer-dongle = Slime baseado em Dongle
 onboarding-quiz-usage-title = Para que você está usando seus trackers?
-onboarding-quiz-usage-description = Se você pretende usar o SlimeVR para múltiplas finalidades, você pode alterar as configurações afetadas mais tarde.
+onboarding-quiz-usage-description = Se você pretende usar o Bun Tracker para múltiplas finalidades, você pode alterar as configurações afetadas mais tarde.
 onboarding-quiz-usage-answer-VRC = Jogos em VR (ex.: VRChat)
 onboarding-quiz-usage-answer-mocap_vtubing = Mocap e VTubing
 onboarding-quiz-runtime-title = Você executa jogos via SteamVR ou diretamente no headset (standalone)?
 onboarding-quiz-runtime-answer-steamvr = SteamVR
 onboarding-quiz-runtime-answer-standalone = Standalone
 onboarding-quiz-mocap_preferences-title = Preferências de Mocap
-onboarding-quiz-mocap_preferences-desc = Especifique como você pretende usar o SlimeVR para mocap ou VTubing
+onboarding-quiz-mocap_preferences-desc = Especifique como você pretende usar o Bun Tracker para mocap ou VTubing
 onboarding-quiz-mocap_preferences-playspace-title = Qual é o seu espaço de jogo?
-onboarding-quiz-mocap_preferences-playspace-desc = Se estiver em pé, o SlimeVR tentará rastrear o movimento de caminhada em vez de manter você ancorado em um único lugar.
+onboarding-quiz-mocap_preferences-playspace-desc = Se estiver em pé, o Bun Tracker tentará rastrear o movimento de caminhada em vez de manter você ancorado em um único lugar.
 onboarding-quiz-mocap_preferences-playspace-sitting = Sentado
 onboarding-quiz-mocap_preferences-playspace-standing = Em Pé
 onboarding-quiz-mocap_preferences-vrm_model-title = Você tem um modelo VRM? (Opcional)
@@ -1067,7 +1065,7 @@ install-info_udev-rules_modal-dont-show-again_checkbox = Não mostrar novamente
 
 ## Setup start
 
-onboarding-home = Bem-vindo ao SlimeVR
+onboarding-home = Bem-vindo ao Bun Tracker
 onboarding-home-start = Vamos configurar!
 
 ## Setup done
@@ -1330,8 +1328,8 @@ onboarding-automatic_proportions-requirements-title = Requisitos
 onboarding-automatic_proportions-requirements-descriptionv2 =
     Você tem trackers suficientes para rastrear seus pés (geralmente 5 trackers).
     Você está com seus trackers e headset colocados e os vestindo corretamente.
-    Seus trackers e headset estão conectados ao servidor do SlimeVR e funcionando corretamente (ex.: sem travamentos, desconexões, etc.).
-    Seu headset está enviando dados de posição para o servidor do SlimeVR (isso geralmente significa que o SteamVR está em execução e conectado ao SlimeVR usando o driver do SteamVR do SlimeVR).
+    Seus trackers e headset estão conectados ao servidor do Bun Tracker e funcionando corretamente (ex.: sem travamentos, desconexões, etc.).
+    Seu headset está enviando dados de posição para o servidor do Bun Tracker (isso geralmente significa que o SteamVR está em execução e conectado ao Bun Tracker usando o driver do SteamVR do Bun Tracker).
     Seu rastreamento está funcionando e representando seus movimentos com precisão (ex.: você já executou "Redefinir Tudo" e eles se movem na direção correta ao chutar, se inclinar, sentar, etc.).
 onboarding-automatic_proportions-requirements-next = Eu li os requisitos.
 onboarding-automatic_proportions-check_height-title-v3 = Meça a altura do seu headset
@@ -1403,7 +1401,7 @@ onboarding-automatic_proportions-smol_warning-cancel = Voltar
 ## User height calibration
 
 onboarding-user_height-title = Qual é a sua altura?
-onboarding-user_height-description = Precisamos da sua altura para calcular as proporções do seu corpo e representar seus movimentos com precisão. Você pode deixar o SlimeVR calculá-la automaticamente ou inserir sua altura manualmente.
+onboarding-user_height-description = Precisamos da sua altura para calcular as proporções do seu corpo e representar seus movimentos com precisão. Você pode deixar o Bun Tracker calculá-la automaticamente ou inserir sua altura manualmente.
 onboarding-user_height-need_head_tracker = É necessário um headset e controles com rastreamento posicional para realizar a calibração.
 onboarding-user_height-calculate = Calcular minha altura automaticamente
 onboarding-user_height-next_step = Continuar e salvar
@@ -1474,8 +1472,8 @@ home-settings-close = Fechar
 trackers_still_on-modal-title = Trackers ainda ligados.
 trackers_still_on-modal-description =
     Um ou mais trackers ainda estão ligados.
-    Você ainda deseja sair do SlimeVR?
-trackers_still_on-modal-confirm = Sair do SlimeVR
+    Você ainda deseja sair do Bun Tracker?
+trackers_still_on-modal-confirm = Sair do Bun Tracker
 trackers_still_on-modal-cancel = Aguarde...
 
 ## Status system
@@ -1490,8 +1488,8 @@ status_system-StatusTrackerError = O tracker { $trackerName } tem um erro.
 status_system-StatusUnassignedHMD = O headset (HMD) deve ser designado como o tracker da cabeça.
 status_system-StatusPublicNetwork =
     { $count ->
-        [one] Seu perfil de rede está atualmente definido como Público ({ $adapters }). Isso não é recomendado para que o SlimeVR funcione corretamente. <PublicFixLink>Veja aqui como corrigir.</PublicFixLink>
-       *[other] Alguns dos seus adaptadores de rede estão definidos como Públicos: { $adapters }. Isso não é recomendado para que o SlimeVR funcione corretamente. <PublicFixLink>Veja aqui como corrigir.</PublicFixLink>
+        [one] Seu perfil de rede está atualmente definido como Público ({ $adapters }). Isso não é recomendado para que o Bun Tracker funcione corretamente. <PublicFixLink>Veja aqui como corrigir.</PublicFixLink>
+       *[other] Alguns dos seus adaptadores de rede estão definidos como Públicos: { $adapters }. Isso não é recomendado para que o Bun Tracker funcione corretamente. <PublicFixLink>Veja aqui como corrigir.</PublicFixLink>
     }
 
 ## Firmware tool globals
@@ -1631,12 +1629,12 @@ tray_or_exit_modal-cancel = Cancelar
 unknown_device-modal-title = Um novo tracker foi encontrado!
 unknown_device-modal-description =
     Há um novo tracker com o endereço MAC <b>{ $deviceId }</b>.
-    Deseja conectá-lo ao SlimeVR?
+    Deseja conectá-lo ao Bun Tracker?
 unknown_device-modal-confirm = Claro!
 unknown_device-modal-forget = Ignore-o
 # VRChat config warnings
 vrc_config-page-title = Alerta de configuração do VRChat
-vrc_config-page-desc = Esta página mostra o estado das suas configurações do VRChat e indica quais configurações são incompatíveis com o SlimeVR. É altamente recomendável corrigir quaisquer avisos exibidos aqui para obter a melhor experiência de uso com o SlimeVR.
+vrc_config-page-desc = Esta página mostra o estado das suas configurações do VRChat e indica quais configurações são incompatíveis com o Bun Tracker. É altamente recomendável corrigir quaisquer avisos exibidos aqui para obter a melhor experiência de uso com o Bun Tracker.
 vrc_config-page-help = Não consegue encontrar as configurações?
 vrc_config-page-help-desc = Confira nossa <a>documentação sobre este assunto!</a>
 vrc_config-page-big_menu = Rastreamento e IK (Menu Grande)
@@ -1690,13 +1688,13 @@ error_collection_modal-cancel = Eu não quero
 tracking_checklist = Checklist do Rastreamento
 tracking_checklist-settings = Configurações do Checklist do Rastreamento
 tracking_checklist-settings-close = Fechar
-tracking_checklist-status-incomplete = Você ainda não está pronto para usar o SlimeVR!
+tracking_checklist-status-incomplete = Você ainda não está pronto para usar o Bun Tracker!
 tracking_checklist-status-partial =
     { $count ->
         [one] Você tem 1 aviso!
        *[other] Você tem { $count } avisos!
     }
-tracking_checklist-status-complete = Você está pronto para usar o SlimeVR!
+tracking_checklist-status-complete = Você está pronto para usar o Bun Tracker!
 tracking_checklist-MOUNTING_CALIBRATION = Realize uma calibração de montagem
 tracking_checklist-FEET_MOUNTING_CALIBRATION = Realize uma calibração de montagem dos pés
 tracking_checklist-FULL_RESET = Execute "Redefinir Tudo"
@@ -1718,11 +1716,11 @@ tracking_checklist-UNASSIGNED_HMD-desc = O headset de VR deve ser atribuído com
 tracking_checklist-NETWORK_PROFILE_PUBLIC = Altere seu perfil de rede
 tracking_checklist-NETWORK_PROFILE_PUBLIC-desc =
     { $count ->
-        [one] Seu perfil de rede está atualmente definido como Público ({ $adapters }). Isso não é recomendado para que o SlimeVR funcione corretamente. <PublicFixLink>Veja como corrigir isso aqui.</PublicFixLink>
+        [one] Seu perfil de rede está atualmente definido como Público ({ $adapters }). Isso não é recomendado para que o Bun Tracker funcione corretamente. <PublicFixLink>Veja como corrigir isso aqui.</PublicFixLink>
        *[other]
             Alguns dos seus adaptadores de rede estão definidos como Público:
             { $adapters }
-            Isso não é recomendado para o funcionamento adequado do SlimeVR. <PublicFixLink>Veja como corrigir aqui.</PublicFixLink>
+            Isso não é recomendado para o funcionamento adequado do Bun Tracker. <PublicFixLink>Veja como corrigir aqui.</PublicFixLink>
     }
 tracking_checklist-NETWORK_PROFILE_PUBLIC-open = Abrir o Painel de Controle
 tracking_checklist-STAY_ALIGNED_CONFIGURED = Configurar o Manter Alinhado

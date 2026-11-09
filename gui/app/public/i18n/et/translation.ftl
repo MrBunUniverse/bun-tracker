@@ -409,7 +409,6 @@ settings-interface-appearance = Välimus
 settings-general-interface-dev_mode = Arendaja režiim
 settings-general-interface-dev_mode-description = See režiim on kasulik, kui on vaja põhjalike andmeid või või suhelda ühendatud jälgijatega kõrgemal tasemel.
 settings-general-interface-dev_mode-label = Arendaja režiim
-settings-general-interface-theme = Värviteema
 settings-general-interface-lang = Vaikekeel
 settings-general-interface-lang-description = Muutke vaikekeelt, mida soovite kasutada.
 settings-general-interface-lang-placeholder = Vali keel, mida kasutada
@@ -470,7 +469,7 @@ settings-osc-router-network = Võrgupordid
 # This cares about multilines
 settings-osc-router-network-description =
     Lisage võrgupordid, mille pealt saata ja kuulata andmeid.
-    Need võivad olla samad võrgupordid mida kasutab SlimeVR server.
+    Need võivad olla samad võrgupordid mida kasutab Bun Tracker server.
 settings-osc-router-network-port_in =
     .label = Võrguport sisse
     .placeholder = Võrguport sisse (vaikimisi: 9002)
@@ -510,7 +509,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     VMC (Virtual Motion Capture) protokollile omaste sätete muutmine
-        SlimeVR-i luuandmete saatmiseks ja luuandmete vastuvõtmiseks teistest rakendustest.
+        Bun Tracker-i luuandmete saatmiseks ja luuandmete vastuvõtmiseks teistest rakendustest.
 settings-osc-vmc-enable = Luba
 settings-osc-vmc-enable-description = Lülitage andmete sisestamine sisse/välja.
 settings-osc-vmc-enable-label = Luba
@@ -552,7 +551,7 @@ onboarding-wip = Töö käib
 onboarding-previous_step = Eelmine samm
 onboarding-setup_warning =
     <b>Hoiatus:</b> Hea jälgimise jaoks on vajalik esialgne seadistamine,
-    see on vajalik, kui kasutate SlimeVR-i esimest korda.
+    see on vajalik, kui kasutate Bun Tracker-i esimest korda.
 onboarding-setup_warning-skip = Jäta seadistamine vahele
 onboarding-setup_warning-cancel = Jätka seadistamist
 
@@ -600,7 +599,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = Tere tulemast SlimeVR-i
+onboarding-home = Tere tulemast Bun Tracker-i
 onboarding-home-start = Hakkame sättima!
 
 ## Setup done

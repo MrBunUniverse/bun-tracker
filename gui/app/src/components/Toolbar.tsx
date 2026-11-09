@@ -278,7 +278,7 @@ export function ResetActionsGroup() {
   };
 
   return (
-    <div className="toolbar-reset-group flex flex-wrap items-center gap-2 select-none">
+    <div className="toolbar-reset-group flex flex-wrap items-center gap-3 select-none">
       <BasicResetButton
         type={ResetType.Full}
         {...getAnimProps('full')}

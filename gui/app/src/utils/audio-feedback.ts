@@ -2,6 +2,8 @@
 
 class AudioFeedbackManager {
   private ctx: AudioContext | null = null;
+  // Suspended once the last sound has finished: an idle running context keeps an audio thread busy.
+  private idleTimer: ReturnType<typeof setTimeout> | undefined;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -17,6 +19,10 @@ class AudioFeedbackManager {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+    clearTimeout(this.idleTimer);
+    const ctx = this.ctx;
+    // Every sound here is under a second long.
+    if (ctx) this.idleTimer = setTimeout(() => void ctx.suspend(), 1500);
     return this.ctx;
   }
 

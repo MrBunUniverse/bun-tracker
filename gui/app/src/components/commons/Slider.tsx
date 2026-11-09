@@ -8,6 +8,8 @@ export function Slider({
   step = 1,
   onChange,
   label,
+  disabled = false,
+  valueText,
 }: {
   value: number;
   min: number;
@@ -15,6 +17,8 @@ export function Slider({
   step?: number;
   onChange: (value: number) => void;
   label: string;
+  disabled?: boolean;
+  valueText?: string;
 }) {
   const fill = ((value - min) / (max - min)) * 100;
   return (
@@ -25,6 +29,8 @@ export function Slider({
       step={step}
       value={value}
       aria-label={label}
+      aria-valuetext={valueText}
+      disabled={disabled}
       onChange={(e) => onChange(Number(e.target.value))}
       className="apple-slider"
       style={{ '--slider-fill': `${fill}%` } as CSSProperties}

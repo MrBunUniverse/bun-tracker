@@ -641,7 +641,7 @@ export function CardIMUVisualizer({
 
 export function IMUVisualizerWidget({ tracker }: { tracker: TrackerDataT }) {
   const { l10n } = useLocalization();
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [isTrackingDataCollapsed, setIsTrackingDataCollapsed] = useState(() => {
     return (
       localStorage.getItem('slimevr-tracker-trackingdata-collapsed') === 'true'
@@ -701,7 +701,7 @@ export function IMUVisualizerWidget({ tracker }: { tracker: TrackerDataT }) {
   );
 
   return (
-    <div className="bg-background-70 flex flex-col p-3 rounded-lg gap-2">
+    <div className="relative flex flex-col gap-3 p-5 sm:p-6 rounded-[24px] bg-background-70/70 dark:bg-background-10/[0.02] border border-background-50/50 dark:border-background-10/[0.08] shadow-xl">
       <div
         className="flex items-center justify-between cursor-pointer select-none py-0.5"
         onClick={() => {

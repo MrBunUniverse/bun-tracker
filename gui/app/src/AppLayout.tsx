@@ -4,39 +4,19 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppShell } from './components/shell/AppShell';
 
 export function AppLayout() {
-  const { config, setConfig } = useConfig();
+  const { config } = useConfig();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
   useLayoutEffect(() => {
     if (!config) return;
-    if (config.theme !== undefined) {
-      // Light mode is intentionally removed; migrate legacy configs to the
-      // default dark Slime theme before applying the document theme.
-      let theme = config.theme === 'light' ? 'slime' : config.theme;
-      let migrate = config.theme === 'light';
-      // One-time move from the old navy default to the Claude theme. The flag
-      // keeps a later manual choice of 'macos' from being overridden.
-      try {
-        if (
-          theme === 'macos' &&
-          !localStorage.getItem('slimevr-theme-claude-migrated')
-        ) {
-          theme = 'claude';
-          migrate = true;
-        }
-        localStorage.setItem('slimevr-theme-claude-migrated', '1');
-      } catch {
-        // storage unavailable; keep the configured theme
-      }
-      document.documentElement.dataset.theme = theme;
-      try {
-        // Read by index.html on the next start to paint the right background.
-        localStorage.setItem('slimevr-theme-hint', theme);
-      } catch {
-        // storage unavailable; the dark default is used
-      }
-      if (migrate) void setConfig({ theme });
+    // config.theme is already normalized when the config loads (hooks/theme.ts).
+    document.documentElement.dataset.theme = config.theme;
+    try {
+      // Read by index.html on the next start to paint the right background.
+      localStorage.setItem('slimevr-theme-hint', config.theme);
+    } catch {
+      // storage unavailable; the dark default is used
     }
 
     const bgStyle = localStorage.getItem('slimevr-bg-style') || 'grid';
@@ -55,7 +35,7 @@ export function AppLayout() {
         `${config.textSize}rem`
       );
     }
-  }, [config, setConfig]);
+  }, [config]);
 
   // Offer the setup wizard once, when the app starts. It must not re-run on
   // later config changes or navigation, otherwise opening Settings or another

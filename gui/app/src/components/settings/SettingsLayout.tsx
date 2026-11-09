@@ -1,13 +1,16 @@
-import { ReactNode, useEffect } from 'react';
-import { TopBar } from '@/components/TopBar';
+import { ReactNode, useEffect, useLayoutEffect, useRef } from 'react';
 import { SettingsSidebar } from './SettingsSidebar';
 import { DotRain } from '@/components/commons/DotRain';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { Dropdown } from '@/components/commons/Dropdown';
 import { useForm } from 'react-hook-form';
 import { useLocalization } from '@fluent/react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import './SettingsLayout.scss';
+import {
+  readSettingsLocation,
+  saveSettingsLocation,
+} from './settings-location';
 import { useVRCConfig } from '@/hooks/vrc-config';
 
 export function SettingSelectorMobile() {
@@ -45,10 +48,6 @@ export function SettingSelectorMobile() {
       {
         label: l10n.getString('settings-sidebar-firmware-tool'),
         value: { url: '/settings/firmware-tool' },
-      },
-      {
-        label: l10n.getString('settings-sidebar-quest-capture'),
-        value: { url: '/settings/quest-capture' },
       },
       ...(vrcConfigState?.isSupported
         ? [
@@ -92,7 +91,7 @@ export function SettingSelectorMobile() {
   };
 
   return (
-    <div className="fixed top-12 z-50 px-4 w-full">
+    <div className="sticky top-0 z-50 mb-3 w-full">
       <Dropdown
         control={control}
         display="block"
@@ -110,15 +109,69 @@ export function SettingSelectorMobile() {
   );
 }
 
+export function ResumeSettings() {
+  const saved = readSettingsLocation();
+  return (
+    <Navigate
+      to={saved?.pathname || '/settings/trackers'}
+      replace
+      state={{ scrollTo: saved?.scrollTo, resumeSettings: true }}
+    />
+  );
+}
+
 export function SettingsLayout({ children }: { children: ReactNode }) {
   const { isMobile } = useBreakpoint('mobile');
+  const { pathname, state, key } = useLocation();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (pathname === '/settings') return;
+    const content = contentRef.current;
+    const sidebar =
+      sidebarRef.current?.querySelector<HTMLElement>('.settings-sidebar');
+    if (!content) return;
+    const saved = readSettingsLocation();
+    const restore =
+      saved?.pathname === pathname &&
+      (!state?.scrollTo || state?.resumeSettings);
+    const top = restore ? saved.top : 0;
+    content.scrollTop = top;
+    if (sidebar && saved) sidebar.scrollTop = saved.sidebarTop;
+    // Retry after asynchronously loaded settings have established their height.
+    const observer = new ResizeObserver(() => {
+      content.scrollTop = top;
+      if (content.scrollTop === top) observer.disconnect();
+    });
+    if (restore && content.firstElementChild)
+      observer.observe(content.firstElementChild);
+    let currentTop = content.scrollTop;
+    const trackScroll = () => {
+      currentTop = content.scrollTop;
+      observer.disconnect();
+    };
+    const save = () =>
+      saveSettingsLocation({
+        pathname,
+        scrollTo: state?.scrollTo,
+        top: currentTop,
+        sidebarTop: sidebar?.scrollTop || 0,
+      });
+    content.addEventListener('scroll', trackScroll, { passive: true });
+    window.addEventListener('pagehide', save);
+    return () => {
+      save();
+      observer.disconnect();
+      content.removeEventListener('scroll', trackScroll);
+      window.removeEventListener('pagehide', save);
+    };
+  }, [pathname, key, state, isMobile]);
   return (
     <>
       <div className="settings-layout h-full">
-        <div style={{ gridArea: 't' }}>
-          <TopBar />
-        </div>
         <div
+          ref={sidebarRef}
           style={{ gridArea: 's' }}
           className="settings-sidebar-frame relative my-2 ml-2 mobile:hidden overflow-hidden"
         >
@@ -127,6 +180,7 @@ export function SettingsLayout({ children }: { children: ReactNode }) {
           <SettingsSidebar />
         </div>
         <div
+          ref={contentRef}
           style={{ gridArea: 'c' }}
           className="my-2 ml-2 mr-2 mobile:m-0 overflow-y-auto glass-panel rounded-[20px] p-5 border border-background-50/50 dark:border-background-10/[0.08] shadow-lg"
         >

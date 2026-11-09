@@ -11,7 +11,10 @@ import { MainLayout } from './components/MainLayout';
 import { AppContextProvider } from './components/providers/AppContext';
 import { GeneralSettings } from './components/settings/pages/GeneralSettings';
 import { Serial } from './components/settings/pages/Serial';
-import { SettingsLayout } from './components/settings/SettingsLayout';
+import {
+  ResumeSettings,
+  SettingsLayout,
+} from './components/settings/SettingsLayout';
 import {
   useProvideWebsocketApi,
   WebSocketApiContext,
@@ -32,7 +35,6 @@ import { DonglePage } from './components/onboarding/pages/Dongle';
 import { ConfigContextProvider } from './components/providers/ConfigContext';
 import { SerialDetectionModal } from './components/SerialDetectionModal';
 import { VRCOSCSettings } from './components/settings/pages/VRCOSCSettings';
-import { TopBar } from './components/TopBar';
 import { TrackerSettingsPage } from './components/tracker/TrackerSettings';
 import { OSCRouterSettings } from './components/settings/pages/OSCRouterSettings';
 import { VMCSettings } from './components/settings/pages/VMCSettings';
@@ -83,11 +85,6 @@ const RemotePage = lazy(() =>
     default: module.RemotePage,
   }))
 );
-const QuestCaptureSettingsPage = lazy(() =>
-  import('./components/settings/pages/QuestCaptureSettings').then((module) => ({
-    default: module.QuestCaptureSettingsPage,
-  }))
-);
 
 function Layout() {
   const { isMobile } = useBreakpoint('mobile');
@@ -105,7 +102,7 @@ function Layout() {
             <Route
               path="/"
               element={
-                <MainLayout isMobile={isMobile} full>
+                <MainLayout isMobile={isMobile} full flush>
                   <Home />
                 </MainLayout>
               }
@@ -166,7 +163,7 @@ function Layout() {
                 </SettingsLayout>
               }
             >
-              <Route index element={<Navigate to="trackers" replace />} />
+              <Route index element={<ResumeSettings />} />
               <Route
                 path="vrchat"
                 element={<Navigate to="/settings/osc/vrchat" replace />}
@@ -183,9 +180,10 @@ function Layout() {
                 path="special-themes"
                 element={<SpecialThemesSettings />}
               />
+              {/* Retired page; old links and bookmarks land on the saved/default section. */}
               <Route
                 path="quest-capture"
-                element={<QuestCaptureSettingsPage />}
+                element={<Navigate to="/settings" replace />}
               />
               <Route path="advanced" element={<AdvancedSettings />} />
             </Route>
@@ -231,7 +229,7 @@ function Layout() {
               />
               <Route path="stay-aligned" element={<StayAlignedSetup />} />
             </Route>
-            <Route path="*" element={<TopBar />} />
+            <Route path="*" element={null} />
           </Route>
         </Routes>
       </Suspense>

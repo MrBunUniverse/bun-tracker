@@ -23,7 +23,7 @@ export function BaseModal({
         props.overlayClassName ||
         classNames(
           'fixed top-0 right-0 left-0 bottom-0 flex flex-col justify-center',
-          'modal-overlay items-center w-full h-full bg-background-90/90 dark:bg-black/75 backdrop-blur-sm',
+          'modal-overlay items-center w-full h-full bg-background-90/90 dark:bg-black/75',
           important ? 'z-50' : 'z-40'
         )
       }

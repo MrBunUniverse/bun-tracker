@@ -827,42 +827,13 @@ export function GeneralSettings() {
                 )}
                 value={FilteringType.PREDICTION.toString()}
               />
-              <Radio
-                control={control}
-                name="filtering.type"
-                label={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-adaptive_hybrid'
-                )}
-                description={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-adaptive_hybrid-description'
-                )}
-                value={(FilteringType.ADAPTIVE_HYBRID ?? 3).toString()}
-              />
-              <Radio
-                control={control}
-                name="filtering.type"
-                label={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-fixed_delay'
-                )}
-                description={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-fixed_delay-description'
-                )}
-                // Not in the generated protocol enum; the server maps id 4.
-                value="4"
-              />
-              <Radio
-                control={control}
-                name="filtering.type"
-                label={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-smooth_playback'
-                )}
-                description={l10n.getString(
-                  'settings-general-tracker_mechanics-filtering-type-smooth_playback-description'
-                )}
-                // Not in the generated protocol enum; the server maps id 5.
-                value="5"
-              />
             </div>
+            {[3, 4, 5].includes(Number(filteringType)) && (
+              <p className="pt-2 text-ui-2xs text-background-20">
+                A previously saved custom filter is active. Select a filter
+                above to replace it.
+              </p>
+            )}
             <div className="flex gap-5 pt-5 md:flex-row flex-col">
               <NumberSelector
                 control={control}

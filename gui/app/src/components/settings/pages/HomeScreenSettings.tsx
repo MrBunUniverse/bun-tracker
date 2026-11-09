@@ -1,6 +1,5 @@
 import { CheckBox } from '@/components/commons/Checkbox';
 import { CheckIcon } from '@/components/commons/icon/CheckIcon';
-import { HomeIcon } from '@/components/commons/icon/HomeIcon';
 import { Typography } from '@/components/commons/Typography';
 import {
   SettingsPageLayout,
@@ -185,10 +184,6 @@ export function HomeScreenSettings() {
   return (
     <SettingsPageLayout>
       <div className="flex flex-col gap-2">
-        <SettingsPagePaneLayout icon={<HomeIcon />} id="home-screen">
-          <Typography variant="main-title" id="home-settings" />
-          <HomeLayoutSettings variant="settings" />
-        </SettingsPagePaneLayout>
         <SettingsPagePaneLayout
           icon={<CheckIcon size={18} />}
           id="tracking-checklist-pane"

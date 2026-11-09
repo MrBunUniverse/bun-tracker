@@ -61,6 +61,14 @@
     isSteam: async () => false,
     restartServer: () => invoke('restart_server'),
     startDongleBridge: () => invoke('start_dongle_bridge'),
+    audioInputs: () => invoke('audio_inputs'),
+    setAudioInput: (uid) => invoke('set_audio_input', { uid }),
+    streamCast: {
+      status: () => invoke('streamcast_status'),
+      command: (command) => invoke('streamcast_command', { command }),
+      open: () => invoke('streamcast_open'),
+      locate: () => invoke('streamcast_locate'),
+    },
     // Same result shape as the retired Electron GET_APPLE_MUSIC (electron/main/index.ts, see git history).
     getAppleMusic: async () => {
       const out = await invoke('apple_music');

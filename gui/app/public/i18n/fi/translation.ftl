@@ -430,7 +430,6 @@ settings-interface-appearance = Ulkonäkö
 settings-general-interface-dev_mode = Kehittäjätila
 settings-general-interface-dev_mode-description = Tämä tila voi olla hyödyllinen, jos tarvitset perusteellisia tietoja tai haluat olla tekemisissä yhdistettyjen jäljittimien kanssa edistyneemmällä tasolla.
 settings-general-interface-dev_mode-label = Kehittäjätila
-settings-general-interface-theme = Väri teema
 settings-general-interface-lang = Valitse kieli
 settings-general-interface-lang-description = Vaihda oletuskieli, jota haluat käyttää.
 settings-general-interface-lang-placeholder = Valitse käytettävä kieli
@@ -454,15 +453,15 @@ settings-general-interface-feedback_sound-description = Tämä asetus toistaa ä
 settings-general-interface-feedback_sound-label = Palaute ääni
 settings-general-interface-feedback_sound-volume = Palaute äänen voimakkuus
 settings-general-interface-connected_trackers_warning = Yhdistettyjen jäljittimien varoitus
-settings-general-interface-connected_trackers_warning-description = Tämä vaihtoehto näyttää ponnahdusikkunan aina, kun yrität poistua SlimeVR:stä, kun sinulla on yksi tai useampi yhdistetty jäljitin. Se muistuttaa sinua sammuttamaan jäljittimet, kun olet valmis, akun käyttöiän säästämiseksi.
+settings-general-interface-connected_trackers_warning-description = Tämä vaihtoehto näyttää ponnahdusikkunan aina, kun yrität poistua Bun Tracker:stä, kun sinulla on yksi tai useampi yhdistetty jäljitin. Se muistuttaa sinua sammuttamaan jäljittimet, kun olet valmis, akun käyttöiän säästämiseksi.
 
 ## Behavior settings
 
 settings-general-interface-use_tray = Pienennä ilmaisinalueelle
-settings-general-interface-use_tray-description = Voit sulkea ikkunan sulkematta SlimeVR-palvelinta, jotta voit jatkaa sen käyttöä ilman, että graafinen käyttöliittymä häiritsee sinua.
+settings-general-interface-use_tray-description = Voit sulkea ikkunan sulkematta Bun Tracker-palvelinta, jotta voit jatkaa sen käyttöä ilman, että graafinen käyttöliittymä häiritsee sinua.
 settings-general-interface-use_tray-label = Pienennä ilmaisinalueelle
 settings-general-interface-discord_presence = Jaa toiminta Discordissa
-settings-general-interface-discord_presence-description = Kertoo Discordille, että käytät SlimeVR:ää, sekä käyttämiesi IMU-seurantalaitteiden määrän.
+settings-general-interface-discord_presence-description = Kertoo Discordille, että käytät Bun Tracker:ää, sekä käyttämiesi IMU-seurantalaitteiden määrän.
 settings-general-interface-discord_presence-label = Jaa toiminta Discordissa
 
 ## Serial settings
@@ -501,7 +500,7 @@ settings-osc-router-network = Verkkoportit
 # This cares about multilines
 settings-osc-router-network-description =
     Aseta portit tietojen kuuntelua ja lähettämistä varten.
-    Nämä voivat olla samat kuin muut SlimeVR-palvelimessa käytetyt portit.
+    Nämä voivat olla samat kuin muut Bun Tracker-palvelimessa käytetyt portit.
 settings-osc-router-network-port_in =
     .label = Portti sisään
     .placeholder = Portti sisään (oletus: 9002)
@@ -543,7 +542,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     Muuta VMC (Virtual Motion Capture) -protokollan asetuksia
-        lähettääksesi ja vastaanottaaksesi SlimeVR:n luutietoja muihin sovelluksiin.
+        lähettääksesi ja vastaanottaaksesi Bun Tracker:n luutietoja muihin sovelluksiin.
 settings-osc-vmc-enable = Käytä
 settings-osc-vmc-enable-description = Vaihda tietojen lähettäminen ja vastaanottaminen.
 settings-osc-vmc-enable-label = Käytä
@@ -585,7 +584,7 @@ onboarding-wip = Keskeneräinen
 onboarding-previous_step = Edellinen vaihe
 onboarding-setup_warning =
     <b>Varoitus:</b> Alkuasennus vaaditaan hyvään jäljitykseen,
-    sitä tarvitaan, jos käytät SlimeVR:ää ensimmäistä kertaa.
+    sitä tarvitaan, jos käytät Bun Tracker:ää ensimmäistä kertaa.
 onboarding-setup_warning-skip = Ohita asennus
 onboarding-setup_warning-cancel = Jatka asennusta
 
@@ -633,7 +632,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = Tervetuloa SlimeVR:ään
+onboarding-home = Tervetuloa Bun Tracker:ään
 onboarding-home-start = Mennään asentamaan!
 
 ## Setup done
@@ -870,8 +869,8 @@ home-no_trackers = Jäjittimiä ei havaittu tai määritetty
 trackers_still_on-modal-title = Jäljittimet ovat vielä päällä
 trackers_still_on-modal-description =
     Yksi tai useampi jäljitin on edelleen päällä.
-    Haluatko silti poistua SlimeVR:stä?
-trackers_still_on-modal-confirm = Poistu SlimeVR:stä
+    Haluatko silti poistua Bun Tracker:stä?
+trackers_still_on-modal-confirm = Poistu Bun Tracker:stä
 trackers_still_on-modal-cancel = Odota...
 
 ## Status system

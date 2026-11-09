@@ -9,10 +9,10 @@
 
 websocket-connecting = Įkeliama...
 websocket-connection_lost = Įvyko techninė klaida!
-websocket-connection_lost-desc = Panašu, kad įvyko techninė klaida SlimeVR serveryje. Patikrinkite log'us ir bandykite jį perkrauti.
+websocket-connection_lost-desc = Panašu, kad įvyko techninė klaida Bun Tracker serveryje. Patikrinkite log'us ir bandykite jį perkrauti.
 websocket-timedout = Nepavyko susisiekti su serveriu
-websocket-timedout-desc = Panašu, kad SlimeVR serveris užstrigo. Patikrinkite log'us ir bandykite jį perkrauti.
-websocket-error-close = Uždaryti SlimeVR
+websocket-timedout-desc = Panašu, kad Bun Tracker serveris užstrigo. Patikrinkite log'us ir bandykite jį perkrauti.
+websocket-error-close = Uždaryti Bun Tracker
 websocket-error-logs = Atidaryti log'ų aplanką
 
 ## Update notification
@@ -356,7 +356,7 @@ tracker-settings-name_section-description = Sugalvokite jam mielą vardą :)
 tracker-settings-name_section-placeholder = NightyBeast kairė koja
 tracker-settings-name_section-label = Sekiklio pavadinimas
 tracker-settings-forget = Pamiršti sekiklį
-tracker-settings-forget-description = Tai pašalins sekiklį iš SlimeVR serverio ir nebeleis jam prisijungti, kol neperkrausite serverį. Sekiklio nustatymai nebus prarasti.
+tracker-settings-forget-description = Tai pašalins sekiklį iš Bun Tracker serverio ir nebeleis jam prisijungti, kol neperkrausite serverį. Sekiklio nustatymai nebus prarasti.
 tracker-settings-forget-label = Pamiršti sekiklį
 tracker-settings-update-low-battery = Negalima atnaujinti, baterijos lygis žemesnis nei 50%
 tracker-settings-update-up_to_date = Atnaujinta

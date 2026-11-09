@@ -43,6 +43,8 @@ function createMockTracker({
   ping,
   rssi,
   status = TrackerStatus.OK,
+  deviceName = `SlimeVR #${id}`,
+  isImu = true,
 }: {
   id: number;
   trackerNum: number;
@@ -53,10 +55,13 @@ function createMockTracker({
   ping: number;
   rssi: number;
   status?: TrackerStatus;
+  deviceName?: string;
+  // SteamVR devices (headset, controllers) come in as non-IMU trackers.
+  isImu?: boolean;
 }): FlatDeviceTracker {
   const device = new DeviceDataT();
   device.id = new DeviceIdT(id);
-  device.customName = `SlimeVR #${id}`;
+  device.customName = deviceName;
   device.hardwareInfo = null;
   device.hardwareStatus = {
     errorStatus: null,
@@ -75,7 +80,7 @@ function createMockTracker({
   info.customName = name;
   info.displayName = name;
   info.bodyPart = bodyPart;
-  info.isImu = true;
+  info.isImu = isImu;
   info.editable = true;
   info.isComputed = false;
   tracker.info = info;
@@ -98,7 +103,44 @@ function createMockTracker({
 // - 12%: 3 Red balls (Almost dead / Critical)
 // - 0% (Dead): 3 Dim Red balls
 // - Disconnected: 3 Grey balls
+// The VR headset and controllers come first, healthy, with ids after the body trackers so those keep theirs.
 export const DEMO_TRACKERS_SET: FlatDeviceTracker[] = [
+  createMockTracker({
+    id: 9,
+    trackerNum: 0,
+    name: 'VR Headset',
+    deviceName: 'VR Headset',
+    bodyPart: BodyPart.HEAD,
+    batteryPct: 78,
+    voltage: 3.9,
+    ping: 9,
+    rssi: -48,
+    isImu: false,
+  }),
+  createMockTracker({
+    id: 10,
+    trackerNum: 0,
+    name: 'Left Controller',
+    deviceName: 'Left Controller',
+    bodyPart: BodyPart.LEFT_HAND,
+    batteryPct: 90,
+    voltage: 4.1,
+    ping: 10,
+    rssi: -50,
+    isImu: false,
+  }),
+  createMockTracker({
+    id: 11,
+    trackerNum: 0,
+    name: 'Right Controller',
+    deviceName: 'Right Controller',
+    bodyPart: BodyPart.RIGHT_HAND,
+    batteryPct: 82,
+    voltage: 4.0,
+    ping: 10,
+    rssi: -51,
+    isImu: false,
+  }),
   // 1. Full Battery (>= 90%) -> 3 Green balls
   createMockTracker({
     id: 1,

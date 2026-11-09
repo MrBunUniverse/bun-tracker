@@ -24,7 +24,20 @@ const testFiles = [
   path.join(__dirname, 'tier3-combinations.test.ts'),
   path.join(__dirname, 'tier4-scenarios.test.ts'),
   path.join(__dirname, 'runtime-efficiency.test.ts'),
-  path.join(__dirname, 'quest-capture.test.ts'),
+  path.join(__dirname, 'top-nav.test.ts'),
+  path.join(__dirname, 'server-restart.test.ts'),
+  path.join(__dirname, 'theme.test.ts'),
+  path.join(__dirname, 'setup-stages.test.ts'),
+  path.join(__dirname, 'settings-location.test.ts'),
+  path.join(__dirname, 'streamcast-remote.test.ts'),
+  path.join(__dirname, 'demo-trackers.test.ts'),
+  path.join(__dirname, 'cloud-field.test.ts'),
+  path.join(__dirname, 'battery-cells.test.ts'),
+  path.join(__dirname, 'motion-envelope.test.ts'),
+  path.join(__dirname, 'proportion-highlight.test.ts'),
+  path.join(__dirname, 'pane-split.test.ts'),
+  path.join(__dirname, 'canvas-resize.test.ts'),
+  path.join(__dirname, 'wheel-zoom.test.ts'),
 ];
 
 console.log('='.repeat(70));

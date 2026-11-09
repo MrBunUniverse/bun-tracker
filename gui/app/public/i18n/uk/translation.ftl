@@ -224,7 +224,7 @@ tracker-settings-name_section = Ім'я трекера
 tracker-settings-name_section-description = Дайте йому миле прізвисько °^°
 tracker-settings-name_section-placeholder = Ліва нога NightyBeast
 tracker-settings-forget = Забути трекери
-tracker-settings-forget-description = Прибирає трекер із SlimeVR і забороняє йому підключатися до сервера до того, як він буде перезапущений. Конфігурацію трекера не буде втрачено.
+tracker-settings-forget-description = Прибирає трекер із Bun Tracker і забороняє йому підключатися до сервера до того, як він буде перезапущений. Конфігурацію трекера не буде втрачено.
 tracker-settings-forget-label = Забути трекери
 
 ## Tracker part card info
@@ -448,7 +448,6 @@ settings-interface-appearance = Зовнішність
 settings-general-interface-dev_mode = Режим розробника
 settings-general-interface-dev_mode-description = Цей режим може бути корисним, якщо вам потрібні поглиблені дані або для взаємодії з підключеними трекерами на більш просунутому рівні.
 settings-general-interface-dev_mode-label = Режим розробника
-settings-general-interface-theme = Варіація оформлення
 settings-general-interface-lang = Виберіть мову
 settings-general-interface-lang-description = Змініть мову за замовчуванням, яку ви хочете використовувати.
 settings-general-interface-lang-placeholder = Виберіть мову для використання
@@ -472,16 +471,16 @@ settings-general-interface-feedback_sound-description = Ця опція відт
 settings-general-interface-feedback_sound-label = Звук зворотного зв'язку
 settings-general-interface-feedback_sound-volume = Гучність звуку зворотного зв'язку
 settings-general-interface-connected_trackers_warning = Попередження про підключені трекери
-settings-general-interface-connected_trackers_warning-description = Ця опція відображатиме спливаюче вікно кожного разу, коли ви намагатиметеся вийти зі SlimeVR, якщо підключено один або декілька трекерів. Він нагадує вам вимкнути ваші трекери, коли ви закінчите, щоб зберегти заряд батареї.
+settings-general-interface-connected_trackers_warning-description = Ця опція відображатиме спливаюче вікно кожного разу, коли ви намагатиметеся вийти зі Bun Tracker, якщо підключено один або декілька трекерів. Він нагадує вам вимкнути ваші трекери, коли ви закінчите, щоб зберегти заряд батареї.
 settings-general-interface-connected_trackers_warning-label = Попередження про підключені трекери під час виходу
 
 ## Behavior settings
 
 settings-general-interface-use_tray = Згорнути в системний трей
-settings-general-interface-use_tray-description = Дозволяє закрити вікно, не закриваючи сервер SlimeVR, так що ви можете продовжувати використати його, не турбуючись про інтерфейс.
+settings-general-interface-use_tray-description = Дозволяє закрити вікно, не закриваючи сервер Bun Tracker, так що ви можете продовжувати використати його, не турбуючись про інтерфейс.
 settings-general-interface-use_tray-label = Згорнути в системний трей
 settings-general-interface-discord_presence = Ділитися активністю в Discord
-settings-general-interface-discord_presence-description = Повідомляє вашому клієнту Discord, що ви використовуєте SlimeVR, а також передає кількість трекерів IMU, які ви використовуєте.
+settings-general-interface-discord_presence-description = Повідомляє вашому клієнту Discord, що ви використовуєте Bun Tracker, а також передає кількість трекерів IMU, які ви використовуєте.
 settings-general-interface-discord_presence-label = Ділитися активністю в Discord
 
 ## Serial settings
@@ -521,7 +520,7 @@ settings-osc-router-network = Мережеві порти
 # This cares about multilines
 settings-osc-router-network-description =
     Встановіть порти для прослуховування і відправки даних.
-    Вони можуть бути такими ж, як і інші порти, що використовуються на сервері SlimeVR.
+    Вони можуть бути такими ж, як і інші порти, що використовуються на сервері Bun Tracker.
 settings-osc-router-network-port_in =
     .label = Вхідний Порт
     .placeholder = Вхідний Порт (зазвичай: 9002)
@@ -563,7 +562,7 @@ settings-osc-vmc = Віртуальне захоплення руху
 # This cares about multilines
 settings-osc-vmc-description =
     Змінення настройок протоколу VMC (Virtual Motion Capture)
-        щоб надсилати дані про кістки SlimeVR та отримувати дані про кістки з інших програм.
+        щоб надсилати дані про кістки Bun Tracker та отримувати дані про кістки з інших програм.
 settings-osc-vmc-enable = Увімкнути
 settings-osc-vmc-enable-description = Перемикайте відправку та отримання даних.
 settings-osc-vmc-enable-label = Увімкнути
@@ -608,7 +607,7 @@ onboarding-wip = В роботі
 onboarding-previous_step = Попередній крок
 onboarding-setup_warning =
     <b>Попередження:</b> Початкова настройка потрібна для хорошого відстеження,
-    це потрібно, якщо ви вперше використовуєте SlimeVR.
+    це потрібно, якщо ви вперше використовуєте Bun Tracker.
 onboarding-setup_warning-skip = Пропустити налаштування
 onboarding-setup_warning-cancel = Продовжити налаштування
 
@@ -656,7 +655,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = Ласкаво просимо до SlimeVR
+onboarding-home = Ласкаво просимо до Bun Tracker
 onboarding-home-start = Давайте налаштуємося!
 
 ## Setup done
@@ -850,7 +849,7 @@ tray_or_exit_modal-cancel = Скасувати
 unknown_device-modal-title = Знайдено новий трекер!
 unknown_device-modal-description =
     З'явився новий трекер із MAC-адресою <b>{ $deviceId }</b>.
-    Бажаєте підключити його до SlimeVR?
+    Бажаєте підключити його до Bun Tracker?
 unknown_device-modal-confirm = Звісно!
 unknown_device-modal-forget = Ігнорувати
 

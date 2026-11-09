@@ -1,11 +1,9 @@
 import { useBreakpoint } from '@/hooks/breakpoint';
-import { BodyDisplay } from '@/components/commons/BodyDisplay';
 import { Button } from '@/components/commons/Button';
 import { TipBox } from '@/components/commons/TipBox';
 import { Typography } from '@/components/commons/Typography';
 import { useLocalization } from '@fluent/react';
-import { useAtomValue } from 'jotai';
-import { flatTrackersAtom } from '@/store/app-store';
+import { SkeletonVisualizerWidget } from '@/components/widgets/SkeletonVisualizerWidget';
 
 export function PutTrackersOnStep({
   nextStep,
@@ -16,7 +14,6 @@ export function PutTrackersOnStep({
 }) {
   const { isMobile } = useBreakpoint('mobile');
   const { l10n } = useLocalization();
-  const trackers = useAtomValue(flatTrackersAtom);
 
   return (
     <>
@@ -40,12 +37,8 @@ export function PutTrackersOnStep({
         </div>
 
         {isMobile && (
-          <div className="flex flex-col pt-1 items-center fill-background-50 justify-center px-16">
-            <BodyDisplay
-              trackers={trackers}
-              dotsSize={15}
-              hideUnassigned={true}
-            />
+          <div className="h-64 w-full rounded-md overflow-clip bg-background-60">
+            <SkeletonVisualizerWidget />
           </div>
         )}
 
@@ -67,12 +60,8 @@ export function PutTrackersOnStep({
         </div>
       </div>
       {!isMobile && (
-        <div className="flex flex-col pt-1 items-center fill-background-50 justify-center px-16">
-          <BodyDisplay
-            trackers={trackers}
-            dotsSize={15}
-            hideUnassigned={true}
-          />
+        <div className="flex flex-grow min-h-0 w-full rounded-md overflow-clip bg-background-60">
+          <SkeletonVisualizerWidget />
         </div>
       )}
     </>

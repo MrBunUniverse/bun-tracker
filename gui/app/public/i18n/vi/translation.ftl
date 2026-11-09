@@ -9,10 +9,10 @@
 
 websocket-connecting = Đang kết nối với máy chủ
 websocket-connection_lost = Kết nối với máy chủ đã mất. Đang kết nối lại...
-websocket-connection_lost-desc = Máy chủ SlimeVR bị dừng. Hãy kiểm tra nhật ký logs và khởi động lại chương trình.
+websocket-connection_lost-desc = Máy chủ Bun Tracker bị dừng. Hãy kiểm tra nhật ký logs và khởi động lại chương trình.
 websocket-timedout = Không thể tìm thấy máy chủ
-websocket-timedout-desc = Có vẻ như máy chủ SlimeVR đã bị sập hoặc hết thời gian chờ. Vui lòng kiểm tra nhật ký logs và khởi động lại chương trình.
-websocket-error-close = Thoát SlimeVR
+websocket-timedout-desc = Có vẻ như máy chủ Bun Tracker đã bị sập hoặc hết thời gian chờ. Vui lòng kiểm tra nhật ký logs và khởi động lại chương trình.
+websocket-error-close = Thoát Bun Tracker
 websocket-error-logs = Mở thư mục nhật ký logs
 
 ## Update notification
@@ -237,7 +237,7 @@ tracker-settings-name_section = Tên tracker
 tracker-settings-name_section-description = Đặt cho nó một cái tên đẹp :3
 tracker-settings-name_section-placeholder = Chân trái của JINODK
 tracker-settings-forget = Quên thiết bị
-tracker-settings-forget-description = Xóa thiết bị khỏi phần mềm SlimeVR và ngăn nó kết nối với nó cho đến khi máy chủ được khởi động lại. Cấu hình của trình theo dõi sẽ không bị mất.
+tracker-settings-forget-description = Xóa thiết bị khỏi phần mềm Bun Tracker và ngăn nó kết nối với nó cho đến khi máy chủ được khởi động lại. Cấu hình của trình theo dõi sẽ không bị mất.
 tracker-settings-forget-label = Quên thiết bị
 
 ## Tracker part card info
@@ -467,7 +467,6 @@ settings-interface-appearance = Giao diện
 settings-general-interface-dev_mode = Chế độ nhà phát triển
 settings-general-interface-dev_mode-description = Hữu dụng nếu cần thêm thông tin chi tiết của tracker hay can thiệp sâu hơn vào tracker
 settings-general-interface-dev_mode-label = Chế độ nhà phát triển
-settings-general-interface-theme = Màu giao diện
 settings-general-interface-lang = Thay đổi ngôn ngữ (Change language)
 settings-general-interface-lang-description = Đổi ngôn ngữ hiển thị (Change the default language you want to use)
 settings-general-interface-lang-placeholder = Chọn ngôn ngữ để sử dụng (Select the language to use)
@@ -491,16 +490,16 @@ settings-general-interface-feedback_sound-description = Tùy chọn này sẽ ph
 settings-general-interface-feedback_sound-label = Âm thanh phản hồi
 settings-general-interface-feedback_sound-volume = Âm lượng phản hồi
 settings-general-interface-connected_trackers_warning = Cảnh báo với thiết bị đã kết nối
-settings-general-interface-connected_trackers_warning-description = Tùy chọn này sẽ hiển thị cửa sổ bật lên mỗi khi bạn thử thoát khỏi SlimeVR trong khi có một hoặc nhiều thiết bị theo dõi được kết nối. Nó nhắc nhở bạn tắt trình theo dõi khi bạn hoàn tất để duy trì tuổi thọ pin.
+settings-general-interface-connected_trackers_warning-description = Tùy chọn này sẽ hiển thị cửa sổ bật lên mỗi khi bạn thử thoát khỏi Bun Tracker trong khi có một hoặc nhiều thiết bị theo dõi được kết nối. Nó nhắc nhở bạn tắt trình theo dõi khi bạn hoàn tất để duy trì tuổi thọ pin.
 settings-general-interface-connected_trackers_warning-label = Cảnh báo thiết bị đã kết nối khi thoát chương trình
 
 ## Behavior settings
 
 settings-general-interface-use_tray = Thu nhỏ vào khay hệ thống
-settings-general-interface-use_tray-description = Cho phép bạn đóng cửa sổ mà không cần đóng máy chủ SlimeVR để bạn có thể tiếp tục sử dụng nó mà không bị GUI làm phiền.
+settings-general-interface-use_tray-description = Cho phép bạn đóng cửa sổ mà không cần đóng máy chủ Bun Tracker để bạn có thể tiếp tục sử dụng nó mà không bị GUI làm phiền.
 settings-general-interface-use_tray-label = Thu nhỏ vào khay hệ thống
 settings-general-interface-discord_presence = Chia sẻ hoạt động trên Discord
-settings-general-interface-discord_presence-description = Cho Discord của bạn biết rằng bạn đang sử dụng SlimeVR cùng với số lượng trình theo dõi IMU bạn đang sử dụng.
+settings-general-interface-discord_presence-description = Cho Discord của bạn biết rằng bạn đang sử dụng Bun Tracker cùng với số lượng trình theo dõi IMU bạn đang sử dụng.
 settings-general-interface-discord_presence-label = Chia sẻ hoạt động trên Discord
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -545,7 +544,7 @@ settings-osc-router-network = Cổng mạng
 # This cares about multilines
 settings-osc-router-network-description =
     Đặt cổng nhận và gửi dữ liệu OSC
-    Có thể dùng chung cổng với server SlimeVR
+    Có thể dùng chung cổng với server Bun Tracker
 settings-osc-router-network-port_in =
     .label = Cổng vào
     .placeholder = Cổng vào (Mặc định: 9002)
@@ -594,7 +593,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     Thay đổi cài đặt cụ thể cho giao thức VMC (Virtual Motion Capture)
-        để gửi dữ liệu thân của SlimeVR và nhận dữ liệu thân từ các ứng dụng khác.
+        để gửi dữ liệu thân của Bun Tracker và nhận dữ liệu thân từ các ứng dụng khác.
 settings-osc-vmc-enable = Bật
 settings-osc-vmc-enable-description = Cho phép nhận và gửi dữ liệu OSC
 settings-osc-vmc-enable-label = Chuyển tiếp dữ liệu OSC
@@ -645,7 +644,7 @@ onboarding-wip = Chưa hoàn thiện
 onboarding-previous_step = Quay lại
 onboarding-setup_warning =
     <b>Lưu ý:</b> Trình thiết lập ban đầu là cần thiết để theo dõi tốt,
-    bước này cần thiết nếu đây là lần đầu tiên bạn sử dụng SlimeVR.
+    bước này cần thiết nếu đây là lần đầu tiên bạn sử dụng Bun Tracker.
 onboarding-setup_warning-skip = Bỏ qua cài đặt
 onboarding-setup_warning-cancel = Tiếp tục thiết lập
 
@@ -693,7 +692,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = Chào mừng bạn đến với SlimeVR!
+onboarding-home = Chào mừng bạn đến với Bun Tracker!
 onboarding-home-start = Bắt đầu thiết lập!
 
 ## Setup done
@@ -921,8 +920,8 @@ onboarding-automatic_proportions-requirements-title = Yêu cầu
 onboarding-automatic_proportions-requirements-descriptionv2 =
     Bạn có ít nhất đủ tracker để theo dõi bàn chân của mình (thường là 5 tracker).
     Bạn đã bật tracker và headset và đang đeo chúng.
-    Tracker và headset của bạn được kết nối với máy chủ SlimeVR và đang hoạt động bình thường (ví dụ: không bị lag, ngắt kết nối, v.v.).
-    Headset của bạn đang báo cáo dữ liệu vị trí cho máy chủ SlimeVR (điều này thường có nghĩa là SteamVR đang chạy và kết nối với SlimeVR bằng driver SteamVR của SlimeVR).
+    Tracker và headset của bạn được kết nối với máy chủ Bun Tracker và đang hoạt động bình thường (ví dụ: không bị lag, ngắt kết nối, v.v.).
+    Headset của bạn đang báo cáo dữ liệu vị trí cho máy chủ Bun Tracker (điều này thường có nghĩa là SteamVR đang chạy và kết nối với Bun Tracker bằng driver SteamVR của Bun Tracker).
     Tracking của bạn đang hoạt động và thể hiện chính xác các chuyển động của bạn (ví dụ: bạn đã thực hiện thiết đặt lại hoàn toàn và chúng di chuyển đúng hướng khi đá, cúi xuống, ngồi, v.v.).
 onboarding-automatic_proportions-requirements-next = Tôi đã đọc các yêu cầu
 onboarding-automatic_proportions-check_height-guardian_tip =
@@ -977,8 +976,8 @@ home-no_trackers = Chưa có thiết bị nào được phát hiện hoặc đi�
 trackers_still_on-modal-title = Tracker vẫn còn bật
 trackers_still_on-modal-description =
     Vẫn còn một hoặc nhiều tracker vẫn đang bật.
-    Bạn vẫn muốn thoát khỏi SlimeVR?
-trackers_still_on-modal-confirm = Thoát SlimeVR
+    Bạn vẫn muốn thoát khỏi Bun Tracker?
+trackers_still_on-modal-confirm = Thoát Bun Tracker
 trackers_still_on-modal-cancel = Vui lòng đợi...
 
 ## Status system
@@ -1031,7 +1030,7 @@ tray_or_exit_modal-cancel = Hủy
 unknown_device-modal-title = Thiết bị mới đã được tìm thấy!
 unknown_device-modal-description =
     Có thiết bị mới với địa chỉ MAC <b>{ $deviceId }</b>.
-    Bạn có muốn kết nối nó với SlimeVR không?
+    Bạn có muốn kết nối nó với Bun Tracker không?
 unknown_device-modal-confirm = Chắc!
 unknown_device-modal-forget = Bỏ qua
 

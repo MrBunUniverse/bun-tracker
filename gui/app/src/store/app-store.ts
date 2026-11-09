@@ -225,17 +225,6 @@ export const triggerCollapsibleTabAnimationAtom = atom(
   }
 );
 
-export interface CardMorphOrigin {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-  borderRadius?: string;
-  trackerIdKey?: string;
-}
-
-export const cardMorphOriginAtom = atom<CardMorphOrigin | null>(null);
-
 const baseShowSidebarAtom = atom<boolean>(initialSidebarState);
 
 export const showSidebarAtom = atom(

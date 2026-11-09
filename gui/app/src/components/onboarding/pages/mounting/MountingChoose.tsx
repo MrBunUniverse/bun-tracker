@@ -5,6 +5,11 @@ import { SkipSetupWarningModal } from '@/components/onboarding/SkipSetupWarningM
 import classNames from 'classnames';
 import { Typography } from '@/components/commons/Typography';
 import { Button } from '@/components/commons/Button';
+import {
+  OnboardingActions,
+  OnboardingPage,
+  OnboardingPanel,
+} from '@/components/onboarding/OnboardingPanel';
 import { countMetric } from '@/utils/sentry';
 
 export function MountingChoose() {
@@ -16,9 +21,9 @@ export function MountingChoose() {
 
   return (
     <>
-      <div className="flex flex-col gap-5 h-full items-center w-full xs:justify-center relative overflow-y-auto px-4 pb-4">
-        <div className="flex flex-col gap-8 justify-center">
-          <div className="xs:w-10/12 xs:max-w-[666px]">
+      <OnboardingPage>
+        <OnboardingPanel className="gap-6">
+          <div>
             <Typography variant="main-title">
               {l10n.getString('onboarding-choose_mounting')}
             </Typography>
@@ -28,15 +33,16 @@ export function MountingChoose() {
           </div>
           <div
             className={classNames(
-              'grid xs:grid-cols-2 w-full xs:flex-row mobile:flex-col gap-6 [&>div]:grow'
+              'grid xs:grid-cols-2 w-full xs:flex-row mobile:flex-col gap-4 mt-2 [&>div]:grow [&_*]:[hyphens:manual]'
             )}
           >
             <div
               className={classNames(
-                'rounded-[20px] p-6 flex flex-col relative border border-[var(--material-border-subtle)] bg-[var(--material-tertiary)] shadow-sm hover:border-[var(--material-border-focus)] transition-all'
+                'rounded-[20px] p-5 sm:p-6 flex flex-col relative border bg-background-60/40 dark:bg-background-10/[0.03] border-background-50/50 dark:border-background-10/[0.06] hover:border-background-40 dark:hover:border-background-10/[0.15] hover:bg-background-60/60 dark:hover:bg-background-10/[0.05] transition-all duration-200'
               )}
             >
-              <div className="bg-accent-background-20/15 border border-accent-background-20/30 text-accent-background-30 self-start px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wide uppercase mb-3">
+              {/* Sits on the card's top edge, so both cards' titles start at the same height. */}
+              <div className="absolute -top-3 left-5 bg-background-70 border border-accent-background-20/30 text-accent-background-30 px-3 py-0.5 rounded-full text-xs font-mono font-medium tracking-wide uppercase">
                 <Typography variant="vr-accessible">
                   {l10n.getString(
                     'onboarding-choose_mounting-auto_mounting-label-v2'
@@ -46,7 +52,7 @@ export function MountingChoose() {
               <div className="flex flex-col gap-4 flex-grow">
                 <div className="flex flex-grow flex-col gap-2 max-w-sm">
                   <div>
-                    <Typography variant="main-title" bold>
+                    <Typography variant="section-title" bold>
                       {l10n.getString(
                         'onboarding-choose_mounting-auto_mounting'
                       )}
@@ -77,13 +83,13 @@ export function MountingChoose() {
             </div>
             <div
               className={classNames(
-                'rounded-[20px] p-6 flex flex-col relative border border-[var(--material-border-subtle)] bg-[var(--material-tertiary)] shadow-sm hover:border-[var(--material-border-focus)] transition-all'
+                'rounded-[20px] p-5 sm:p-6 flex flex-col relative border bg-background-60/40 dark:bg-background-10/[0.03] border-background-50/50 dark:border-background-10/[0.06] hover:border-background-40 dark:hover:border-background-10/[0.15] hover:bg-background-60/60 dark:hover:bg-background-10/[0.05] transition-all duration-200'
               )}
             >
               <div className="flex flex-col gap-4 flex-grow">
                 <div className="flex flex-grow flex-col gap-2 max-w-sm">
                   <div>
-                    <Typography variant="main-title" bold>
+                    <Typography variant="section-title" bold>
                       {l10n.getString(
                         'onboarding-choose_mounting-manual_mounting'
                       )}
@@ -117,16 +123,14 @@ export function MountingChoose() {
             </div>
           </div>
           {!state.alonePage && (
-            <Button
-              variant="secondary"
-              className="self-start"
-              to="/onboarding/trackers-assign"
-            >
-              {l10n.getString('onboarding-previous_step')}
-            </Button>
+            <OnboardingActions>
+              <Button variant="secondary" to="/onboarding/trackers-assign">
+                {l10n.getString('onboarding-previous_step')}
+              </Button>
+            </OnboardingActions>
           )}
-        </div>
-      </div>
+        </OnboardingPanel>
+      </OnboardingPage>
       <SkipSetupWarningModal
         accept={skipSetup}
         onClose={() => setShowWarning(false)}

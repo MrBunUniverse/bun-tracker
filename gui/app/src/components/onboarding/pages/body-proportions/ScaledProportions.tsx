@@ -23,7 +23,6 @@ import { HeightSelectionInput } from './HeightInput';
 import { Tooltip } from '@/components/commons/Tooltip';
 import classNames from 'classnames';
 import { SkeletonVisualizerWidget } from '@/components/widgets/SkeletonVisualizerWidget';
-import { Vector3 } from 'three';
 import { CheckIcon } from '@/components/commons/icon/CheckIcon';
 import { useDebouncedEffect } from '@/hooks/timeout';
 import { restartAndPlay, scaledProportionsClick } from '@/sounds/sounds';
@@ -382,7 +381,7 @@ export function ScaledProportionsPage() {
   return (
     <div
       className={classNames(
-        'flex gap-2 w-full h-full relative justify-center z-10',
+        'flex flex-col gap-2 w-full h-full relative z-10 overflow-y-auto',
         {
           'p-4': !state.alonePage,
           'bg-background-70': state.alonePage,
@@ -394,113 +393,98 @@ export function ScaledProportionsPage() {
         onClose={() => setResetModal(null)}
         accept={acceptHeight}
       />
-      <div className="h-full max-w-2xl w-full flex flex-col justify-end xs:py-2 z-10 xs:gap-2 pointer-events-none">
-        {!auto && (
-          <div className="p-0 xs:p-2">
-            <Localized id="onboarding-user_height-manual-tip">
-              <TipBox className="p-2 xs:p-4">PRO TIP</TipBox>
-            </Localized>
-          </div>
-        )}
-        <div
-          className={classNames(
-            'flex-grow transition-opacity duration-200 overflow-hidden',
-            { 'opacity-0': !auto, 'opacity-100 pointer-events-auto': auto }
-          )}
-        >
-          {status && <UserHeightStatus status={status} />}
+      {/* The preview spans the page and takes all spare height; the tip, status and controls keep a readable
+          width. The widget sizes itself from its parent (h-full), and a flex item's height is indefinite here, so it
+          is placed absolutely inside the item. Below the minimum the page scrolls rather than squeezing the canvas. */}
+      {/* Stays clear of the wizard's ESC key in the top-right corner (64 px wide with its inset). */}
+      {!auto && (
+        <div className="shrink-0 w-full max-w-[min(42rem,calc(100%-10rem))] mx-auto p-0 xs:p-2">
+          <Localized id="onboarding-user_height-manual-tip">
+            <TipBox className="p-2 xs:p-4">PRO TIP</TipBox>
+          </Localized>
         </div>
+      )}
+      <div className="relative flex-1 min-h-[22rem]">
+        <div className="absolute inset-0">
+          <SkeletonVisualizerWidget />
+        </div>
+      </div>
+      <div
+        className={classNames(
+          'shrink-0 max-w-2xl w-full mx-auto overflow-hidden transition-[height,opacity] duration-200',
+          auto ? 'h-72 opacity-100' : 'h-0 opacity-0'
+        )}
+      >
+        {status && <UserHeightStatus status={status} />}
+      </div>
 
-        <div
-          className={classNames(
-            'flex flex-col gap-3 p-4 bg-background-60 rounded-b-lg xs:rounded-t-lg pointer-events-auto',
-            { 'rounded-t-lg': !auto }
-          )}
+      <div
+        className={classNames(
+          'shrink-0 max-w-lg w-full mx-auto flex flex-col gap-3 p-4 bg-background-60 rounded-[12px] border border-[var(--material-border-subtle)]'
+        )}
+      >
+        <HeightSelectionInput
+          hmdHeight={hmdHeight}
+          setHmdHeight={(height) => {
+            if (
+              config?.lastUsedProportions != null &&
+              config.lastUsedProportions !== 'scaled'
+            ) {
+              setTmpHeight(height);
+              setResetModal('manual');
+            } else {
+              applyHeight(height);
+            }
+            setAuto(false);
+          }}
+        />
+        <Tooltip
+          disabled={serverGuards?.canDoUserHeightCalibration}
+          preferedDirection="top"
+          content={<Typography id="onboarding-user_height-need_head_tracker" />}
         >
-          <Typography
-            variant="mobile-title"
-            id="onboarding-user_height-title"
-          />
-          <HeightSelectionInput
-            hmdHeight={hmdHeight}
-            setHmdHeight={(height) => {
+          <Button
+            variant="primary"
+            className="w-full"
+            disabled={!serverGuards?.canDoUserHeightCalibration}
+            onClick={() => {
               if (
                 config?.lastUsedProportions != null &&
                 config.lastUsedProportions !== 'scaled'
               ) {
-                setTmpHeight(height);
-                setResetModal('manual');
+                setResetModal('auto');
               } else {
-                applyHeight(height);
+                start();
               }
-              setAuto(false);
             }}
+            id="onboarding-user_height-calculate"
           />
-          <Tooltip
-            disabled={serverGuards?.canDoUserHeightCalibration}
-            preferedDirection="top"
-            content={
-              <Typography id="onboarding-user_height-need_head_tracker" />
-            }
-          >
+        </Tooltip>
+        <div className="w-full grid grid-cols-2 items-center gap-2">
+          {state.alonePage && (
+            <>
+              <Button
+                variant="tertiary"
+                className="w-full"
+                id="onboarding-user_height-manual-proportions"
+                to="/onboarding/body-proportions/manual"
+                state={{ alonePage: state.alonePage }}
+              />
+              <ResetButton
+                type={ResetType.Full}
+                className="w-full bg-background-50 hover:bg-background-40 text-background-10"
+              />
+            </>
+          )}
+          {!state.alonePage && (
             <Button
               variant="primary"
-              disabled={!serverGuards?.canDoUserHeightCalibration}
-              onClick={() => {
-                if (
-                  config?.lastUsedProportions != null &&
-                  config.lastUsedProportions !== 'scaled'
-                ) {
-                  setResetModal('auto');
-                } else {
-                  start();
-                }
-              }}
-              id="onboarding-user_height-calculate"
+              className="col-span-2 w-full"
+              id="onboarding-user_height-next_step"
+              to="/onboarding/quiz/usage"
             />
-          </Tooltip>
-          <div className="w-full flex gap-2 justify-between">
-            {state.alonePage && (
-              <>
-                <Button
-                  variant="tertiary"
-                  id="onboarding-user_height-manual-proportions"
-                  to="/onboarding/body-proportions/manual"
-                  state={{ alonePage: state.alonePage }}
-                />
-                <ResetButton
-                  type={ResetType.Full}
-                  className="bg-background-50 hover:bg-background-40 text-background-10"
-                />
-              </>
-            )}
-            {!state.alonePage && (
-              <Button
-                variant="primary"
-                id="onboarding-user_height-next_step"
-                to="/onboarding/quiz/usage"
-              />
-            )}
-          </div>
+          )}
         </div>
-      </div>
-      <div className="absolute top-0 left-0 w-full h-full">
-        <SkeletonVisualizerWidget
-          onInit={(context) => {
-            context.addView({
-              left: 0,
-              bottom: 0,
-              width: 1,
-              height: 1,
-              position: new Vector3(3, 2.5, -3),
-              onHeightChange(v, newHeight) {
-                v.controls.target.set(0, newHeight / 2.9, 0);
-                const scale = Math.max(1, newHeight) / 1;
-                v.camera.zoom = 1 / scale;
-              },
-            });
-          }}
-        />
       </div>
     </div>
   );

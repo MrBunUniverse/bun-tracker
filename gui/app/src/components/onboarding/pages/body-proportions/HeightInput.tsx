@@ -1,7 +1,8 @@
+import { SegmentedControl } from '@/components/commons/SegmentedControl';
 import { Typography } from '@/components/commons/Typography';
-import { useBreakpoint } from '@/hooks/breakpoint';
 import { EYE_HEIGHT_TO_HEIGHT_RATIO } from '@/hooks/height';
 import { useLocaleConfig } from '@/i18n/config';
+import { useLocalization } from '@fluent/react';
 import classNames from 'classnames';
 import convert from 'convert';
 import { useMemo, useState } from 'react';
@@ -17,69 +18,49 @@ function IncrementButton({
   unit: 'foot' | 'inch' | 'cm';
   onClick: () => void;
 }) {
-  const { isXs } = useBreakpoint('xs');
   const { currentLocales } = useLocaleConfig();
 
-  const format = useMemo(() => {
-    if (unit == 'cm') return `${value > 0 ? '+' : ''}${value}`;
-    const feetFormatter = new Intl.NumberFormat(currentLocales, {
-      style: 'unit',
-      unit: unit,
-      unitDisplay: 'narrow',
-      maximumFractionDigits: 0,
-    });
-    return `${value > 0 ? '+' : ''}${feetFormatter.format(value)}`;
-  }, [currentLocales, value]);
+  const { format, label } = useMemo(() => {
+    const sign = value > 0 ? '+' : '\u2212';
+    const abs = Math.abs(value);
+    if (unit == 'cm')
+      return {
+        format: `${sign}${abs}`,
+        label: `${sign}${new Intl.NumberFormat(currentLocales, {
+          style: 'unit',
+          unit: 'centimeter',
+          unitDisplay: 'long',
+        }).format(abs)}`,
+      };
+    const formatter = (unitDisplay: 'narrow' | 'long') =>
+      new Intl.NumberFormat(currentLocales, {
+        style: 'unit',
+        unit: unit,
+        unitDisplay,
+        maximumFractionDigits: 0,
+      }).format(abs);
+    return {
+      format: `${sign}${formatter('narrow')}`,
+      label: `${sign}${formatter('long')}`,
+    };
+  }, [currentLocales, value, unit]);
 
   return (
-    <div
-      className={classNames(
-        'no-user-drag flex rounded-md items-center justify-center flex-row xs:flex-col w-full gap-1 p-3 xs:p-2 xs:w-[75px] xs:h-[75px]',
-        {
-          'cursor-not-allowed bg-background-80 opacity-50': disabled,
-          'bg-background-50 hover:bg-background-40 cursor-pointer': !disabled,
-        }
-      )}
-      onClick={() => !disabled && onClick()}
-    >
-      <Typography
-        variant={isXs ? 'mobile-title' : 'section-title'}
-        color={disabled ? 'text-background-40' : 'primary'}
-      >
-        {format}
-      </Typography>
-      {unit == 'cm' && isXs && (
-        <Typography
-          id={`unit-${unit}`}
-          color={disabled ? 'text-background-40' : 'primary'}
-        />
-      )}
-    </div>
-  );
-}
-
-function UnitSelector({
-  name,
-  active,
-  onClick,
-}: {
-  name: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <div
-      className={classNames(
-        {
-          'bg-accent-background-30': active,
-          'hover:bg-background-40 bg-background-40': !active,
-        },
-        'no-user-drag flex items-center justify-center rounded-md outline-background-10 cursor-pointer'
-      )}
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
       onClick={onClick}
+      className={classNames(
+        'no-user-drag flex h-11 min-w-11 items-center justify-center rounded-[12px] border px-3 font-sans text-ui-sm font-semibold tabular-nums select-none transition-colors duration-150',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-background-30/40',
+        disabled
+          ? 'cursor-not-allowed border-background-50/20 bg-background-60/20 text-background-40'
+          : 'cursor-pointer border-background-50/40 bg-background-50/50 text-background-10 hover:bg-background-50/80 active:scale-[0.97] dark:border-background-10/[0.04]'
+      )}
     >
-      <Typography id={name} />
-    </div>
+      {format}
+    </button>
   );
 }
 
@@ -118,7 +99,7 @@ export function HeightSelectionInput({
 }) {
   if (!hmdHeight) disabled = true;
 
-  const { isXs } = useBreakpoint('xs');
+  const { l10n } = useLocalization();
   const [unit, setUnit] = useState<'meter' | 'foot'>('meter');
   const { currentLocales } = useLocaleConfig();
 
@@ -186,92 +167,72 @@ export function HeightSelectionInput({
     setUnit(newUnit);
   };
 
+  const stepper = (
+    unit: 'inch' | 'cm' | 'foot',
+    value: number,
+    max: number
+  ) => (
+    <IncrementButton
+      value={value}
+      unit={unit}
+      onClick={() => increment(unit, value)}
+      disabled={disabled || !canIcrement(unit, value, max)}
+    />
+  );
+
   return (
-    <div className="flex gap-2 xs:h-[75px] w-full items-center">
-      <div className="grid grid-rows-2 xs:grid-cols-2 gap-2 h-full">
-        {unit === 'foot' && (
-          <>
-            <IncrementButton
-              value={-1}
-              unit={'foot'}
-              onClick={() => increment('foot', -1)}
-              disabled={disabled || !canIcrement('foot', -1, 0.9)}
-            />
-            <IncrementButton
-              value={-1}
-              unit={'inch'}
-              onClick={() => increment('inch', -1)}
-              disabled={disabled || !canIcrement('inch', -1, 0.9)}
-            />
-          </>
-        )}
-        {unit === 'meter' && (
-          <>
-            <IncrementButton
-              value={-10}
-              unit={'cm'}
-              onClick={() => increment('cm', -10)}
-              disabled={disabled || !canIcrement('cm', -10, 0.9)}
-            />
-            <IncrementButton
-              value={-1}
-              unit={'cm'}
-              onClick={() => increment('cm', -1)}
-              disabled={disabled || !canIcrement('cm', -1, 0.9)}
-            />
-          </>
-        )}
+    <div className="flex w-full flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <Typography variant="standard" bold id="onboarding-user_height-title" />
+        <SegmentedControl
+          ariaLabel={l10n.getString('onboarding-user_height-unit')}
+          value={unit}
+          onChange={handleUnitChange}
+          options={[
+            { value: 'meter', label: l10n.getString('unit-cm') },
+            { value: 'foot', label: l10n.getString('unit-foot') },
+          ]}
+        />
       </div>
-      <div className="flex w-full xs:w-auto xs:flex-grow bg-background-50 rounded-md px-2 py-2 h-full">
-        <div className="h-full flex items-center flex-grow justify-center min-w-24">
-          <Typography variant="main-title">{formattedHeight}</Typography>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3">
+        <div className="flex gap-1.5">
+          {unit === 'foot' && (
+            <>
+              {stepper('foot', -1, 0.9)}
+              {stepper('inch', -1, 0.9)}
+            </>
+          )}
+          {unit === 'meter' && (
+            <>
+              {stepper('cm', -10, 0.9)}
+              {stepper('cm', -1, 0.9)}
+            </>
+          )}
         </div>
-        <div className="w-[60px] xs:w-20 h-full gap-2 grid p-1">
-          <UnitSelector
-            active={unit === 'meter'}
-            name={isXs ? 'unit-meter' : 'unit-cm'}
-            onClick={() => handleUnitChange('meter')}
-          />
-          <UnitSelector
-            active={unit === 'foot'}
-            name="unit-foot"
-            onClick={() => handleUnitChange('foot')}
-          />
+        {/* Full-width row on narrow windows, centred between the steppers from xs up. */}
+        <div
+          role="status"
+          aria-live="polite"
+          className="order-first flex min-w-[9rem] basis-full items-center justify-center px-1 xs:order-none xs:flex-1"
+        >
+          <span className="whitespace-nowrap font-sans text-ui-hero font-semibold leading-none tabular-nums text-background-10">
+            {formattedHeight}
+          </span>
         </div>
-      </div>
-      <div className="xs:grid grid-rows-2 grid-cols-2 gap-2 h-full flex flex-col-reverse">
-        {unit === 'foot' && (
-          <>
-            <IncrementButton
-              value={1}
-              unit={'inch'}
-              onClick={() => increment('inch', 1)}
-              disabled={disabled || !canIcrement('inch', 1, 2.4)}
-            />
-            <IncrementButton
-              value={1}
-              unit={'foot'}
-              onClick={() => increment('foot', 1)}
-              disabled={disabled || !canIcrement('foot', 1, 2.4)}
-            />
-          </>
-        )}
-        {unit === 'meter' && (
-          <>
-            <IncrementButton
-              value={1}
-              unit={'cm'}
-              onClick={() => increment('cm', 1)}
-              disabled={disabled || !canIcrement('cm', 1, 2.4)}
-            />
-            <IncrementButton
-              value={10}
-              unit={'cm'}
-              onClick={() => increment('cm', 10)}
-              disabled={disabled || !canIcrement('cm', 10, 2.4)}
-            />
-          </>
-        )}
+        <div className="flex gap-1.5">
+          {unit === 'foot' && (
+            <>
+              {stepper('inch', 1, 2.4)}
+              {stepper('foot', 1, 2.4)}
+            </>
+          )}
+          {unit === 'meter' && (
+            <>
+              {stepper('cm', 1, 2.4)}
+              {stepper('cm', 10, 2.4)}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

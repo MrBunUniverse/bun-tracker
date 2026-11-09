@@ -1,6 +1,7 @@
 import { ReactElement, useEffect, useRef } from 'react';
 import classNames from 'classnames';
-import { isPawTheme, useConfig } from '@/hooks/config';
+import { useConfig } from '@/hooks/config';
+import { isPawTheme } from '@/hooks/theme';
 
 // Redraws an icon on a small pixel grid, so it reads as PawPad-style pixel art.
 // Only in the Bun theme. Other themes get the original icon back, unchanged.

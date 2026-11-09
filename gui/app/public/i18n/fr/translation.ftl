@@ -9,10 +9,10 @@
 
 websocket-connecting = Chargement...
 websocket-connection_lost = Connexion avec le serveur perdue. Reconnexion...
-websocket-connection_lost-desc = Il semble que le serveur SlimeVR ait planté. Vérifiez les logs et redémarrez le programme.
+websocket-connection_lost-desc = Il semble que le serveur Bun Tracker ait planté. Vérifiez les logs et redémarrez le programme.
 websocket-timedout = Impossible de se connecter au serveur
-websocket-timedout-desc = Il semble que le serveur SlimeVR ait planté ou que le délai d'attente ait expiré. Vérifiez les logs et redémarrez le programme.
-websocket-error-close = Quitter SlimeVR
+websocket-timedout-desc = Il semble que le serveur Bun Tracker ait planté ou que le délai d'attente ait expiré. Vérifiez les logs et redémarrez le programme.
+websocket-error-close = Quitter Bun Tracker
 websocket-error-logs = Ouvrir le dossier des logs
 
 ## Update notification
@@ -428,7 +428,7 @@ tracker-settings-name_section-description = Donnez-lui un joli surnom :3
 tracker-settings-name_section-placeholder = Patte gauche d'Erimel
 tracker-settings-name_section-label = Nom personalisé
 tracker-settings-forget = Oublier capteur
-tracker-settings-forget-description = Supprime le capteur du serveur SlimeVR et l'empêche de s'y connecter jusqu'à ce que le serveur soit redémarré. La configuration du capteur ne sera pas perdue.
+tracker-settings-forget-description = Supprime le capteur du serveur Bun Tracker et l'empêche de s'y connecter jusqu'à ce que le serveur soit redémarré. La configuration du capteur ne sera pas perdue.
 tracker-settings-forget-label = Oublier capteur
 tracker-settings-update-unavailable-v2 = Aucune publication trouvée
 tracker-settings-update-incompatible = Mise à jour impossible. Carte incompatible
@@ -517,7 +517,6 @@ settings-sidebar-osc_vmc = VMC
 settings-sidebar-utils = Utilitaires
 settings-sidebar-serial = Console série
 settings-sidebar-appearance = Apparence
-settings-sidebar-home = Ecran d'accueil
 settings-sidebar-checklist = Checklist de suivi
 settings-sidebar-notifications = Notifications
 settings-sidebar-behavior = Comportement
@@ -727,7 +726,6 @@ settings-interface-appearance = Apparence
 settings-general-interface-dev_mode = Mode développeur
 settings-general-interface-dev_mode-description = Ce mode peut être utile pour avoir des données approfondies ou pour interagir avec des capteurs connectés à un niveau plus avancé.
 settings-general-interface-dev_mode-label = Mode développeur
-settings-general-interface-theme = Thème
 settings-general-interface-show-navbar-onboarding = Afficher « { navbar-onboarding } » dans la barre de navigation
 settings-general-interface-show-navbar-onboarding-description = Cela décide si le bouton « { navbar-onboarding } » s'affiche dans la barre de navigation.
 settings-general-interface-show-navbar-onboarding-label = Afficher « { navbar-onboarding } »
@@ -757,17 +755,17 @@ settings-general-interface-feedback_sound-description = Cette option va jouer un
 settings-general-interface-feedback_sound-label = Son de retour
 settings-general-interface-feedback_sound-volume = Volume du son de retour
 settings-general-interface-connected_trackers_warning = Avertissement de capteurs connectés
-settings-general-interface-connected_trackers_warning-description = Cette option affichera une fenêtre contextuelle à chaque fois que vous essaierez de quitter SlimeVR en ayant un ou plusieurs capteurs connectés. Il vous rappelle d'éteindre vos capteurs lorsque vous avez terminé pour préserver la durée de vie de la batterie.
+settings-general-interface-connected_trackers_warning-description = Cette option affichera une fenêtre contextuelle à chaque fois que vous essaierez de quitter Bun Tracker en ayant un ou plusieurs capteurs connectés. Il vous rappelle d'éteindre vos capteurs lorsque vous avez terminé pour préserver la durée de vie de la batterie.
 settings-general-interface-connected_trackers_warning-label = Avertissement de capteurs connectés en quittant
 
 ## Behavior settings
 
 settings-interface-behavior = Comportement
 settings-general-interface-use_tray = Minimiser dans la zone de notifications
-settings-general-interface-use_tray-description = Vous permet de fermer la fenêtre sans fermer le serveur SlimeVR afin que vous puissiez continuer à l'utiliser sans l'interface graphique.
+settings-general-interface-use_tray-description = Vous permet de fermer la fenêtre sans fermer le serveur Bun Tracker afin que vous puissiez continuer à l'utiliser sans l'interface graphique.
 settings-general-interface-use_tray-label = Minimiser dans la zone de notifications
 settings-general-interface-discord_presence = Partager l'activité sur Discord
-settings-general-interface-discord_presence-description = Indique à votre client Discord que vous utilisez SlimeVR avec le nombre de capteurs IMU que vous utilisez.
+settings-general-interface-discord_presence-description = Indique à votre client Discord que vous utilisez Bun Tracker avec le nombre de capteurs IMU que vous utilisez.
 settings-general-interface-discord_presence-label = Partager l'activité sur Discord
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -779,9 +777,9 @@ settings-interface-behavior-error_tracking = Collecte des erreurs via Sentry.io
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>Consentez-vous à la collecte de données d'erreur anonymisée ?</h1>
     
-    <b>Nous ne collectons pas d'informations personnelles</b> telles que votre adresse IP ou vos identifiants Wi-Fi. SlimeVR accorde une grande importance à votre vie privée !
+    <b>Nous ne collectons pas d'informations personnelles</b> telles que votre adresse IP ou vos identifiants Wi-Fi. Bun Tracker accorde une grande importance à votre vie privée !
     
-    Pour offrir la meilleure expérience utilisateur possible, nous collectons des rapports d'erreurs anonymisés, des mesures de performance et des informations sur le système d'exploitation. Cela nous aide à détecter les bugs et les problèmes liés à SlimeVR. Ces données sont collectées via Sentry.io.
+    Pour offrir la meilleure expérience utilisateur possible, nous collectons des rapports d'erreurs anonymisés, des mesures de performance et des informations sur le système d'exploitation. Cela nous aide à détecter les bugs et les problèmes liés à Bun Tracker. Ces données sont collectées via Sentry.io.
 settings-interface-behavior-error_tracking-label = Envoyer les erreurs aux développeurs
 settings-interface-behavior-bvh_directory = Répertoire pour sauvegarder les enregistrements BVH
 settings-interface-behavior-bvh_directory-description = Choisissez un répertoire où sauvegarder vos enregistrements BVH au lieu d’avoir à choisir où les sauvegarder à chaque fois.
@@ -829,7 +827,7 @@ settings-osc-router-network = Ports réseau
 # This cares about multilines
 settings-osc-router-network-description =
     Définissez les ports pour écouter et envoyer des données.
-    Ces ports peuvent être les mêmes que les autres utilisés dans le serveur SlimeVR.
+    Ces ports peuvent être les mêmes que les autres utilisés dans le serveur Bun Tracker.
 settings-osc-router-network-port_in =
     .label = Port d'entrée
     .placeholder = Port d'entrée (par défaut: 9002)
@@ -883,7 +881,7 @@ settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
     Modifier les paramètres spécifique au protocole VMC (Virtual Motion Capture)
-           pour envoyer les données de capture de SlimeVR et recevoir les données de capture d'autres applications.
+           pour envoyer les données de capture de Bun Tracker et recevoir les données de capture d'autres applications.
 settings-osc-vmc-enable = Activer
 settings-osc-vmc-enable-description = Activer/désactiver l'envoi et la réception de données.
 settings-osc-vmc-enable-label = Activer
@@ -941,10 +939,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = Réinitialiser les paramètres
 settings-utils-advanced-reset_warning-cancel = Annuler
 settings-utils-advanced-open_data-v1 = Dossier de configuration
-settings-utils-advanced-open_data-description-v1 = Ouvre le dossier de configuration de SlimeVR, contenant les fichiers de configuration, dans l'explorateur de fichier
+settings-utils-advanced-open_data-description-v1 = Ouvre le dossier de configuration de Bun Tracker, contenant les fichiers de configuration, dans l'explorateur de fichier
 settings-utils-advanced-open_data-label = Ouvrir le dossier
 settings-utils-advanced-open_logs = Dossier des logs
-settings-utils-advanced-open_logs-description = Ouvre le dossier des logs de SlimeVR, contenant ses logs, dans l'explorateur de fichier
+settings-utils-advanced-open_logs-description = Ouvre le dossier des logs de Bun Tracker, contenant ses logs, dans l'explorateur de fichier
 settings-utils-advanced-open_logs-label = Ouvrir le dossier
 
 ## Home Screen
@@ -967,7 +965,7 @@ onboarding-wip = Pas encore implémenté
 onboarding-previous_step = Étape précédente
 onboarding-setup_warning =
     <b>Avertissement:</b> La configuration est requise pour assurer une bonne capture des mouvements,
-    elle est nécessaire si vous utilisez SlimeVR pour la première fois.
+    elle est nécessaire si vous utilisez Bun Tracker pour la première fois.
 onboarding-setup_warning-skip = Passer la configuration
 onboarding-setup_warning-cancel = Continuer la configuration
 
@@ -1027,7 +1025,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = Bienvenue sur SlimeVR
+onboarding-home = Bienvenue sur Bun Tracker
 onboarding-home-start = Commencer
 
 ## Setup done
@@ -1290,8 +1288,8 @@ onboarding-automatic_proportions-requirements-title = Exigences
 onboarding-automatic_proportions-requirements-descriptionv2 =
     Vous avez au moins assez de capteurs pour capturer vos pieds (généralement 5 capteurs).
     Vos capteurs et votre casque VR sont allumés et sur vous.
-    Vos capteurs et votre casque VR sont connectés au serveur SlimeVR et fonctionnent correctement (ex. pas de lag, déconnexions, etc).
-    Votre casque envoie sa position au serveur SlimeVR (cela signifie généralement que SteamVR est ouvert et connecté à SlimeVR en utilisant le pilote SteamVR de SlimeVR).
+    Vos capteurs et votre casque VR sont connectés au serveur Bun Tracker et fonctionnent correctement (ex. pas de lag, déconnexions, etc).
+    Votre casque envoie sa position au serveur Bun Tracker (cela signifie généralement que SteamVR est ouvert et connecté à Bun Tracker en utilisant le pilote SteamVR de Bun Tracker).
     La capture des mouvements fonctionne et représente correctement vos mouvements (ex. vous avez effectué une réinitialisation complète des capteurs et ils bougent dans le bon sens lorsque vous donnez des coups de pieds, vous penchez, vous assoyez, etc).
 onboarding-automatic_proportions-requirements-next = J'ai lu les exigences
 onboarding-automatic_proportions-check_height-title-v3 = Mesurez la hauteur de votre casque
@@ -1363,7 +1361,7 @@ onboarding-automatic_proportions-smol_warning-cancel = Retour
 ## User height calibration
 
 onboarding-user_height-title = Quelle est votre taille ?
-onboarding-user_height-description = Nous avons besoin de votre taille pour calculer les proportions de votre corps ainsi que pour représenter précisément vos mouvements. Vous pouvez laisser SlimeVR la calculer ou entrer votre taille manuellement.
+onboarding-user_height-description = Nous avons besoin de votre taille pour calculer les proportions de votre corps ainsi que pour représenter précisément vos mouvements. Vous pouvez laisser Bun Tracker la calculer ou entrer votre taille manuellement.
 onboarding-user_height-need_head_tracker = Un casque VR (ou capteur de tête) et des manettes à position absolue sont nécessaires pour calculer votre taille.
 onboarding-user_height-calculate = Calculer ma taille automatiquement
 onboarding-user_height-next_step = Continuer et enregistrer
@@ -1433,8 +1431,8 @@ home-settings-close = Fermer
 trackers_still_on-modal-title = Capteurs encore allumés
 trackers_still_on-modal-description =
     Un ou plusieurs capteurs sont encore allumés.
-    Voulez-vous quand même quitter SlimeVR ?
-trackers_still_on-modal-confirm = Quitter SlimeVR
+    Voulez-vous quand même quitter Bun Tracker ?
+trackers_still_on-modal-confirm = Quitter Bun Tracker
 trackers_still_on-modal-cancel = Annuler...
 
 ## Status system
@@ -1447,7 +1445,7 @@ status_system-StatusSteamVRDisconnected =
     }
 status_system-StatusTrackerError = Le capteur { $trackerName } a une erreur.
 status_system-StatusUnassignedHMD = Le casque VR devrait être attribué en tant que capteur de la tête.
-status_system-StatusPublicNetwork = Votre profil réseau est actuellement défini comme étant public. Ce n’est pas recommandé pour le fonctionnement correct de SlimeVR. <PublicFixLink>Voyez comment y remédier ici.</PublicFixLink>
+status_system-StatusPublicNetwork = Votre profil réseau est actuellement défini comme étant public. Ce n’est pas recommandé pour le fonctionnement correct de Bun Tracker. <PublicFixLink>Voyez comment y remédier ici.</PublicFixLink>
 
 ## Firmware tool globals
 
@@ -1584,12 +1582,12 @@ tray_or_exit_modal-cancel = Annuler
 unknown_device-modal-title = Un nouveau capteur a été trouvé !
 unknown_device-modal-description =
     Il y a un nouveau capteur avec l'adresse MAC <b>{ $deviceId }</b>.
-    Voulez-vous le connecter à SlimeVR ?
+    Voulez-vous le connecter à Bun Tracker ?
 unknown_device-modal-confirm = Oui!
 unknown_device-modal-forget = Ignorer
 # VRChat config warnings
 vrc_config-page-title = Avertissements de configuration VRChat
-vrc_config-page-desc = Cette page montre l’état de vos paramètres VRChat et montre quels paramètres sont incompatibles avec SlimeVR. Il est fortement recommandé de corriger tous les avertissements qui s’affichent ici pour la meilleure expérience utilisateur avec SlimeVR.
+vrc_config-page-desc = Cette page montre l’état de vos paramètres VRChat et montre quels paramètres sont incompatibles avec Bun Tracker. Il est fortement recommandé de corriger tous les avertissements qui s’affichent ici pour la meilleure expérience utilisateur avec Bun Tracker.
 vrc_config-page-help = Vous ne trouvez pas les paramètres ?
 vrc_config-page-help-desc = Consultez notre <a>documentation à ce sujet !</a>
 vrc_config-page-big_menu = Suivi et CI (menu principal)
@@ -1643,13 +1641,13 @@ error_collection_modal-cancel = Je ne veux pas
 tracking_checklist = Checklist de suivi
 tracking_checklist-settings = Paramètres de lachecklist de suivi
 tracking_checklist-settings-close = Fermer
-tracking_checklist-status-incomplete = Vous n’êtes pas prêt à utiliser SlimeVR !
+tracking_checklist-status-incomplete = Vous n’êtes pas prêt à utiliser Bun Tracker !
 tracking_checklist-status-partial =
     { $count ->
         [one] Vous avez 1 avertissement !
        *[other] Vous avez { $count } avertissements !
     }
-tracking_checklist-status-complete = Vous êtes prêt à utiliser SlimeVR !
+tracking_checklist-status-complete = Vous êtes prêt à utiliser Bun Tracker !
 tracking_checklist-MOUNTING_CALIBRATION = Effectuer une calibration de l'alignement
 tracking_checklist-FEET_MOUNTING_CALIBRATION = Effectuer une calibration de l'alignement des pieds
 tracking_checklist-FULL_RESET = Faire une réinitialisation complète
@@ -1669,11 +1667,11 @@ tracking_checklist-UNASSIGNED_HMD-desc = Le casque VR devrait être attribué en
 tracking_checklist-NETWORK_PROFILE_PUBLIC = Modifier votre profil de réseau
 tracking_checklist-NETWORK_PROFILE_PUBLIC-desc =
     { $count ->
-        [one] Votre profil de réseau est actuellement défini comme étant public. Ce n’est pas recommandé pour le fonctionnement correct de SlimeVR. <PublicFixLink>Voyez comment y remédier ici.</PublicFixLink>
+        [one] Votre profil de réseau est actuellement défini comme étant public. Ce n’est pas recommandé pour le fonctionnement correct de Bun Tracker. <PublicFixLink>Voyez comment y remédier ici.</PublicFixLink>
        *[other]
             Certains de vos adaptateurs réseau sont réglés sur public :
             { $adapters }
-            Ce n’est pas recommandé pour que SlimeVR fonctionne correctement.
+            Ce n’est pas recommandé pour que Bun Tracker fonctionne correctement.
             <PublicFixLink>Voyez comment y remédier ici.</PublicFixLink>
     }
 tracking_checklist-NETWORK_PROFILE_PUBLIC-open = Ouvrir le panneau de configuration

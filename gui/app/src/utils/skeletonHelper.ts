@@ -1,10 +1,19 @@
-import { Bone, Color, Matrix4, Object3D, Vector2, Vector3 } from 'three';
+import {
+  Bone,
+  Color,
+  InterleavedBufferAttribute,
+  Matrix4,
+  Object3D,
+  Vector2,
+  Vector3,
+} from 'three';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { BodyPart, BoneT } from 'solarxr-protocol';
 import { Vector3FromVec3fT } from '@/maths/vector3';
 import { QuaternionFromQuatT } from '@/maths/quaternion';
+import { BoneHighlight, segmentState, tintColor } from './proportion-highlight';
 
 const _vector = new Vector3();
 const _boneMatrix = new Matrix4();
@@ -14,6 +23,9 @@ export class BasedSkeletonHelper extends LineSegments2 {
   isSkeletonHelper: boolean;
   root: Object3D;
   bones: Bone[];
+  // Per line segment, in buffer order: its rainbow colour and the body part that starts it (null if not a body bone).
+  private baseColors: [number, number, number][] = [];
+  private owners: (BodyPart | null)[] = [];
   readonly type = 'SkeletonHelper';
 
   get resolution() {
@@ -30,6 +42,8 @@ export class BasedSkeletonHelper extends LineSegments2 {
 
     const vertices = [];
     const colors = [];
+    const baseColors: [number, number, number][] = [];
+    const owners: (BodyPart | null)[] = [];
 
     const color1 = new Color(0, 0, 1);
     const color2 = new Color(0, 1, 0);
@@ -44,9 +58,13 @@ export class BasedSkeletonHelper extends LineSegments2 {
           const color = bone.parent.boneColor;
           colors.push(color.r, color.g, color.b);
           colors.push(color.r, color.g, color.b);
+          baseColors.push([color.r, color.g, color.b]);
+          owners.push(bone.parent.boneT.bodyPart);
         } else {
           colors.push(color1.r, color1.g, color1.b);
           colors.push(color2.r, color2.g, color2.b);
+          baseColors.push([color1.r, color1.g, color1.b]);
+          owners.push(null);
         }
       }
     }
@@ -69,6 +87,8 @@ export class BasedSkeletonHelper extends LineSegments2 {
 
     this.root = object;
     this.bones = bones;
+    this.baseColors = baseColors;
+    this.owners = owners;
 
     this.matrix = object.matrixWorld;
     this.matrixAutoUpdate = false;
@@ -99,6 +119,28 @@ export class BasedSkeletonHelper extends LineSegments2 {
     geometry.setPositions(vertices);
 
     super.updateMatrixWorld(force);
+  }
+
+  /** The body part that starts line segment `index` (a raycast hit's faceIndex), or null. */
+  ownerAt(index: number): BodyPart | null {
+    return this.owners[index] ?? null;
+  }
+
+  /** Brightens the segments of `highlight` and dims the rest; null restores the rainbow. Rewrites the colour buffer in place. */
+  setHighlight(highlight: BoneHighlight | null) {
+    const buffer = (
+      this.geometry.getAttribute('instanceColorStart') as
+        | InterleavedBufferAttribute
+        | undefined
+    )?.data;
+    if (!buffer) return;
+    const array = buffer.array as Float32Array;
+    // setColors lays each segment out as start rgb then end rgb.
+    this.baseColors.forEach((base, i) => {
+      const [r, g, b] = tintColor(base, segmentState(this.owners[i], highlight));
+      array.set([r, g, b, r, g, b], i * 6);
+    });
+    buffer.needsUpdate = true;
   }
 
   dispose() {

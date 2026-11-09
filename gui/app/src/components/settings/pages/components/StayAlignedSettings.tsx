@@ -233,7 +233,7 @@ export function StayAlignedSettings({
           <Typography variant="section-title">
             Adaptive Kinetic Realignment
           </Typography>
-          <div className="mt-2 bg-background-70/60 backdrop-blur-md rounded-xl p-4 border border-background-60/80">
+          <div className="mt-2 bg-background-70/60 rounded-xl p-4 border border-background-60/80">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex-1">
                 <Typography bold>Smart Motion & Posture Adaptation</Typography>

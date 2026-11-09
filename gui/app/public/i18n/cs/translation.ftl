@@ -9,10 +9,10 @@
 
 websocket-connecting = Připojování k serveru
 websocket-connection_lost = Ztraceno spojení se serverem. Pokouším se znovu připojit...
-websocket-connection_lost-desc = Vypadá to že SlimeVR server spadl. Zkontrolujte záznamy protokolů a restartuje aplikaci
+websocket-connection_lost-desc = Vypadá to že Bun Tracker server spadl. Zkontrolujte záznamy protokolů a restartuje aplikaci
 websocket-timedout = Nepodařilo se připojit k serveru
-websocket-timedout-desc = Vypadá to že buď vypršel časový limit SlimeVR serveru, a nebo došlo k zhroucení. Zkontrolujte záznamy protokolů a restartuje aplikaci
-websocket-error-close = Ukončit SlimeVR
+websocket-timedout-desc = Vypadá to že buď vypršel časový limit Bun Tracker serveru, a nebo došlo k zhroucení. Zkontrolujte záznamy protokolů a restartuje aplikaci
+websocket-error-close = Ukončit Bun Tracker
 websocket-error-logs = Otevření složku s záznamy protokolů
 
 ## Update notification
@@ -308,7 +308,7 @@ tracker-settings-name_section-description = Třeba nějakou roztomilou přezdív
 tracker-settings-name_section-placeholder = Erimelova levá tlapka
 tracker-settings-name_section-label = Název trackeru
 tracker-settings-forget = Zapomenout tracker
-tracker-settings-forget-description = Odebere tracker z SlimeVR Serveru a zabrání jeho opětovnému připojení do té doby, dokud nebude server restarován. Konfigurace trackeru nebude ztracena.
+tracker-settings-forget-description = Odebere tracker z Bun Tracker Serveru a zabrání jeho opětovnému připojení do té doby, dokud nebude server restarován. Konfigurace trackeru nebude ztracena.
 tracker-settings-forget-label = Zapomenout tracker
 tracker-settings-update-unavailable-v2 = Žádné vydání nebyla nalezena
 tracker-settings-update-incompatible = Nelze aktualizovat. Nekompatibilní deska nebo verze firmwaru
@@ -397,7 +397,6 @@ settings-sidebar-osc_vmc = VMC
 settings-sidebar-utils = Nástroje
 settings-sidebar-serial = Sériová konzole
 settings-sidebar-appearance = Vzhled
-settings-sidebar-home = Domovská obrazovka
 settings-sidebar-checklist = Přehled trackování
 settings-sidebar-notifications = Notifikace
 settings-sidebar-behavior = Chování
@@ -598,7 +597,6 @@ settings-interface-appearance = Vzhled
 settings-general-interface-dev_mode = Vývojářský režim
 settings-general-interface-dev_mode-description = Tento režim může být užitečný, pokud potřebujete podrobné údaje nebo omunikovat s trackerama na pokročilejší úrovni.
 settings-general-interface-dev_mode-label = Vývojářský režim
-settings-general-interface-theme = Barva tématu
 settings-general-interface-show-navbar-onboarding = Zobrazit "{ navbar-onboarding }" na navigačním panelu
 settings-general-interface-show-navbar-onboarding-description = Tohle mění jestli bude tlačítko pro "{ navbar-onboarding }" zobrazeno na navigačním panelu
 settings-general-interface-show-navbar-onboarding-label = Zobrazit "{ navbar-onboarding }"
@@ -628,17 +626,17 @@ settings-general-interface-feedback_sound-description = Tato možnost spustí zv
 settings-general-interface-feedback_sound-label = Zvuk zpětné vazby
 settings-general-interface-feedback_sound-volume = Hlasitost zvuku zpětné vazby
 settings-general-interface-connected_trackers_warning = Upozornění o připojených trackerů
-settings-general-interface-connected_trackers_warning-description = Tato možnost zobrazí vyskakovací okno pokaždé, když se pokusíte opustit SlimeVR, když máte připojen jeden nebo více trackerů. Připomene vám, abyste vypnuli své trackery, až budete hotovi, abyste prodloužili životnost baterie.
+settings-general-interface-connected_trackers_warning-description = Tato možnost zobrazí vyskakovací okno pokaždé, když se pokusíte opustit Bun Tracker, když máte připojen jeden nebo více trackerů. Připomene vám, abyste vypnuli své trackery, až budete hotovi, abyste prodloužili životnost baterie.
 settings-general-interface-connected_trackers_warning-label = Upozornění o připojených trackerech při ukončení
 
 ## Behavior settings
 
 settings-interface-behavior = Chování
 settings-general-interface-use_tray = Minimalizovat do oznamovací oblasti
-settings-general-interface-use_tray-description = Umožňuje vám zavřít okno, aniž byste zavřeli SlimeVR Server, takže ho můžete nadále používat bez rozhraní.
+settings-general-interface-use_tray-description = Umožňuje vám zavřít okno, aniž byste zavřeli Bun Tracker Server, takže ho můžete nadále používat bez rozhraní.
 settings-general-interface-use_tray-label = Minimalizovat do oznamovací oblasti
 settings-general-interface-discord_presence = Sdílet aktivitu na Discordu
-settings-general-interface-discord_presence-description = Sdělí Discord klientu, že používáte SlimeVR společně s počtem trackerů IMU, které používáte.
+settings-general-interface-discord_presence-description = Sdělí Discord klientu, že používáte Bun Tracker společně s počtem trackerů IMU, které používáte.
 settings-general-interface-discord_presence-label = Sdílet aktivitu na Discordu
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -652,9 +650,9 @@ settings-interface-behavior-error_tracking = Sběr chyb prostřednictvím Sentry
 settings-interface-behavior-error_tracking-description_v2 =
     <h1>Souhlasíte se shromažďováním anonymizovaých údajů o chybých?</h1>
     
-    <b>Neschrožďujeme osobní udaje!</b> pro příklad IP adresy nebo přihlašovací údaje k sítím Wi-Fi. SlimeVR respektuje vaše soukromí!
+    <b>Neschrožďujeme osobní udaje!</b> pro příklad IP adresy nebo přihlašovací údaje k sítím Wi-Fi. Bun Tracker respektuje vaše soukromí!
     
-    Aby jsme mohli poskytnout nejlepší zážitek uživatelům, schromažďujeme proto anonymizované zprávy o chybých, metriky výkon a informace o operačním systém. To nám pomáhá zjištovat chyby a problémy s SlimeVR. Tyto matriky jsou schromažďovány prostřednictvím Sentry.io.
+    Aby jsme mohli poskytnout nejlepší zážitek uživatelům, schromažďujeme proto anonymizované zprávy o chybých, metriky výkon a informace o operačním systém. To nám pomáhá zjištovat chyby a problémy s Bun Tracker. Tyto matriky jsou schromažďovány prostřednictvím Sentry.io.
 settings-interface-behavior-error_tracking-label = Odeslat chyby vývojářům
 settings-interface-behavior-bvh_directory = Cesta pro uložení BVH záznamů
 settings-interface-behavior-bvh_directory-description = Vyberte cestu k uložení záznamů BHV. namísto toho, abyste pokaždé vybírali, kam je uložit.
@@ -701,7 +699,7 @@ settings-osc-router-network = Síťové porty
 # This cares about multilines
 settings-osc-router-network-description =
     Nastavení portů pro naslouchání a odesílání dat.
-    Tyto porty mohou být stejné jako ostatní porty používané v serveru SlimeVR.
+    Tyto porty mohou být stejné jako ostatní porty používané v serveru Bun Tracker.
 settings-osc-router-network-port_in =
     .label = Vstup portu
     .placeholder = Vstup portu (výchozí: 9002)
@@ -750,7 +748,7 @@ settings-osc-vmc = Virtuální snímání pohybu (Také známo jako Virtual Moti
 # This cares about multilines
 settings-osc-vmc-description =
     Změna nastavení specificky pro VCM (Virtual Motion Capture) protokol
-        odesílat data o kostech SlimeVR a přijímat data o kostech z jiných aplikací.
+        odesílat data o kostech Bun Tracker a přijímat data o kostech z jiných aplikací.
 settings-osc-vmc-enable = Zapnout
 settings-osc-vmc-enable-description = Vypnutí a zapnutí odesílání a přijímání dat.
 settings-osc-vmc-enable-label = Zapnout
@@ -807,10 +805,10 @@ settings-utils-advanced-reset_warning =
 settings-utils-advanced-reset_warning-reset = Obnovit nastavení
 settings-utils-advanced-reset_warning-cancel = Zrušit
 settings-utils-advanced-open_data-v1 = Složka s konfigurací
-settings-utils-advanced-open_data-description-v1 = Otevřít složku s konfiguračními soubory pro SlimeVR v průzkumníku souborů?
+settings-utils-advanced-open_data-description-v1 = Otevřít složku s konfiguračními soubory pro Bun Tracker v průzkumníku souborů?
 settings-utils-advanced-open_data-label = Otevřít složku
 settings-utils-advanced-open_logs = Složka s záznamy protokolů
-settings-utils-advanced-open_logs-description = Otevřít složku s konfiguračními soubory pro SlimeVR v průzkumníku souborů?
+settings-utils-advanced-open_logs-description = Otevřít složku s konfiguračními soubory pro Bun Tracker v průzkumníku souborů?
 settings-utils-advanced-open_logs-label = Otevřít složku
 
 ## Home Screen
@@ -832,7 +830,7 @@ onboarding-wip = Probíhající práce
 onboarding-previous_step = Předchozí krok
 onboarding-setup_warning =
     <b>Varování:</b> Pro dobré trackování je vyžadována počáteční kalibrace a nastavení,
-    Je nutné, pokud používáte SlimeVR poprvé.
+    Je nutné, pokud používáte Bun Tracker poprvé.
 onboarding-setup_warning-skip = Přeskočit nastavení
 onboarding-setup_warning-cancel = Pokračovat v nastavení
 
@@ -877,7 +875,7 @@ onboarding-reset_tutorial-1 =
 
 ## Setup start
 
-onboarding-home = Vítejte ve SlimeVR
+onboarding-home = Vítejte ve Bun Tracker
 onboarding-home-start = Pusťme se do toho!
 
 ## Setup done
@@ -1075,8 +1073,8 @@ onboarding-automatic_proportions-requirements-title = Požadavky
 onboarding-automatic_proportions-requirements-descriptionv2 =
     Minimálně 5 trackerů: Máte dostatečný počet trackerů pro sledování nohou.
     Nasazené vybavení: Máte nasazené trackery a headset.
-    Připojení a funkčnost: Trackery a headset jsou připojeny k serveru SlimeVR a fungují správně (bez záseků, odpojování apod.).
-    SteamVR a SlimeVR: Headset odesílá pozici do serveru SlimeVR (obvykle je potřeba mít spuštěný SteamVR a připojený k SlimeVR pomocí ovladače SlimeVR pro SteamVR).
+    Připojení a funkčnost: Trackery a headset jsou připojeny k serveru Bun Tracker a fungují správně (bez záseků, odpojování apod.).
+    SteamVR a Bun Tracker: Headset odesílá pozici do serveru Bun Tracker (obvykle je potřeba mít spuštěný SteamVR a připojený k Bun Tracker pomocí ovladače Bun Tracker pro SteamVR).
     Přesné sledování: Sledování funguje a přesně zaznamenává vaše pohyby (například jste provedli kompletní reset a trackery se správně pohybují při kopání, předklonu, sezení apod.).
 onboarding-automatic_proportions-requirements-next = Přečetl jsem si požadavky
 onboarding-automatic_proportions-check_height-title-v3 = Měření výšky vašeho headsetu
@@ -1205,8 +1203,8 @@ home-settings-close = Zavřít
 trackers_still_on-modal-title = Máte trackery stále zapnuté
 trackers_still_on-modal-description =
     Jeden nebo více trackerů jsou stále zapnuty.
-    Opravdu chcete ukončit SlimeVR?
-trackers_still_on-modal-confirm = Zavřít SlimeVR
+    Opravdu chcete ukončit Bun Tracker?
+trackers_still_on-modal-confirm = Zavřít Bun Tracker
 trackers_still_on-modal-cancel = Dejte my chvilku!
 
 ## Status system
@@ -1346,12 +1344,12 @@ tray_or_exit_modal-cancel = Zrušit
 unknown_device-modal-title = Byl nalezen nový tracker!
 unknown_device-modal-description =
     Byl objeven nový tracker s MAC adresou <b>{ $deviceId }</b>.
-    Chcete jej připojit k SlimeVR?
+    Chcete jej připojit k Bun Tracker?
 unknown_device-modal-confirm = Jasně!
 unknown_device-modal-forget = Ignoruj
 # VRChat config warnings
 vrc_config-page-title = Varování VRChat konfigurace
-vrc_config-page-desc = Tato stránka slouží k zobrazení vašeho aktuálního stavu nastavení ve VRChat. přesněji, nástavní které jsou nekompatibilní s SlimeVR. Je silně doporučeno poupravit všechny chybné nastavení které jsou zde zobrazeny pro nejlepší zážitek s SlimeVR.
+vrc_config-page-desc = Tato stránka slouží k zobrazení vašeho aktuálního stavu nastavení ve VRChat. přesněji, nástavní které jsou nekompatibilní s Bun Tracker. Je silně doporučeno poupravit všechny chybné nastavení které jsou zde zobrazeny pro nejlepší zážitek s Bun Tracker.
 vrc_config-page-help = Nemůžete najít specifické nastavení?
 vrc_config-page-help-desc = Podívejte se na naší <a>dokumentaci k tomuto tématu!</a>
 vrc_config-page-big_menu = Sledování & IK (Velké Menu)
@@ -1403,8 +1401,8 @@ error_collection_modal-cancel = Nesouhlasím
 ## Tracking checklist section
 
 tracking_checklist-settings-close = Zavřít
-tracking_checklist-status-incomplete = Nejste připraveni používat SlimeVR!
-tracking_checklist-status-complete = Jste připravení k použití SlimeVR
+tracking_checklist-status-incomplete = Nejste připraveni používat Bun Tracker!
+tracking_checklist-status-complete = Jste připravení k použití Bun Tracker
 tracking_checklist-FULL_RESET = Proveďte plné obnovení
 tracking_checklist-STEAMVR_DISCONNECTED = SteamVR není zapnut
 tracking_checklist-STEAMVR_DISCONNECTED-desc = SteamVR není zapnut. Používáte ho pro VR?

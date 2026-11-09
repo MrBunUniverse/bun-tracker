@@ -1,6 +1,7 @@
 export function USBIcon({ size = 48 }: { size?: number }) {
   return (
     <svg
+      fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       height={size}
       width={size}

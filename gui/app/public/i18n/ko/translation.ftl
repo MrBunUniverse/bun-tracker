@@ -9,10 +9,10 @@
 
 websocket-connecting = 서버에 연결하는 중...
 websocket-connection_lost = 서버와의 연결이 끊어졌어요. 다시 연결하는 중...
-websocket-connection_lost-desc = SlimeVR 서버에 오류가 발생한 것 같습니다. 로그를 확인하고 프로그램을 재시작해 주세요
+websocket-connection_lost-desc = Bun Tracker 서버에 오류가 발생한 것 같습니다. 로그를 확인하고 프로그램을 재시작해 주세요
 websocket-timedout = 서버에 연결할 수 없습니다
-websocket-timedout-desc = SlimeVR 서버에 오류가 발생했거나 연결 시간이 초과된 것 같습니다. 로그를 확인하고 프로그램을 재시작해 주세요
-websocket-error-close = SlimeVR 종료
+websocket-timedout-desc = Bun Tracker 서버에 오류가 발생했거나 연결 시간이 초과된 것 같습니다. 로그를 확인하고 프로그램을 재시작해 주세요
+websocket-error-close = Bun Tracker 종료
 websocket-error-logs = 로그 폴더 열기
 
 ## Update notification
@@ -276,7 +276,7 @@ tracker-settings-name_section-description = 귀여운 이름을 지어주세요!
 tracker-settings-name_section-placeholder = NightyBeast's left leg
 tracker-settings-name_section-label = 트래커 이름
 tracker-settings-forget = 트래커 삭제
-tracker-settings-forget-description = SlimeVR 서버에서 트래커를 제거하고 서버를 다시 시작할 때까지 자동으로 연결하지 않아요. 트래커의 설정은 지워지지 않아요.
+tracker-settings-forget-description = Bun Tracker 서버에서 트래커를 제거하고 서버를 다시 시작할 때까지 자동으로 연결하지 않아요. 트래커의 설정은 지워지지 않아요.
 tracker-settings-forget-label = 트래커 삭제
 tracker-settings-update-up_to_date = 최신 버전
 tracker-settings-update = 지금 업데이트
@@ -528,7 +528,6 @@ settings-interface-appearance = 모양
 settings-general-interface-dev_mode = 개발자 모드
 settings-general-interface-dev_mode-description = 이 모드는 더 많은 데이터가 필요하거나 고급 수준에서 연결된 트래커와 상호 작용하는 경우에 유용할 수 있어요.
 settings-general-interface-dev_mode-label = 개발자 모드
-settings-general-interface-theme = 컬러 테마
 settings-general-interface-show-navbar-onboarding = 내비게이션 바에 "{ navbar-onboarding }" 표시
 settings-general-interface-show-navbar-onboarding-description = 이 설정은 내비게이션 바에 "{ navbar-onboarding }" 버튼을 표시할 지 결정해요.
 settings-general-interface-show-navbar-onboarding-label = "{ navbar-onboarding }" 보이기
@@ -558,16 +557,16 @@ settings-general-interface-feedback_sound-description = 이 옵션을 켜면 트
 settings-general-interface-feedback_sound-label = 피드백 사운드
 settings-general-interface-feedback_sound-volume = 피드백 사운드 음량
 settings-general-interface-connected_trackers_warning = 작동 중인 트래커 경고
-settings-general-interface-connected_trackers_warning-description = 이 옵션은 트래커가 연결되어 있는 채로 SlimeVR을 종료하려고 할 때 팝업을 표시합니다. 그렇게 하면 실수로 트래커를 끄지 않아 배터리가 방전되는 일을 예방할 수 있어요.
+settings-general-interface-connected_trackers_warning-description = 이 옵션은 트래커가 연결되어 있는 채로 Bun Tracker을 종료하려고 할 때 팝업을 표시합니다. 그렇게 하면 실수로 트래커를 끄지 않아 배터리가 방전되는 일을 예방할 수 있어요.
 settings-general-interface-connected_trackers_warning-label = 종료 시 작동 중인 트래커 경고 활성화
 
 ## Behavior settings
 
 settings-general-interface-use_tray = 작업 표시줄로 최소화
-settings-general-interface-use_tray-description = SlimeVR 서버를 닫지 않고 창만 닫을 수 있게 하여 사용 시 항상 GUI를 띄워 놓을 필요가 없게 해요.
+settings-general-interface-use_tray-description = Bun Tracker 서버를 닫지 않고 창만 닫을 수 있게 하여 사용 시 항상 GUI를 띄워 놓을 필요가 없게 해요.
 settings-general-interface-use_tray-label = 작업 표시줄로 최소화
 settings-general-interface-discord_presence = Discord에서 활동 공유
-settings-general-interface-discord_presence-description = Discord 활동 상태에 SlimeVR을 사용 중이라는 것과 사용 중인 트래커의 개수를 같이 표시합니다.
+settings-general-interface-discord_presence-description = Discord 활동 상태에 Bun Tracker을 사용 중이라는 것과 사용 중인 트래커의 개수를 같이 표시합니다.
 settings-general-interface-discord_presence-label = DIscord에서 활동 공유
 settings-general-interface-discord_presence-message =
     { $amount ->
@@ -614,7 +613,7 @@ settings-osc-router-network = 네트워크 포트
 # This cares about multilines
 settings-osc-router-network-description =
     데이터 수신 및 전송을 위한 포트 설정
-    이들은 SlimeVR 서버에서 사용되는 다른 포트와 동일해도 돼요.
+    이들은 Bun Tracker 서버에서 사용되는 다른 포트와 동일해도 돼요.
 settings-osc-router-network-port_in =
     .label = 들어오는 포트
     .placeholder = Port in (기본값: 9002)
@@ -667,7 +666,7 @@ settings-osc-vrchat-network-trackers-elbows = Elbows
 settings-osc-vmc = Virtual Motion Capture
 # This cares about multilines
 settings-osc-vmc-description =
-    SlimeVR의 골격 데이터를 보내고 다른 앱에서 이 데이터를 수신하기 위해
+    Bun Tracker의 골격 데이터를 보내고 다른 앱에서 이 데이터를 수신하기 위해
     VMC(Virtual Motion Capture) 프로토콜 설정을 변경합니다.
 settings-osc-vmc-enable = 활성화
 settings-osc-vmc-enable-description = 활성화해서 데이터 송수신
@@ -736,7 +735,7 @@ onboarding-wip = 아직 공사중이에요!
 onboarding-previous_step = 이전 단계
 onboarding-setup_warning =
     <b>주의:</b> 더 좋은 추적을 위해서는 초기 설정이 필요해요.
-    SlimeVR을 처음 사용하는 경우에도 필요합니다.
+    Bun Tracker을 처음 사용하는 경우에도 필요합니다.
 onboarding-setup_warning-skip = 설정 건너뛰기
 onboarding-setup_warning-cancel = 설정 계속하기
 
@@ -785,7 +784,7 @@ onboarding-reset_tutorial-2 =
 
 ## Setup start
 
-onboarding-home = SlimeVR에 어서오세요!
+onboarding-home = Bun Tracker에 어서오세요!
 onboarding-home-start = 설정하러 가보죠!
 
 ## Setup done
@@ -1012,8 +1011,8 @@ onboarding-automatic_proportions-requirements-title = 요구사항
 onboarding-automatic_proportions-requirements-descriptionv2 =
     다리를 추적하기 위해 최소 5개 이상의 트래커를 착용하세요.
     VR 헤드셋을 착용하세요.
-    VR 헤드셋과 컨트롤러의 위치 정보가 SlimeVR 서버에 실시간으로 표시되는지 확인하세요.
-    SlimeVR 서버에 연결된 트래커와 VR 헤드셋이 끊김이나 렉 없이 제대로 표시되는지 확인하세요. (이것은 SteamVR이 실행 중이며 SlimeVR의 SteamVR 드라이버를 사용하여 SlimeVR에 올바르게 연결되어 있다는 것을 의미합니다)
+    VR 헤드셋과 컨트롤러의 위치 정보가 Bun Tracker 서버에 실시간으로 표시되는지 확인하세요.
+    Bun Tracker 서버에 연결된 트래커와 VR 헤드셋이 끊김이나 렉 없이 제대로 표시되는지 확인하세요. (이것은 SteamVR이 실행 중이며 Bun Tracker의 SteamVR 드라이버를 사용하여 Bun Tracker에 올바르게 연결되어 있다는 것을 의미합니다)
     트래커가 제대로 작동하고 나의 움직임을 올바르게 반영중인지 확인하세요. (예: 전체 정렬을 수행했으며 발차기, 허리 숙이기, 앉기 등 올바른 방향으로 움직임)
 onboarding-automatic_proportions-requirements-next = 요구사항을 모두 읽었어요
 onboarding-automatic_proportions-check_height-title-v3 = 헤드셋 높이 측정
@@ -1094,8 +1093,8 @@ home-no_trackers = 감지되거나 할당된 트래커가 없어요.
 ## Trackers Still On notification
 
 trackers_still_on-modal-title = 트래커가 아직 켜져 있어요!
-trackers_still_on-modal-description = 하나 이상의 트래커가 여전히 켜져 있는 것으로 보여요. SlimeVR을 종료할까요?
-trackers_still_on-modal-confirm = SlimeVR 종료
+trackers_still_on-modal-description = 하나 이상의 트래커가 여전히 켜져 있는 것으로 보여요. Bun Tracker을 종료할까요?
+trackers_still_on-modal-confirm = Bun Tracker 종료
 trackers_still_on-modal-cancel = 돌아가기
 
 ## Status system
@@ -1208,7 +1207,7 @@ tray_or_exit_modal-cancel = 취소
 unknown_device-modal-title = 새로운 트래커를 찾았어요!
 unknown_device-modal-description =
     <b>{ $deviceID }</b>의 MAC 주소를 가진 새로운 트래커를 발견했어요.
-    SlimeVR에 연결할까요?
+    Bun Tracker에 연결할까요?
 unknown_device-modal-confirm = 당연하죠!
 unknown_device-modal-forget = 무시할게요
 

@@ -543,7 +543,6 @@ settings-interface-appearance = appeawance
 settings-general-interface-dev_mode = devwowwewow mode
 settings-general-interface-dev_mode-description = this mode can be wowseffuw if you need in-dipth data owow to intewact with cownnected twackaws on a wowowe wowadvanced wowwevew
 settings-general-interface-dev_mode-label = devwowwewow mode
-settings-general-interface-theme = cowor theem
 settings-general-interface-show-navbar-onboarding = show "{ navbar-onboarding }" on da nawigation bar
 settings-general-interface-show-navbar-onboarding-description = dis change if da "{ navbar-onboarding }" button show on da nawigashun bar!
 settings-general-interface-show-navbar-onboarding-label = show "{ navbar-onboarding }"

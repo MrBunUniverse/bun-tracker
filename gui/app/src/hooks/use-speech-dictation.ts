@@ -248,6 +248,9 @@ export function useSpeechDictation(
   });
 
   const [availableDevices, setAvailableDevices] = useState<AudioInputDevice[]>([]);
+  // Tauri: the picker switches the Mac's input, which every engine records from.
+  const nativeInputs = !!window.electronAPI?.audioInputs;
+  const [nativeSelectedId, setNativeSelectedId] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0); // 0 - 100
@@ -299,6 +302,12 @@ export function useSpeechDictation(
   // Enumerate audio input devices
   const refreshDevices = useCallback(async () => {
     try {
+      if (window.electronAPI?.audioInputs) {
+        const inputs = await window.electronAPI.audioInputs();
+        setAvailableDevices(inputs.map((d) => ({ deviceId: d.uid, label: d.name })));
+        setNativeSelectedId(inputs.find((d) => d.isDefault)?.uid ?? '');
+        return;
+      }
       if (!navigator.mediaDevices?.enumerateDevices) return;
       const devices = await navigator.mediaDevices.enumerateDevices();
       const audioInputs = devices
@@ -510,7 +519,7 @@ export function useSpeechDictation(
       const microphoneGranted = await window.electronAPI?.requestMicrophoneAccess?.();
       if (microphoneGranted === false) {
         throw new Error(
-          'Microphone access was denied. Allow SlimeVR in macOS System Settings > Privacy & Security > Microphone, then try again.'
+          'Microphone access was denied. Allow Bun Tracker in macOS System Settings > Privacy & Security > Microphone, then try again.'
         );
       }
 
@@ -520,7 +529,11 @@ export function useSpeechDictation(
         autoGainControl: true,
       };
 
-      if (settings.inputDeviceId && settings.inputDeviceId !== 'default') {
+      if (
+        !nativeInputs &&
+        settings.inputDeviceId &&
+        settings.inputDeviceId !== 'default'
+      ) {
         audioConstraints.deviceId = { exact: settings.inputDeviceId };
       }
 
@@ -675,7 +688,7 @@ export function useSpeechDictation(
         setIsListening(false);
       }
     }
-  }, [settings.inputDeviceId, refreshDevices, processAccumulatedAudio]);
+  }, [settings.inputDeviceId, nativeInputs, refreshDevices, processAccumulatedAudio]);
 
   const processAudioRef = useRef(processAccumulatedAudio);
   processAudioRef.current = processAccumulatedAudio;
@@ -839,6 +852,40 @@ export function useSpeechDictation(
     }
   }, [isListening, startListening, stopListening]);
 
+  // Switching mic mid-session reopens the stream on the new device.
+  const lastDeviceRef = useRef(settings.inputDeviceId);
+  const restartRef = useRef(startListening);
+  restartRef.current = startListening;
+  const restartIfListening = useCallback(() => {
+    if (isListeningRef.current) {
+      stopAudioEngine();
+      void restartRef.current();
+    }
+  }, [stopAudioEngine]);
+  useEffect(() => {
+    if (lastDeviceRef.current === settings.inputDeviceId) return;
+    lastDeviceRef.current = settings.inputDeviceId;
+    restartIfListening();
+  }, [settings.inputDeviceId, restartIfListening]);
+
+  const selectInput = useCallback(
+    async (id: string) => {
+      if (!window.electronAPI?.setAudioInput) {
+        setSettings((s) => ({ ...s, inputDeviceId: id }));
+        return;
+      }
+      try {
+        await window.electronAPI.setAudioInput(id);
+        setNativeSelectedId(id);
+        restartIfListening();
+      } catch (err: any) {
+        setError(String(err?.message ?? err));
+      }
+      void refreshDevices();
+    },
+    [restartIfListening, refreshDevices]
+  );
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -866,6 +913,11 @@ export function useSpeechDictation(
     setSettings,
     availableDevices,
     refreshDevices,
+    nativeInputs,
+    selectedInputId: nativeInputs
+      ? nativeSelectedId
+      : settings.inputDeviceId || 'default',
+    selectInput,
     isListening,
     isProcessing,
     audioLevel,

@@ -9,10 +9,18 @@ import {
 } from 'solarxr-protocol';
 import { IconButton } from '@/components/commons/IconButton';
 import { StatusDot, StatusTone } from '@/components/commons/StatusDot';
+import { RouterIcon } from '@/components/commons/icon/RouterIcon';
 import { useOperatingMode } from '@/hooks/operating-mode';
 import { useTopBarPopover } from '@/hooks/top-bar-popover';
 import { useWebsocketAPI } from '@/hooks/websocket-api';
 import { connectedIMUCountAtom } from '@/store/app-store';
+import {
+  barPopover,
+  barRoot,
+  barTrigger,
+  useStatusBarMode,
+} from './status-bar-mode';
+import { StatusBarTile } from './StatusBarTile';
 import { QuestTargetIPPill } from './QuestTargetIPPill';
 import { RefreshTrackersButton } from './RefreshTrackersButton';
 
@@ -41,6 +49,7 @@ function CopyIcon() {
  */
 export function StatusCluster() {
   const { l10n } = useLocalization();
+  const bar = useStatusBarMode();
   const { isConnected, sendRPCPacket, useRPCPacket } = useWebsocketAPI();
   const { isQuestStandalone, toggleMode } = useOperatingMode();
   const trackerCount = useAtomValue(connectedIMUCountAtom);
@@ -103,7 +112,7 @@ export function StatusCluster() {
   return (
     <div
       ref={rootRef}
-      className="shrink-0"
+      className={classNames('shrink-0', barRoot(bar))}
       style={{ WebkitAppRegion: 'no-drag' } as any}
     >
       <button
@@ -114,29 +123,64 @@ export function StatusCluster() {
         aria-label={`${serverLabel}: ${serverText}. ${modeText}. ${trackersText}. ${l10n.getString('status-cluster-label', null, 'Connection status. Open for details')}`}
         onClick={() => setOpen((value) => !value)}
         className={classNames(
-          'flex h-8 items-center gap-4 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs font-medium text-background-10 cursor-pointer select-none',
-          open
-            ? 'bg-background-10/[0.08]'
-            : 'bg-background-10/[0.03] hover:bg-background-10/[0.06]'
+          'flex items-center font-medium text-background-10 cursor-pointer select-none',
+          bar
+            ? barTrigger(bar, open)
+            : 'h-8 gap-4 rounded-[10px] border border-[var(--material-border-subtle)] px-3 text-ui-xs',
+          bar === 'vr'
+            ? ''
+            : open
+              ? 'bg-background-10/[0.08]'
+              : classNames(
+                  !bar && 'bg-background-10/[0.03]',
+                  'hover:bg-background-10/[0.06]'
+                )
         )}
       >
-        <StatusDot tone={serverTone} label={`${serverLabel} ${serverText}`} />
-        <StatusDot tone={isQuestStandalone ? 'ok' : 'idle'} label={modeText} />
-        {/* The tracker count lives once, in the Home toolbar; the open panel still lists it. */}
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-          className={classNames('text-background-30', open && 'rotate-180')}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        {bar === 'vr' ? (
+          <StatusBarTile
+            icon={<RouterIcon />}
+            label={serverLabel}
+            tone={serverTone}
+          />
+        ) : (
+          <>
+            <span
+              aria-hidden="true"
+              className="flex h-4 w-4 shrink-0 items-center justify-center fill-current [&>svg]:h-4 [&>svg]:w-4"
+            >
+              <RouterIcon />
+            </span>
+            <StatusDot
+              tone={serverTone}
+              label={`${serverLabel} ${serverText}`}
+            />
+            <StatusDot
+              tone={isQuestStandalone ? 'ok' : 'idle'}
+              label={modeText}
+              className={
+                bar === 'desk'
+                  ? 'min-w-0 [&>span:last-child]:hidden xs:[&>span:last-child]:inline'
+                  : 'min-w-0'
+              }
+            />
+            {/* The tracker count lives once, in the Home toolbar; the open panel still lists it. */}
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className={classNames('text-background-30', open && 'rotate-180')}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </>
+        )}
       </button>
 
       {open && (
@@ -148,7 +192,10 @@ export function StatusCluster() {
             null,
             'Connection details'
           )}
-          className="fixed z-50 flex flex-col gap-3 rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg"
+          className={classNames(
+            'fixed z-50 flex flex-col gap-3 overflow-y-auto rounded-[12px] border border-[var(--material-border-primary)] bg-background-60 p-4 shadow-lg',
+            barPopover(bar)
+          )}
           style={popover}
         >
           <h2 className="font-serif text-ui-md tracking-tight text-background-10">

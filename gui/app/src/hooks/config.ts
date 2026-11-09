@@ -5,6 +5,7 @@ import { waitUntil } from '@/utils/a11y';
 import { v4 as uuidv4 } from 'uuid';
 import { useElectron } from './electron';
 import { CrossStorage } from '@shared/electron-api';
+import { DEFAULT_THEME, withNormalizedTheme } from './theme';
 
 export interface WindowConfig {
   width: number;
@@ -75,11 +76,6 @@ export interface ConfigContext {
   saveConfig: () => Promise<void>;
 }
 
-// PawPad special themes. They share Bun's layout and pixel look; each has its own palette in index.scss.
-export const PAW_THEMES = ['bun', 'fox', 'dog'];
-export const isPawTheme = (theme?: string) =>
-  theme !== undefined && PAW_THEMES.includes(theme);
-
 export const defaultConfig: Config = {
   uuid: uuidv4(),
   lang: 'en',
@@ -89,7 +85,7 @@ export const defaultConfig: Config = {
   feedbackSound: true,
   feedbackSoundVolume: 0.5,
   connectedTrackersWarning: true,
-  theme: 'claude',
+  theme: DEFAULT_THEME,
   textSize: 12,
   animations: true,
   pawEars: true,
@@ -130,7 +126,7 @@ const store: CrossStorage = window.electronAPI
   : localStore;
 
 function fallbackToDefaults(loadedConfig: any): Config {
-  return Object.assign({}, defaultConfig, loadedConfig);
+  return withNormalizedTheme(Object.assign({}, defaultConfig, loadedConfig) as Config);
 }
 
 // Move the load of the config ouside of react
