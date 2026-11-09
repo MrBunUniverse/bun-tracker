@@ -12,7 +12,6 @@ import { useAtomValue } from 'jotai';
 import { assignedTrackerSetAtom, serverGuardsAtom } from '@/store/app-store';
 import { FEET_BODY_PARTS, FINGER_BODY_PARTS } from './body-parts';
 import { useLocaleConfig } from '@/i18n/config';
-import { countMetric } from '@/utils/sentry';
 
 export type ResetBtnStatus = 'idle' | 'counting' | 'finished';
 
@@ -49,13 +48,6 @@ export function useReset(
     req.resetType = options.type;
     req.bodyParts = parts;
     sendRPCPacket(RpcMessage.ResetRequest, req);
-
-    countMetric('reset_click', 1, {
-      attributes: {
-        resetType: ResetType[options.type],
-        group: options.type === ResetType.Mounting ? options.group : undefined,
-      },
-    });
   };
 
   const onResetFinished = () => {

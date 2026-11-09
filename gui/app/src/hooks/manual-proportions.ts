@@ -8,7 +8,6 @@ import {
 import { useWebsocketAPI } from './websocket-api';
 import { useEffect, useMemo, useState } from 'react';
 import { useConfig } from './config';
-import { countMetric } from '@/utils/sentry';
 import { BONE_MAPPING } from '@/utils/proportion-highlight';
 
 type LabelBase = {
@@ -181,7 +180,6 @@ export function useManualProportions({ type }: { type: 'linear' | 'ratio' }): {
       }
       sendRPCPacket(RpcMessage.SkeletonConfigRequest, new SkeletonConfigRequestT());
       setConfig({ lastUsedProportions: 'manual' });
-      countMetric('manual_proportions_change', 1, { attributes: params });
     },
   };
 }

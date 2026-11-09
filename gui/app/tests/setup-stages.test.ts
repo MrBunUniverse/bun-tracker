@@ -38,7 +38,6 @@ test('every wizard route maps to a stage; sub-routes share their stage', () => {
   const stages = setupStages();
   const expected: Record<string, string> = {
     '/onboarding/quiz/slime-set': 'trackers',
-    '/onboarding/error-collecting-consent': 'wifi',
     '/onboarding/wifi-creds': 'wifi',
     '/onboarding/connect-trackers': 'wifi',
     '/onboarding/dongle': 'dongle',

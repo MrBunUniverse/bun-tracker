@@ -28,11 +28,9 @@ import {
   livePreviewCountAtom,
   trackerDetailCountAtom,
 } from '@/store/app-store';
-import { getSentryOrCompute } from '@/utils/sentry';
 import { fetchCurrentFirmwareRelease, FirmwareRelease } from './firmware-update';
 import { DEFAULT_LOCALE, LangContext } from '@/i18n/config';
 
-const isSteam = window.electronAPI ? await window.electronAPI.isSteam() : false;
 const UI_FEED_UPDATE_INTERVAL = 1000 / 30;
 
 export interface AppContext {
@@ -138,15 +136,6 @@ export function useProvideAppContext(): AppContext {
   useLayoutEffect(() => {
     changeLocales([config?.lang || DEFAULT_LOCALE]);
   }, []);
-
-  useLayoutEffect(() => {
-    if (!config) return;
-    if (config.errorTracking !== undefined) {
-      // Alows for sentry to refresh if user change the setting once the gui
-      // is initialized
-      getSentryOrCompute(config.errorTracking ?? false, config.uuid, isSteam);
-    }
-  }, [config]);
 
   return useMemo(() => ({ currentFirmwareRelease }), [currentFirmwareRelease]);
 }

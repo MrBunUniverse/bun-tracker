@@ -34,7 +34,6 @@ import { ProgressBar } from '@/components/commons/ProgressBar';
 import { useBreakpoint } from '@/hooks/breakpoint';
 import { useConfig } from '@/hooks/config';
 import { ProportionsResetModal } from './ProportionsResetModal';
-import { countMetric } from '@/utils/sentry';
 
 const statusSteps = [
   // Order matters be carefull
@@ -237,7 +236,6 @@ function UserHeightStatus({
 export function ScaledProportionsPage() {
   const [hmdHeight, setHmdHeight] = useState(0);
   const [tmpHeight, setTmpHeight] = useState(0);
-  const [lastUsed, setLastUsed] = useState<'manual' | 'auto' | null>(null);
   const { config, setConfig } = useConfig();
   const { applyProgress, state } = useOnboarding();
 
@@ -298,7 +296,6 @@ export function ScaledProportionsPage() {
       new SkeletonResetAllRequestT()
     );
     setConfig({ lastUsedProportions: 'scaled' });
-    setLastUsed('manual');
   };
 
   useRPCPacket(
@@ -313,7 +310,6 @@ export function ScaledProportionsPage() {
 
       if (res.status === UserHeightCalibrationStatus.DONE) {
         setConfig({ lastUsedProportions: 'scaled' });
-        setLastUsed('auto');
       }
     }
   );
@@ -324,14 +320,6 @@ export function ScaledProportionsPage() {
       setHmdHeight(res.userHeight);
     }
   );
-
-  useEffect(() => {
-    if (lastUsed !== null) {
-      countMetric('scaled_proportions', 1, {
-        attributes: { calibration: lastUsed },
-      });
-    }
-  }, [lastUsed]);
 
   useEffect(() => {
     sendRPCPacket(

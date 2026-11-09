@@ -24,7 +24,7 @@ const WIFI: SetupStage = {
   to: '/onboarding/wifi-creds',
   labelId: 'onboarding-stage-wifi',
   fallback: 'Wi-Fi',
-  also: ['/onboarding/error-collecting-consent', '/onboarding/connect-trackers'],
+  also: ['/onboarding/connect-trackers'],
 };
 const DONGLE: SetupStage = {
   id: 'dongle',

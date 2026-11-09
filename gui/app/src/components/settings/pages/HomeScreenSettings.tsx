@@ -15,7 +15,6 @@ import classNames from 'classnames';
 import { ReactNode, useEffect } from 'react';
 import { FieldPath, useForm } from 'react-hook-form';
 import { TrackingChecklistStepId } from 'solarxr-protocol';
-import { countMetric } from '@/utils/sentry';
 
 type StepsForm = { steps: Record<TrackingChecklistStepId, boolean> };
 export function TrackingChecklistSettings({
@@ -130,18 +129,11 @@ export function LayoutSelector({
   );
 }
 
-export function HomeLayoutSettings({
-  variant,
-}: {
-  variant: 'settings' | 'modal';
-}) {
+export function HomeLayoutSettings() {
   const { config, setConfig } = useConfig();
 
   const setLayout = (layout: Config['homeLayout']) => {
     setConfig({ homeLayout: layout });
-    countMetric('change_layout', 1, {
-      attributes: { layout, from: variant },
-    });
   };
 
   return (

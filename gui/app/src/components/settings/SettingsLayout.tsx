@@ -62,6 +62,10 @@ export function SettingSelectorMobile() {
         value: { url: '/settings/advanced' },
       },
       {
+        label: l10n.getString('settings-sidebar-user_agreement'),
+        value: { url: '/settings/user-agreement' },
+      },
+      {
         label: l10n.getString('navbar-onboarding'),
         value: { url: '/onboarding/home' },
       },

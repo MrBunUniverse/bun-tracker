@@ -19,7 +19,6 @@ import {
   useState,
 } from 'react';
 import { isEqual } from '@react-hookz/deep-equal';
-import { countMetric } from '@/utils/sentry';
 
 export const trackingchecklistIdtoLabel: Record<TrackingChecklistStepId, string> = {
   [TrackingChecklistStepId.UNKNOWN]: '',
@@ -198,9 +197,6 @@ export function provideTrackingChecklist() {
         if (ignore && !curr.includes(step)) return [...curr, step];
         if (!ignore && curr.includes(step)) return curr.filter((s) => s !== step);
         return curr;
-      });
-      countMetric(ignore ? 'mute_checklist_step' : 'unmute_checklist_step', 1, {
-        attributes: { step: TrackingChecklistStepId[step], session },
       });
       if (session) {
         // Force refresh of the flightlist when ignoring a step as the filtering

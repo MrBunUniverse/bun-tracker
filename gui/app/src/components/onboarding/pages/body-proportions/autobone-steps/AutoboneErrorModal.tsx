@@ -4,7 +4,7 @@ import { BaseModal } from '@/components/commons/BaseModal';
 import { WarningBox } from '@/components/commons/TipBox';
 import { Button } from '@/components/commons/Button';
 import { A } from '@/components/commons/A';
-import { DOCS_SITE, SLIMEVR_DISCORD } from '@/App';
+import { DOCS_SITE } from '@/App';
 
 export function AutoboneErrorModal({
   isOpen = true,
@@ -42,7 +42,6 @@ export function AutoboneErrorModal({
                   href={`${DOCS_SITE}/server/body-config.html#common-issues--debugging`}
                 />
               ),
-              discord: <A href={SLIMEVR_DISCORD} />,
             }}
           >
             <WarningBox>

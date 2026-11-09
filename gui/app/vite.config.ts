@@ -1,4 +1,3 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, PluginOption } from 'vite';
 import { execSync } from 'child_process';
@@ -45,10 +44,6 @@ export default defineConfig({
     react({ babel: { plugins: [jotaiReactRefresh] } }),
     i18nHotReload(),
     visualizer() as PluginOption,
-    sentryVitePlugin({
-      org: 'slimevr',
-      project: 'slimevr-server-gui-react',
-    }),
   ],
   build: {
     target: 'es2022',

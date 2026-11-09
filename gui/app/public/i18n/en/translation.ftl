@@ -13,12 +13,6 @@ websocket-timedout-desc = It looks like the Bun Tracker server crashed or timed 
 websocket-error-close = Exit Bun Tracker
 websocket-error-logs = Open the logs Folder
 
-## Update notification
-version_update-title = New version available: { $version }
-version_update-description = Clicking "{ version_update-update }" will download the SlimeVR installer for you.
-version_update-update = Update
-version_update-close = Close
-
 ## Tips
 tips-find_tracker = Not sure which tracker is which? Shake a tracker and it will highlight the corresponding item.
 tips-do_not_move_heels = Ensure your heels do not move during recording!
@@ -510,6 +504,7 @@ settings-sidebar-behavior = Behavior
 settings-sidebar-firmware-tool = DIY Firmware Tool
 settings-sidebar-vrc_warnings = VRChat Config Warnings
 settings-sidebar-advanced = Advanced
+settings-sidebar-user_agreement = User Agreement
 
 ## SteamVR settings
 settings-general-steamvr = SteamVR
@@ -573,6 +568,7 @@ settings-general-tracker_mechanics-drift_compensation-description =
     Compensates for IMU yaw drift by applying an inverse rotation.
     Change the amount of compensation and the number of resets taken into account.
     This should only be used if you need to reset very often!
+settings-general-tracker_mechanics-drift_compensation-help = Learns how fast each tracker's heading drifts from your resets and cancels it out. Works best after several full resets. Recommended for IMUs without a magnetometer, like the MPU6050.
 settings-general-tracker_mechanics-drift_compensation-enabled-label = Drift compensation
 settings-general-tracker_mechanics-drift_compensation-prediction = Drift compensation prediction
 # This cares about multilines
@@ -778,15 +774,6 @@ settings-general-interface-discord_presence-message = { $amount ->
     [one] Using 1 tracker
     *[other] Using { $amount } trackers
 }
-settings-interface-behavior-error_tracking = Error collection via Sentry.io
-settings-interface-behavior-error_tracking-description_v2 =
-    <h1>Do you consent to the collection of anonymized error data?</h1>
-
-    <b>We do not collect personal information</b> such as your IP address or wireless credentials. Bun Tracker values your privacy!
-
-    To provide the best user experience, we collect anonymized error reports, performance metrics, and operating system information. This helps us detect bugs and issues with Bun Tracker. These metrics are collected via Sentry.io.
-
-settings-interface-behavior-error_tracking-label = Send errors to developers
 settings-interface-behavior-bvh_directory = Directory to save BVH recordings
 settings-interface-behavior-bvh_directory-description = Choose a directory to save your BVH recordings instead of having to choose where to save them each time.
 settings-interface-behavior-bvh_directory-label = Directory for BVH recordings
@@ -1391,7 +1378,7 @@ onboarding-automatic_proportions-done-description = Your body proportions' calib
 onboarding-automatic_proportions-error_modal-v2 =
     <b>Warning:</b> There was an error while estimating proportions!
     This is likely a mounting calibration issue. Make sure your tracking works properly before trying again.
-    Please <docs>check the docs</docs> or join our <discord>Discord</discord> for help ^_^
+    Please <docs>check the docs</docs> for help ^_^
 onboarding-automatic_proportions-error_modal-confirm = Understood!
 
 onboarding-automatic_proportions-smol_warning =
@@ -1679,14 +1666,6 @@ vrc_config-avatar_measurement_type-UNKNOWN = Unknown
 vrc_config-avatar_measurement_type-HEIGHT = Height
 vrc_config-avatar_measurement_type-ARM_SPAN = Arm Span
 
-## Error collection consent modal
-error_collection_modal-title = Can we collect errors?
-error_collection_modal-description_v2 = { settings-interface-behavior-error_tracking-description_v2 }
-
-    You can change this setting later in the Behavior section of the settings page.
-error_collection_modal-confirm = I agree
-error_collection_modal-cancel = I don't want to
-
 ## Tracking checklist section
 tracking_checklist = Tracking Checklist
 tracking_checklist-settings = Tracking Checklist Settings
@@ -1821,7 +1800,6 @@ topbar-app-restart-hint = Quits and reopens the Bun Tracker server
 topbar-window-minimize = Minimize window
 topbar-window-maximize = Maximize window
 topbar-window-close = Close window
-topbar-download-update = Download the latest version
 
 ## Home inspector
 inspector-label = Skeleton preview and setup checklist
@@ -1854,3 +1832,22 @@ settings-special-themes-dog-title = Dog
 settings-special-themes-dog-description = PawPad's golden dog: warm brown with golden fur and a pink paw.
 settings-special-themes-ears-label = Ears on the logo
 settings-special-themes-ears-description = Fox and Dog only: pixel ears on the logo on the welcome screen and while waiting for trackers.
+
+## User Agreement settings
+settings-user_agreement = User Agreement
+settings-user_agreement-about-title = About Bun Tracker
+settings-user_agreement-about =
+    Bun Tracker is my personal version of SlimeVR Server, adapted for my own setup and shared with friends and a few people I trust.
+    It's an unofficial project. SlimeVR and its developers didn't make it, don't support it, and aren't connected to it in any way.
+settings-user_agreement-credit-title = Credit where it's due
+settings-user_agreement-credit =
+    SlimeVR Server is the work of the SlimeVR team and its many contributors, and nearly everything here is built on what they made.
+    I don't claim their work as my own. All credit for the original project belongs to them, and its Apache 2.0 license and copyright notices still apply.
+settings-user_agreement-help-title = If something goes wrong
+settings-user_agreement-help =
+    Please don't take problems with Bun Tracker to the SlimeVR developers, their Discord, or their GitHub. Many of the changes in this version are mine, so an issue you run into may not exist in SlimeVR at all.
+    Message me on Discord instead: <discord>jamevm</discord> (SirJame). You can also find me by searching "jamevm" in Discord's Add Friend.
+settings-user_agreement-warranty-title = No guarantees
+settings-user_agreement-warranty = I look after Bun Tracker in my spare time and share it as-is, without any warranty. I'll do my best to help when something breaks, but please use it at your own risk.
+settings-user_agreement-agreement-title = In short
+settings-user_agreement-agreement = By using Bun Tracker, you agree to the points above and to treat the original SlimeVR developers with the respect their work deserves. Thank you for using it.

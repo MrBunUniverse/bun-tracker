@@ -4,19 +4,13 @@ import {
   KeyboardEvent as ReactKeyboardEvent,
   RefObject,
   useEffect,
-  useContext,
   useId,
   useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GH_REPO, VersionContext } from '@/App';
-import { openUrl } from '@/hooks/crossplatform';
-import { useElectron } from '@/hooks/electron';
 import { useIsMac } from '@/hooks/platform';
-import { DownloadIcon } from '@/components/commons/icon/DownloadIcon';
-import { IconButton } from '@/components/commons/IconButton';
 import { PixelIcon } from '@/components/commons/PixelIcon';
 import { SlimeVRIcon } from '@/components/commons/icon/SimevrIcon';
 import { useTopBarPopover } from '@/hooks/top-bar-popover';
@@ -241,8 +235,6 @@ function MoreMenu({ items }: { items: NavItem[] }) {
 
 export function TopNav() {
   const { l10n } = useLocalization();
-  const electron = useElectron();
-  const version = useContext(VersionContext);
   const isMac = useIsMac();
   const spaceRef = useRef<HTMLElement>(null);
   const fullRowRef = useRef<HTMLDivElement>(null);
@@ -330,24 +322,6 @@ export function TopNav() {
         </ul>
       </nav>
       <div className="flex shrink-0 items-center gap-1" style={NO_DRAG}>
-        {version && electron.isElectron && (
-          <IconButton
-            label={l10n.getString(
-              'topbar-download-update',
-              null,
-              'Download the latest version'
-            )}
-            onClick={() => {
-              const url =
-                electron.data().os.type === 'windows'
-                  ? 'https://slimevr.dev/download'
-                  : `https://github.com/${GH_REPO}/releases/latest`;
-              openUrl(url);
-            }}
-          >
-            <DownloadIcon />
-          </IconButton>
-        )}
         <VersionTag />
         <AppActionsMenu />
         <WindowControls />

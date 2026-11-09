@@ -337,16 +337,16 @@ fn open_path(app: AppHandle, path: String) -> Result<(), String> {
 
 // Same allowlist as the Electron OPEN_URL handler.
 fn is_allowed_url(url: &str) -> bool {
-    if url.starts_with("steam://") || url == "ms-settings:network" || url == "https://discord.gg/slimevr" {
+    if url.starts_with("steam://") || url == "ms-settings:network"
+        || url == "https://discord.com/users/390812634481688576"
+    {
         return true;
     }
     if let Some(rest) = url.strip_prefix("https://") {
         let host = rest.split('/').next().unwrap_or("");
-        if host == "slimevr.dev" || host.ends_with(".slimevr.dev") {
-            return true;
-        }
+        return host == "slimevr.dev" || host.ends_with(".slimevr.dev");
     }
-    url == "https://github.com/SlimeVR" || url.starts_with("https://github.com/SlimeVR/")
+    false
 }
 
 #[tauri::command]

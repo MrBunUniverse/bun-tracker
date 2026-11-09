@@ -1,4 +1,4 @@
-import { createContext, lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import {
   HashRouter as Router,
   Navigate,
@@ -26,7 +26,6 @@ import { AutomaticProportionsPage } from './components/onboarding/pages/body-pro
 import { ManualProportionsPage } from './components/onboarding/pages/body-proportions/ManualProportions';
 import { ConnectTrackersPage } from './components/onboarding/pages/ConnectTracker';
 import { HomePage } from './components/onboarding/pages/Home';
-import { ErrorCollectingConsentPage } from './components/onboarding/pages/ErrorCollectingConsent';
 import { AutomaticMountingPage } from './components/onboarding/pages/mounting/AutomaticMounting';
 import { ManualMountingPage } from './components/onboarding/pages/mounting/ManualMounting';
 import { TrackersAssignPage } from './components/onboarding/pages/trackers-assign/TrackerAssignment';
@@ -39,8 +38,6 @@ import { TrackerSettingsPage } from './components/tracker/TrackerSettings';
 import { OSCRouterSettings } from './components/settings/pages/OSCRouterSettings';
 import { VMCSettings } from './components/settings/pages/VMCSettings';
 import { MountingChoose } from './components/onboarding/pages/mounting/MountingChoose';
-import { VersionUpdateModal } from './components/VersionUpdateModal';
-import semver from 'semver';
 import { useBreakpoint } from './hooks/breakpoint';
 import { VRModePage } from './components/vr-mode/VRModePage';
 import { InterfaceSettings } from './components/settings/pages/InterfaceSettings';
@@ -53,6 +50,7 @@ import { audioFeedback } from './utils/audio-feedback';
 import { ResetRequestT, ResetType, RpcMessage } from 'solarxr-protocol';
 import { ScaledProportionsPage } from './components/onboarding/pages/body-proportions/ScaledProportions';
 import { AdvancedSettings } from './components/settings/pages/AdvancedSettings';
+import { UserAgreementSettings } from './components/settings/pages/UserAgreementSettings';
 import { FirmwareUpdate } from './components/firmware-update/FirmwareUpdate';
 import { ConnectionLost } from './components/onboarding/pages/ConnectionLost';
 import { VRCWarningsPage } from './components/vrc/VRCWarningsPage';
@@ -70,10 +68,7 @@ import { AppLocalizationProvider } from './i18n/config';
 import { openUrl } from './hooks/crossplatform';
 import { UdevRulesModal } from './components/onboarding/UdevRulesModal';
 
-export const GH_REPO = 'SlimeVR/SlimeVR-Server';
-export const VersionContext = createContext('');
 export const DOCS_SITE = 'https://docs.slimevr.dev';
-export const SLIMEVR_DISCORD = 'https://discord.gg/slimevr';
 
 const FirmwareToolSettings = lazy(() =>
   import('./components/firmware-tool/FirmwareTool').then((module) => ({
@@ -93,7 +88,6 @@ function Layout() {
   return (
     <>
       <SerialDetectionModal />
-      <VersionUpdateModal />
       <UnknownDeviceModal />
       <UdevRulesModal />
       <Suspense fallback={null}>
@@ -186,6 +180,10 @@ function Layout() {
                 element={<Navigate to="/settings" replace />}
               />
               <Route path="advanced" element={<AdvancedSettings />} />
+              <Route
+                path="user-agreement"
+                element={<UserAgreementSettings />}
+              />
             </Route>
             <Route
               path="/onboarding"
@@ -196,10 +194,6 @@ function Layout() {
               }
             >
               <Route path="home" element={<HomePage />} />
-              <Route
-                path="error-collecting-consent"
-                element={<ErrorCollectingConsentPage />}
-              />
               <Route path="wifi-creds" element={<WifiCredsPage />} />
               <Route path="quiz/slime-set" element={<QuizSlimeSetQuestion />} />
               <Route path="quiz/usage" element={<QuizUsageQuestion />} />
@@ -239,7 +233,6 @@ function Layout() {
 
 export default function App() {
   const websocketAPI = useProvideWebsocketApi();
-  const [updateFound, setUpdateFound] = useState('');
   const electron = provideElectron();
 
   useEffect(() => {
@@ -256,39 +249,6 @@ export default function App() {
 
     window.addEventListener('keydown', onKeydown);
     return () => window.removeEventListener('keydown', onKeydown);
-  }, []);
-
-  useEffect(() => {
-    // don't show update stuff when on android
-    if (window.__ANDROID__?.isThere()) return;
-
-    if (!semver.valid(__VERSION_TAG__)) {
-      log(
-        { version: __VERSION_TAG__ || 'development' },
-        'Non semver version, skipping the server update check'
-      );
-      return;
-    }
-
-    async function fetchReleases() {
-      const releases = await fetch(
-        `https://api.github.com/repos/${GH_REPO}/releases`
-      )
-        .then((res) => res.json())
-        .catch(() => null)
-        .then((json: any[]) => json.filter((rl) => rl?.prerelease === false));
-
-      if (!releases) return;
-
-      if (typeof releases[0].tag_name !== 'string') return;
-
-      const version = semver.coerce(releases[0].tag_name);
-
-      if (version && semver.gt(version, __VERSION_TAG__)) {
-        setUpdateFound(releases[0].tag_name);
-      }
-    }
-    fetchReleases().catch((e) => error(e, 'failed to fetch releases'));
   }, []);
 
   if (electron.isElectron) {
@@ -381,13 +341,11 @@ export default function App() {
               <AppContextProvider>
                 <OnboardingContextProvider>
                   <TrackingChecklistProvider>
-                    <VersionContext.Provider value={updateFound}>
-                      <div className="h-full w-full text-standard bg-background-80 text-background-10">
-                        <Preload />
-                        {!websocketAPI.isConnected && <ConnectionLost />}
-                        {websocketAPI.isConnected && <Layout />}
-                      </div>
-                    </VersionContext.Provider>
+                    <div className="h-full w-full text-standard bg-background-80 text-background-10">
+                      <Preload />
+                      {!websocketAPI.isConnected && <ConnectionLost />}
+                      {websocketAPI.isConnected && <Layout />}
+                    </div>
                   </TrackingChecklistProvider>
                 </OnboardingContextProvider>
               </AppContextProvider>
