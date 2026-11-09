@@ -396,6 +396,8 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 			val observedDrift = wrapAngle(yaw(preAdaptiveRotation) - desiredYaw)
 			tracker.resetsHandler.learnDriftObservation(observedDrift, now - snapshotCapturedAt, referenceConfidence)
 		}
+		// Realignment is a yaw discontinuity; the next reset must not record it as drift.
+		tracker.resetsHandler.invalidateDriftInterval()
 		// The sample already includes the previous fix, so compose with it.
 		tracker.resetsHandler.recoveryYawFix = Quaternion.rotationAroundYAxis(correction) * tracker.resetsHandler.recoveryYawFix
 		tracker.needReset = false
@@ -461,6 +463,7 @@ class TrackerRecoveryHandler(private val tracker: Tracker) {
 		snapshotMounting == tracker.resetsHandler.mountingOrientation
 
 	private fun requireFullReset(failure: TrackerRecoveryReason, now: Long = 0L) {
+		tracker.resetsHandler.invalidateDriftInterval()
 		state = TrackerRecoveryState.NEEDS_RESET
 		reason = failure
 		progress = 0f

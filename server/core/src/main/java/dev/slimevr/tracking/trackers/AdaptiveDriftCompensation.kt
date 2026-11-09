@@ -216,17 +216,20 @@ object AdaptiveDriftCompensation {
 		} else {
 			(nowNanos - state.stableSinceNanos).coerceAtLeast(0L) / 1_000_000L
 		}
+		val learningEnabled = tracker.isImu() && tracker.config.autoLearnDrift
 		val defaultMode = when {
-			!tracker.isImu() -> AdaptiveDriftMode.DISABLED
+			!learningEnabled -> AdaptiveDriftMode.DISABLED
 			tracker.config.adaptiveDriftLearningPaused -> AdaptiveDriftMode.DISABLED
 			else -> AdaptiveDriftMode.MONITORING
 		}
 		return AdaptiveDriftStatus(
-			mode = state?.mode ?: defaultMode,
+			mode = if (learningEnabled) state?.mode ?: defaultMode else AdaptiveDriftMode.DISABLED,
 			confidence = state?.confidence ?: tracker.config.adaptiveDriftConfidence,
 			stableDurationMs = stableDuration,
 			learnedRateDegPerMin = tracker.config.learnedDriftRateDegPerMin,
-			appliedCorrectionDeg = tracker.resetsHandler.adaptiveYawCorrectionDegrees,
+			// Total live yaw correction: adaptive offset plus global reset-based compensation.
+			appliedCorrectionDeg = tracker.resetsHandler.adaptiveYawCorrectionDegrees +
+				tracker.resetsHandler.globalDriftCorrectionDegrees,
 			acceptedObservations = max(state?.acceptedObservations ?: 0, tracker.config.totalDriftObservations),
 			freezeReason = state?.reason ?: if (tracker.config.adaptiveDriftLearningPaused) {
 				AdaptiveDriftFreezeReason.PAUSED

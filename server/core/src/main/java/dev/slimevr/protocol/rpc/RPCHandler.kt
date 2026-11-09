@@ -313,47 +313,53 @@ class RPCHandler(private val api: ProtocolAPI) : ProtocolHandler<RpcMessageHeade
 		val req = messageHeader
 			.message(AssignTrackerRequest()) as? AssignTrackerRequest ?: return
 
-		val tracker = api.server.getTrackerById(req.trackerId().unpack()) ?: return
-
+		val trackerId = req.trackerId().unpack()
 		val pos = getByBodyPart(req.bodyPosition())
-		val previousTracker = if (pos != null) {
-			getTrackerForSkeleton(api.server.allTrackers, pos)
-		} else {
-			null
-		}
-		if (previousTracker != null) {
-			previousTracker.trackerPosition = null
-			api.server.trackerUpdated(previousTracker)
-		}
-		tracker.trackerPosition = pos
+		val mounting = req.mountingOrientation()?.let { Quaternion(it.w(), it.x(), it.y(), it.z()) }
+		val displayName = req.displayName()
+		val imuProfileOverride = req.imuProfileOverride()
+		val allowDriftCompensation = req.allowDriftCompensation()
 
-		if (req.mountingOrientation() != null) {
-			if (tracker.allowMounting) {
-				tracker
-					.resetsHandler
-					.mountingOrientation = Quaternion(
-					req.mountingOrientation().w(),
-					req.mountingOrientation().x(),
-					req.mountingOrientation().y(),
-					req.mountingOrientation().z(),
-				)
+		// Tracker, reset and drift state belong to the tracking thread.
+		api.server.queueTask {
+			val tracker = api.server.getTrackerById(trackerId) ?: return@queueTask
+
+			// An unchanged role is a no-op: re-assigning (even via null) would
+			// request a reset and replace the mounting with the role default.
+			if (pos != tracker.trackerPosition) {
+				val previousTracker = pos?.let { getTrackerForSkeleton(api.server.allTrackers, it) }
+				if (previousTracker != null && previousTracker !== tracker) {
+					previousTracker.trackerPosition = null
+					api.server.trackerUpdated(previousTracker)
+				}
+				tracker.trackerPosition = pos
+			}
+
+			// Only an actual change clears automatic mounting, recovery and adaptive state.
+			if (mounting != null &&
+				tracker.allowMounting &&
+				mounting.unit().angleToR(tracker.resetsHandler.mountingOrientation) > MOUNTING_EPSILON_RAD
+			) {
+				tracker.resetsHandler.mountingOrientation = mounting
 				api.server.configManager.vrConfig.resetsConfig.lastMountingMethod =
 					MountingMethods.MANUAL
 			}
-		}
 
-		if (req.displayName() != null) {
-			tracker.customName = req.displayName()
-		}
-
-		if (tracker.isImu()) {
-			req.imuProfileOverride()?.let { profile ->
-				tracker.resetsHandler.setAdaptiveProfileOverride(profile)
+			if (displayName != null) {
+				tracker.customName = displayName
 			}
-			tracker.resetsHandler.allowDriftCompensation = req.allowDriftCompensation()
-		}
 
-		api.server.trackerUpdated(tracker)
+			if (tracker.isImu()) {
+				imuProfileOverride?.let { profile ->
+					tracker.resetsHandler.setAdaptiveProfileOverride(profile)
+				}
+				if (tracker.resetsHandler.allowDriftCompensation != allowDriftCompensation) {
+					tracker.resetsHandler.allowDriftCompensation = allowDriftCompensation
+				}
+			}
+
+			api.server.trackerUpdated(tracker)
+		}
 	}
 
 	fun onClearDriftCompensationRequest(
@@ -366,11 +372,13 @@ class RPCHandler(private val api: ProtocolAPI) : ProtocolHandler<RpcMessageHeade
 		}
 
 		val trackerId = request.trackerId()?.unpack()
-		if (trackerId == null) {
-			api.server.clearTrackersDriftCompensation()
-		} else {
-			api.server.getTrackerById(trackerId)?.let { tracker ->
-				if (tracker.isImu()) tracker.resetsHandler.resetLearnedDrift()
+		api.server.queueTask {
+			if (trackerId == null) {
+				api.server.clearTrackersDriftCompensation()
+			} else {
+				api.server.getTrackerById(trackerId)?.let { tracker ->
+					if (tracker.isImu()) tracker.resetsHandler.resetLearnedDrift()
+				}
 			}
 		}
 	}
@@ -383,20 +391,23 @@ class RPCHandler(private val api: ProtocolAPI) : ProtocolHandler<RpcMessageHeade
 		if (request !is AdaptiveDriftControlRequest) return
 
 		val trackerId = request.trackerId()?.unpack()
-		val targets = if (trackerId == null) {
-			api.server.allTrackers.filter { it.isImu() }
-		} else {
-			listOfNotNull(api.server.getTrackerById(trackerId)?.takeIf { it.isImu() })
-		}
+		val action = request.action()
+		api.server.queueTask {
+			val targets = if (trackerId == null) {
+				api.server.allTrackers.filter { it.isImu() }
+			} else {
+				listOfNotNull(api.server.getTrackerById(trackerId)?.takeIf { it.isImu() })
+			}
 
-		for (tracker in targets) {
-			when (request.action()) {
-				AdaptiveDriftAction.PAUSE_LEARNING -> tracker.resetsHandler.setAdaptiveDriftLearningPaused(true)
-				AdaptiveDriftAction.RESUME_LEARNING -> tracker.resetsHandler.setAdaptiveDriftLearningPaused(false)
-				AdaptiveDriftAction.CLEAR_MODEL -> tracker.resetsHandler.resetLearnedDrift()
-				AdaptiveDriftAction.RESTORE_PREVIOUS_MODEL -> tracker.resetsHandler.restorePreviousAdaptiveDriftModel()
-				AdaptiveDriftAction.ENABLE_CORRECTION -> tracker.resetsHandler.setAdaptiveDriftEnabled(true)
-				AdaptiveDriftAction.DISABLE_CORRECTION -> tracker.resetsHandler.setAdaptiveDriftEnabled(false)
+			for (tracker in targets) {
+				when (action) {
+					AdaptiveDriftAction.PAUSE_LEARNING -> tracker.resetsHandler.setAdaptiveDriftLearningPaused(true)
+					AdaptiveDriftAction.RESUME_LEARNING -> tracker.resetsHandler.setAdaptiveDriftLearningPaused(false)
+					AdaptiveDriftAction.CLEAR_MODEL -> tracker.resetsHandler.resetLearnedDrift()
+					AdaptiveDriftAction.RESTORE_PREVIOUS_MODEL -> tracker.resetsHandler.restorePreviousAdaptiveDriftModel()
+					AdaptiveDriftAction.ENABLE_CORRECTION -> tracker.resetsHandler.setAdaptiveDriftEnabled(true)
+					AdaptiveDriftAction.DISABLE_CORRECTION -> tracker.resetsHandler.setAdaptiveDriftEnabled(false)
+				}
 			}
 		}
 	}
@@ -696,3 +707,6 @@ class RPCHandler(private val api: ProtocolAPI) : ProtocolHandler<RpcMessageHeade
 	}
 }
 const val MAG_TIMEOUT: Long = 10_000L
+
+/** Mounting orientations closer than this are treated as unchanged (float round-trip). */
+private const val MOUNTING_EPSILON_RAD = 1e-3f

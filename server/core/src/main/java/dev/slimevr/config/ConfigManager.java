@@ -57,6 +57,7 @@ public class ConfigManager {
 		if (this.vrConfig == null) {
 			this.vrConfig = new VRConfig();
 		}
+		this.vrConfig.getDriftCompensation().sanitize();
 	}
 
 	static public void atomicMove(Path from, Path to) throws IOException {

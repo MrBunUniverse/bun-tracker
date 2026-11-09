@@ -11,10 +11,16 @@ class DriftCompensationConfig {
 	var prediction = false
 
 	// Amount of drift compensation applied
-	var amount = 0.8f
+	var amount = DEFAULT_AMOUNT
 
 	// Max resets for the calculated average drift
-	var maxResets = 6
+	var maxResets = DEFAULT_MAX_RESETS
+
+	/** Repairs values loaded from YAML so they can't break the tracking loop. */
+	fun sanitize() {
+		amount = if (amount.isFinite()) amount.coerceIn(MIN_AMOUNT, MAX_AMOUNT) else DEFAULT_AMOUNT
+		maxResets = maxResets.coerceIn(MIN_MAX_RESETS, MAX_MAX_RESETS)
+	}
 
 	fun updateTrackersDriftCompensation() {
 		for (t in VRServer.instance.allTrackers) {
@@ -22,5 +28,18 @@ class DriftCompensationConfig {
 				t.resetsHandler.readDriftCompensationConfig(this)
 			}
 		}
+	}
+
+	companion object {
+		const val DEFAULT_AMOUNT = 0.8f
+		const val DEFAULT_MAX_RESETS = 6
+		const val MIN_AMOUNT = 0f
+		const val MAX_AMOUNT = 1f
+		const val MIN_MAX_RESETS = 1
+		const val MAX_MAX_RESETS = 30
+
+		fun isValid(amount: Float, maxResets: Int): Boolean = amount.isFinite() &&
+			amount in MIN_AMOUNT..MAX_AMOUNT &&
+			maxResets in MIN_MAX_RESETS..MAX_MAX_RESETS
 	}
 }

@@ -7,15 +7,12 @@ import dev.slimevr.config.DriftCompensationConfig
 import dev.slimevr.config.ResetsConfig
 import dev.slimevr.config.TrackerConfig
 import dev.slimevr.config.config
-import dev.slimevr.filtering.CircularArrayList
 import dev.slimevr.tracking.trackers.udp.TrackerDataType
 import io.github.axisangles.ktmath.EulerAngles
 import io.github.axisangles.ktmath.EulerOrder
 import io.github.axisangles.ktmath.Quaternion
 import io.github.axisangles.ktmath.Vector3
 import kotlin.math.*
-
-private const val DRIFT_COOLDOWN_MS = 50000L
 
 /** Class taking care of full reset, yaw reset, mounting reset, and drift compensation logic. */
 class TrackerResetsHandler(val tracker: Tracker) {
@@ -27,13 +24,12 @@ class TrackerResetsHandler(val tracker: Tracker) {
 		0f,
 	).toQuaternion()
 	private var driftAmount = 0f
-	private var averagedDriftQuat = Quaternion.IDENTITY
-	private var rotationSinceReset = Quaternion.IDENTITY
-	private var driftQuats = CircularArrayList<Quaternion>(0)
-	private var driftTimes = CircularArrayList<Long>(0)
-	private var totalDriftTime: Long = 0
-	private var driftSince: Long = 0
-	private var timeAtLastReset: Long = 0
+
+	/** Global reset-based drift model; only touched from the tracking thread. */
+	private val driftModel = YawDriftModel(DriftCompensationConfig.DEFAULT_MAX_RESETS)
+
+	/** Monotonic milliseconds for drift timing; replaceable in tests. */
+	internal var monotonicMs: () -> Long = { System.nanoTime() / 1_000_000L }
 	var compensateDrift = false
 	private var driftPrediction = false
 	private var driftCompensationEnabled = false
@@ -142,13 +138,13 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	 */
 	fun readDriftCompensationConfig(config: DriftCompensationConfig) {
 		driftPrediction = config.prediction
-		driftAmount = config.amount
-		val maxResets = config.maxResets
-
-		if (maxResets != driftQuats.capacity()) {
-			driftQuats = CircularArrayList<Quaternion>(maxResets)
-			driftTimes = CircularArrayList<Long>(maxResets)
+		driftAmount = if (config.amount.isFinite()) {
+			config.amount.coerceIn(DriftCompensationConfig.MIN_AMOUNT, DriftCompensationConfig.MAX_AMOUNT)
+		} else {
+			0f
 		}
+		val maxResets = config.maxResets.coerceIn(DriftCompensationConfig.MIN_MAX_RESETS, DriftCompensationConfig.MAX_MAX_RESETS)
+		if (maxResets != driftModel.capacity) driftModel.resize(maxResets)
 
 		seedLearnedDriftIfEmpty()
 		val isBno = tracker.config.imuProfileOverride?.equals("bno085", ignoreCase = true) == true ||
@@ -158,7 +154,9 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	}
 
 	fun seedLearnedDriftIfEmpty() {
-		if (driftQuats.isEmpty() && tracker.isImu()) {
+		// Seeding belongs to adaptive learning; never revive stored memory while it is off.
+		if (!tracker.config.autoLearnDrift) return
+		if (driftModel.size == 0 && tracker.isImu()) {
 			var effectiveRate = tracker.config.learnedDriftRateDegPerMin
 			val override = tracker.config.imuProfileOverride ?: "auto"
 			if (override.equals("bno085", ignoreCase = true)) {
@@ -192,22 +190,14 @@ class TrackerResetsHandler(val tracker: Tracker) {
 			// A profile seed is only a migration prior. It is not applied as active
 			// compensation until measured observations have earned confidence.
 			if (effectiveRate != 0.0f &&
+				effectiveRate.isFinite() &&
 				tracker.config.totalDriftObservations > 0 &&
 				tracker.config.adaptiveDriftLastAcceptedAt <= 0L
 			) {
 				val baselineMinutes = 5.0f
 				val seedAngleRad = Math.toRadians((effectiveRate * baselineMinutes).toDouble()).toFloat()
-				val seedQuat = EulerAngles(EulerOrder.YZX, 0f, seedAngleRad, 0f).toQuaternion()
-				if (driftQuats.capacity() == 0) {
-					driftQuats = CircularArrayList(6)
-					driftTimes = CircularArrayList(6)
-				}
-				driftQuats.add(seedQuat)
-				val baselineMs = (baselineMinutes * 60000L).toLong()
-				driftTimes.add(baselineMs)
-				totalDriftTime = baselineMs
-				averagedDriftQuat = seedQuat
-				driftSince = System.currentTimeMillis()
+				// seed() drops non-finite or implausible values.
+				driftModel.seed(seedAngleRad, (baselineMinutes * 60000L).toLong(), monotonicMs())
 			}
 		}
 	}
@@ -350,17 +340,29 @@ class TrackerResetsHandler(val tracker: Tracker) {
 		// Preserved via tracker.config mutations directly
 	}
 
-	fun getDriftSinceDurationSeconds(): Float = if (driftSince > 0) (System.currentTimeMillis() - driftSince) / 1000.0f else 0.0f
+	fun getDriftSinceDurationSeconds(): Float = driftModel.intervalStart?.let { (monotonicMs() - it) / 1000.0f } ?: 0.0f
+
+	/** Yaw correction the global drift compensation applies right now, in degrees. */
+	val globalDriftCorrectionDegrees: Float
+		get() = if (driftCompensationEnabled) {
+			Math.toDegrees(driftModel.correction(monotonicMs(), driftAmount, driftPrediction).toDouble()).toFloat()
+		} else {
+			0f
+		}
+
+	/**
+	 * The current drift interval crossed a yaw discontinuity (recovery
+	 * realignment, reboot, mounting change). The next reset only re-baselines.
+	 */
+	fun invalidateDriftInterval() {
+		driftModel.invalidateInterval()
+	}
 
 	/**
 	 * Clears drift compensation data
 	 */
 	fun clearDriftCompensation() {
-		driftSince = 0L
-		timeAtLastReset = 0L
-		totalDriftTime = 0L
-		driftQuats.clear()
-		driftTimes.clear()
+		driftModel.clear()
 		adaptiveYawCorrectionRad = 0f
 		adaptiveYawTargetRad = 0f
 	}
@@ -427,6 +429,7 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	 * a computed head tracker exists.
 	 */
 	fun refreshDriftCompensationEnabled() {
+		val wasEnabled = driftCompensationEnabled
 		driftCompensationEnabled = compensateDrift &&
 			allowDriftCompensation &&
 			VRServer.instanceInitialized &&
@@ -434,6 +437,9 @@ class TrackerResetsHandler(val tracker: Tracker) {
 				VRServer.instance.allTrackers,
 				TrackerPosition.HEAD,
 			) != null
+		// Coming back (HMD reconnect, setting toggled) must not apply the time
+		// spent disabled at once, nor record that interval as drift.
+		if (driftCompensationEnabled && !wasEnabled) driftModel.rebase(monotonicMs())
 	}
 
 	/**
@@ -537,12 +543,9 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	 */
 	private fun adjustToDrift(rotation: Quaternion, includeAdaptiveYaw: Boolean = true): Quaternion {
 		var adjusted = rotation
-		if (driftCompensationEnabled && totalDriftTime > 0) {
-			var driftTimeRatio = ((System.currentTimeMillis() - driftSince).toFloat() / totalDriftTime)
-			if (!driftPrediction) {
-				driftTimeRatio = min(1.0f, driftTimeRatio)
-			}
-			adjusted = averagedDriftQuat.pow(driftAmount * driftTimeRatio) * adjusted
+		if (driftCompensationEnabled) {
+			val driftYaw = driftModel.correction(monotonicMs(), driftAmount, driftPrediction)
+			if (driftYaw != 0f) adjusted = Quaternion.rotationAroundYAxis(driftYaw) * adjusted
 		}
 		if (includeAdaptiveYaw && allowDriftCompensation && adaptiveYawCorrectionRad != 0f) {
 			adjusted = Quaternion.rotationAroundYAxis(adaptiveYawCorrectionRad) * adjusted
@@ -762,6 +765,7 @@ class TrackerResetsHandler(val tracker: Tracker) {
 
 		// Make an adjustment quaternion from the angle
 		mountRotFix = EulerAngles(EulerOrder.YZX, 0f, yawAngle, 0f).toQuaternion()
+		invalidateDriftInterval()
 
 		// save mounting reset
 		if (saveMountingReset) tracker.saveMountingResetOrientation(mountRotFix)
@@ -778,6 +782,8 @@ class TrackerResetsHandler(val tracker: Tracker) {
 
 	fun clearMounting() {
 		mountRotFix = Quaternion.IDENTITY
+		// Changes the reference frame; also covers manual mounting changes.
+		invalidateDriftInterval()
 	}
 
 	private fun fixGyroscope(sensorRotation: Quaternion): Quaternion = getYawQuaternion(sensorRotation).inv()
@@ -836,21 +842,24 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	}
 
 	/**
-	 * Calculates drift since last reset and store the data related to it in
-	 * driftQuat and timeAtLastReset
+	 * Records the yaw correction this reset applied since the previous one as a
+	 * drift observation, and starts the next interval.
 	 */
 	private fun calculateDrift(beforeQuat: Quaternion) {
 		val rotQuat = adjustToReference(tracker.getRawRotation())
+		val now = monotonicMs()
+		val deltaQuat = getYawQuaternion(rotQuat) / getYawQuaternion(beforeQuat)
+		// Signed shortest yaw in [-pi, pi]
+		val deltaYaw = deltaQuat.toEulerAngles(EulerOrder.YZX).y
 
 		// Auto-learn persistent drift rate across sessions if interval is valid (>30s)
-		if (tracker.isImu() && driftSince > 0) {
-			val elapsedMs = System.currentTimeMillis() - driftSince
+		val driftSince = driftModel.intervalStart
+		if (tracker.isImu() && driftSince != null) {
+			val elapsedMs = now - driftSince
 			val elapsedMin = elapsedMs / 60000.0f
 
 			if (tracker.config.autoLearnDrift && elapsedMin >= 0.5f) {
-				val deltaQuat = getYawQuaternion(rotQuat) / getYawQuaternion(beforeQuat)
-				val deltaEuler = deltaQuat.toEulerAngles(EulerOrder.YZX)
-				var deltaYawDeg = Math.toDegrees(deltaEuler.y.toDouble()).toFloat()
+				var deltaYawDeg = Math.toDegrees(deltaYaw.toDouble()).toFloat()
 				while (deltaYawDeg > 180f) deltaYawDeg -= 360f
 				while (deltaYawDeg < -180f) deltaYawDeg += 360f
 
@@ -871,91 +880,9 @@ class TrackerResetsHandler(val tracker: Tracker) {
 		}
 
 		if (driftCompensationEnabled) {
-			if (driftSince > 0 && System.currentTimeMillis() - timeAtLastReset > DRIFT_COOLDOWN_MS) {
-				// Check and remove from lists to keep them under the reset limit
-				if (driftQuats.size == driftQuats.capacity()) {
-					driftQuats.removeLast()
-					driftTimes.removeLast()
-				}
-
-				// Add new drift quaternion
-				driftQuats.add(getYawQuaternion(rotQuat) / getYawQuaternion(beforeQuat))
-
-				// Add drift time to total
-				driftTimes.add(System.currentTimeMillis() - driftSince)
-				totalDriftTime = 0
-				for (time in driftTimes) {
-					totalDriftTime += time
-				}
-
-				// Calculate drift Quaternions' weights
-				val driftWeights = ArrayList<Float>(driftTimes.size)
-				for (time in driftTimes) {
-					driftWeights.add(time.toFloat() / totalDriftTime.toFloat())
-				}
-
-				// Make it so recent Quaternions weigh more
-				for (i in driftWeights.size - 1 downTo 1) {
-					// Add some of i-1's value to i
-					driftWeights[i] = driftWeights[i] + driftWeights[i - 1] / driftWeights.size
-					// Remove the value that was added to i from i-1
-					driftWeights[i - 1] = driftWeights[i - 1] - driftWeights[i - 1] / driftWeights.size
-				}
-
-				// Set final averaged drift Quaternion
-				averagedDriftQuat = fromAveragedQuaternions(driftQuats, driftWeights)
-
-				// Save tracker rotation and current time
-				rotationSinceReset = driftQuats.latest
-				timeAtLastReset = System.currentTimeMillis()
-			} else if (System.currentTimeMillis() - timeAtLastReset < DRIFT_COOLDOWN_MS && driftQuats.size > 0) {
-				// Replace latest drift quaternion
-				rotationSinceReset *= (getYawQuaternion(rotQuat) / getYawQuaternion(beforeQuat))
-				driftQuats[driftQuats.size - 1] = rotationSinceReset
-
-				// Add drift time to total
-				driftTimes[driftTimes.size - 1] = driftTimes.latest + System.currentTimeMillis() - driftSince
-				totalDriftTime = 0
-				for (time in driftTimes) {
-					totalDriftTime += time
-				}
-
-				// Calculate drift Quaternions' weights
-				val driftWeights = ArrayList<Float>(driftTimes.size)
-				for (time in driftTimes) {
-					driftWeights.add(time.toFloat() / totalDriftTime.toFloat())
-				}
-
-				// Make it so recent Quaternions weigh more
-				for (i in driftWeights.size - 1 downTo 1) {
-					// Add some of i-1's value to i
-					driftWeights[i] = driftWeights[i] + driftWeights[i - 1] / driftWeights.size
-					// Remove the value that was added to i from i-1
-					driftWeights[i - 1] = driftWeights[i - 1] - driftWeights[i - 1] / driftWeights.size
-				}
-
-				// Set final averaged drift Quaternion
-				averagedDriftQuat = fromAveragedQuaternions(driftQuats, driftWeights)
-			} else {
-				timeAtLastReset = System.currentTimeMillis()
-			}
+			driftModel.onReset(deltaYaw, now)
+		} else {
+			driftModel.rebase(now)
 		}
-
-		driftSince = System.currentTimeMillis()
-	}
-
-	/**
-	 * Calculates and returns the averaged Quaternion
-	 * from the given Quaternions and weights.
-	 */
-	private fun fromAveragedQuaternions(
-		qn: CircularArrayList<Quaternion>,
-		tn: ArrayList<Float>,
-	): Quaternion {
-		var totalMatrix = qn[0].toMatrix() * tn[0]
-		for (i in 1 until qn.size) {
-			totalMatrix += (qn[i].toMatrix() * tn[i])
-		}
-		return totalMatrix.toQuaternion()
 	}
 }

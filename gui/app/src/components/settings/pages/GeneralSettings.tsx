@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DefaultValues, useForm } from 'react-hook-form';
 import {
   ChangeSettingsRequestT,
+  DriftCompensationSettingsT,
   FilteringSettingsT,
   FilteringType,
   LegTweaksSettingsT,
@@ -54,6 +55,7 @@ import { isEqual } from '@react-hookz/deep-equal';
 import { selectAtom } from 'jotai/utils';
 import { Dropdown } from '@/components/commons/Dropdown';
 import { ASSIGNMENT_MODES } from '@/components/onboarding/BodyAssignment';
+import { splitPendingEdits } from '@/utils/pending-settings-edits';
 
 export type SettingsForm = {
   trackers: {
@@ -72,6 +74,12 @@ export type SettingsForm = {
   filtering: {
     type: number;
     amount: number;
+  };
+  driftCompensation: {
+    enabled: boolean;
+    prediction: boolean;
+    amount: number;
+    maxResets: number;
   };
   toggles: {
     extendedSpine: boolean;
@@ -165,6 +173,12 @@ const defaultValues: SettingsForm = {
     interpKneeAnkle: 0.2,
   },
   filtering: { amount: 0.1, type: FilteringType.NONE },
+  driftCompensation: {
+    enabled: false,
+    prediction: false,
+    amount: 0.8,
+    maxResets: 6,
+  },
   tapDetection: {
     mountingResetEnabled: false,
     yawResetEnabled: false,
@@ -254,6 +268,8 @@ export function GeneralSettings() {
     trackers: { automaticTrackerToggle },
     telemetry,
     filtering: { type: filteringType },
+    driftCompensation: { enabled: driftEnabled },
+    stayAligned: { enabled: stayAlignedEnabled },
   } = watch();
 
   const openTelemetryFolder = async () => {
@@ -405,6 +421,15 @@ export function GeneralSettings() {
       settingsReq.filtering = filtering;
     }
 
+    if (includes('driftCompensation')) {
+      const drift = new DriftCompensationSettingsT();
+      drift.enabled = values.driftCompensation.enabled;
+      drift.prediction = values.driftCompensation.prediction;
+      drift.amount = values.driftCompensation.amount;
+      drift.maxResets = values.driftCompensation.maxResets;
+      settingsReq.driftCompensation = drift;
+    }
+
     if (includes('stayAligned')) {
       settingsReq.stayAligned = serializeStayAlignedSettings(
         values.stayAligned
@@ -454,6 +479,10 @@ export function GeneralSettings() {
 
     if (source.filtering) {
       formData.filtering = source.filtering;
+    }
+
+    if (source.driftCompensation) {
+      formData.driftCompensation = source.driftCompensation;
     }
 
     if (source.steamVrTrackers) {
@@ -586,24 +615,27 @@ export function GeneralSettings() {
 
   useRPCPacket(RpcMessage.SettingsResponse, (response: SettingsResponseT) => {
     setSettings(response);
+    const fresh = settingsToFormData(response);
     const merged = {
       ...getValues(),
-      ...settingsToFormData(response),
+      ...fresh,
     } as SettingsForm;
 
+    // Partial broadcasts (e.g. SteamVR-only) must not flush edits for
+    // sections they don't carry; those wait for a response that does.
     const edits = pendingEdits.current;
-    if (edits.size === 0) {
-      reset(merged);
-      return;
-    }
-    pendingEdits.current = new Map();
+    const { ready, waiting } = splitPendingEdits(
+      edits,
+      new Set(Object.keys(fresh))
+    );
+    pendingEdits.current = waiting;
+    // Keep every unsent edit visible, flushed or not.
+    edits.forEach((value, path) => setFormPath(merged, path, value));
+    reset(merged);
+    if (ready.size === 0) return;
 
     const sections = new Set<string>();
-    edits.forEach((value, path) => {
-      setFormPath(merged, path, value);
-      sections.add(path.split('.')[0]);
-    });
-    reset(merged);
+    ready.forEach((_, path) => sections.add(path.split('.')[0]));
     onSubmit(merged, sections);
   });
 
@@ -865,6 +897,72 @@ export function GeneralSettings() {
                 min={0.0}
                 max={0.5}
                 step={0.05}
+              />
+            </div>
+            <div className="flex flex-col pt-5 pb-3">
+              <Typography variant="section-title">
+                {l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation'
+                )}
+              </Typography>
+              <Typography>
+                {l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation-help'
+                )}
+              </Typography>
+            </div>
+            <div className="flex flex-col gap-3">
+              <CheckBox
+                variant="toggle"
+                outlined
+                control={control}
+                name="driftCompensation.enabled"
+                label={l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation-enabled-label'
+                )}
+              />
+              {driftEnabled && stayAlignedEnabled && (
+                <Typography color="text-status-warning">
+                  {l10n.getString(
+                    'settings-stay_aligned-warnings-drift_compensation'
+                  )}
+                </Typography>
+              )}
+              <CheckBox
+                variant="toggle"
+                outlined
+                disabled={!driftEnabled}
+                control={control}
+                name="driftCompensation.prediction"
+                label={l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation-prediction-label'
+                )}
+              />
+            </div>
+            <div className="flex gap-5 pt-5 md:flex-row flex-col">
+              <NumberSelector
+                control={control}
+                name="driftCompensation.amount"
+                disabled={!driftEnabled}
+                label={l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation-amount-label'
+                )}
+                valueLabelFormat={(value) => percentageFormat.format(value)}
+                min={0.1}
+                max={1.0}
+                step={0.1}
+              />
+              <NumberSelector
+                control={control}
+                name="driftCompensation.maxResets"
+                disabled={!driftEnabled}
+                label={l10n.getString(
+                  'settings-general-tracker_mechanics-drift_compensation-max_resets-label'
+                )}
+                valueLabelFormat={(value) => String(value)}
+                min={1}
+                max={30}
+                step={1}
               />
             </div>
             <div className="flex flex-col pt-5 pb-3">

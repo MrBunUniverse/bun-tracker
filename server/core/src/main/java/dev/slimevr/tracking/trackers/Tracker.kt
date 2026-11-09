@@ -188,6 +188,8 @@ class Tracker @JvmOverloads constructor(
 		// checks the tracker once it's back and asks for a reset only if it can't line it up.
 		if (allowReset && !old.reset && new.reset && !needReset && !recovery.handlesDropouts()) {
 			needReset = true
+			// A reboot may have moved the yaw reference; don't record it as drift.
+			resetsHandler.invalidateDriftInterval()
 		}
 
 		if (!isInternal && VRServer.instanceInitialized) {

@@ -277,13 +277,12 @@ export function TrackerSettingsPage() {
     return QuaternionFromQuatT(tracker?.tracker.info?.mountingOrientation);
   }, [tracker?.tracker.info?.mountingOrientation]);
 
+  // Mounting is left out: it only changes through onDirectionSelected, and
+  // re-sending it would clear automatic mounting on the server.
   const updateTrackerSettings = () => {
     if (!tracker) return;
     const assignreq = new AssignTrackerRequestT();
     assignreq.bodyPosition = tracker?.tracker.info?.bodyPart || BodyPart.NONE;
-    assignreq.mountingOrientation = currRotation
-      ? MountingOrientationDegreesToQuatT(currRotation)
-      : null;
 
     assignreq.displayName = trackerName ?? null;
     assignreq.trackerId = tracker?.tracker.trackerId;
@@ -297,7 +296,21 @@ export function TrackerSettingsPage() {
   };
 
   useDebouncedEffect(
-    () => updateTrackerSettings(),
+    () => {
+      const info = tracker?.tracker.info;
+      if (!info) return;
+      const serverProfile =
+        typeof info.imuProfileOverride === 'string'
+          ? info.imuProfileOverride
+          : 'auto';
+      // Only save real edits, not the initial load or a server echo.
+      const changed =
+        (trackerName ?? null) !==
+          ((info.customName as string | null) ?? null) ||
+        imuProfileOverride !== serverProfile ||
+        driftCorrectionEnabled !== (info.allowDriftCompensation ?? false);
+      if (changed) updateTrackerSettings();
+    },
     [trackerName, imuProfileOverride, driftCorrectionEnabled],
     500
   );
@@ -328,6 +341,10 @@ export function TrackerSettingsPage() {
     adaptiveState?.mode === AdaptiveDriftMode.DISABLED &&
     adaptiveState.freezeReason === AdaptiveDriftFreezeReason.PAUSED;
   const adaptiveCorrectionEnabled = driftCorrectionEnabled;
+  const adaptiveLearningOn = tracker?.tracker.info?.autoLearnDrift === true;
+  // Without measured observations the rate is only the IMU profile preset.
+  const driftRateMeasured =
+    (tracker?.tracker.info?.totalDriftObservations ?? 0) > 0;
 
   const learnedDriftDisplay = useMemo(() => {
     const learnedRate = tracker?.tracker.info?.learnedDriftRateDegPerMin;
@@ -699,8 +716,9 @@ export function TrackerSettingsPage() {
                         </span>
                       </div>
                       <Typography color="secondary">
-                        Learns persistent drift rates per IMU across sessions
-                        and applies startup baseline compensation.
+                        {adaptiveLearningOn
+                          ? 'Learns persistent drift rates per IMU across sessions and applies startup baseline compensation.'
+                          : 'Adaptive learning is off: nothing is learned or applied from this memory.'}
                       </Typography>
                     </div>
 
@@ -715,7 +733,9 @@ export function TrackerSettingsPage() {
                       </div>
                       <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
                         <Typography color="secondary">
-                          Learned Drift Rate
+                          {driftRateMeasured
+                            ? 'Measured Drift Rate'
+                            : 'Preset Drift Rate'}
                         </Typography>
                         <Typography bold className="text-accent-background-10">
                           {learnedDriftDisplay}
@@ -762,7 +782,7 @@ export function TrackerSettingsPage() {
                       </div>
                       <div className="flex flex-col gap-1 bg-background-70 p-3 rounded-lg">
                         <Typography color="secondary">
-                          Applied Correction
+                          Applied Correction (incl. global)
                         </Typography>
                         <Typography bold>
                           {adaptiveState

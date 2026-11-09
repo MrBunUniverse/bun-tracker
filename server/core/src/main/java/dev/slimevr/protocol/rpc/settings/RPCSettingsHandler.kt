@@ -3,6 +3,7 @@ package dev.slimevr.protocol.rpc.settings
 import com.google.flatbuffers.FlatBufferBuilder
 import dev.slimevr.bridge.ISteamVRBridge
 import dev.slimevr.config.ArmsResetModes
+import dev.slimevr.config.DriftCompensationConfig
 import dev.slimevr.config.ResetsConfig
 import dev.slimevr.filtering.TrackerFilters
 import dev.slimevr.protocol.GenericConnection
@@ -12,6 +13,7 @@ import dev.slimevr.tracking.processor.config.SkeletonConfigToggles
 import dev.slimevr.tracking.processor.config.SkeletonConfigValues
 import dev.slimevr.tracking.trackers.TrackerPosition
 import dev.slimevr.tracking.trackers.TrackerRole
+import io.eiren.util.logging.LogManager
 import solarxr_protocol.rpc.ChangeSettingsRequest
 import solarxr_protocol.rpc.ResetsSettings
 import solarxr_protocol.rpc.RpcMessage
@@ -87,15 +89,20 @@ class RPCSettingsHandler(var rpcHandler: RPCHandler, var api: ProtocolAPI) {
 			}
 		}
 
-		if (req.driftCompensation() != null) {
+		req.driftCompensation()?.let { drift ->
+			if (!DriftCompensationConfig.isValid(drift.amount(), drift.maxResets())) {
+				LogManager.warning("[RPCSettings] Ignoring invalid drift compensation settings: amount=${drift.amount()}, maxResets=${drift.maxResets()}")
+				return@let
+			}
 			val driftCompensationConfig = api.server.configManager
 				.vrConfig
 				.driftCompensation
-			driftCompensationConfig.enabled = req.driftCompensation().enabled()
-			driftCompensationConfig.prediction = req.driftCompensation().prediction()
-			driftCompensationConfig.amount = req.driftCompensation().amount()
-			driftCompensationConfig.maxResets = req.driftCompensation().maxResets()
-			driftCompensationConfig.updateTrackersDriftCompensation()
+			driftCompensationConfig.enabled = drift.enabled()
+			driftCompensationConfig.prediction = drift.prediction()
+			driftCompensationConfig.amount = drift.amount()
+			driftCompensationConfig.maxResets = drift.maxResets()
+			// Reset handlers' drift state belongs to the tracking thread.
+			api.server.queueTask { driftCompensationConfig.updateTrackersDriftCompensation() }
 		}
 
 		if (req.oscRouter() != null) {

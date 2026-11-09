@@ -38,6 +38,7 @@ const testFiles = [
   path.join(__dirname, 'pane-split.test.ts'),
   path.join(__dirname, 'canvas-resize.test.ts'),
   path.join(__dirname, 'wheel-zoom.test.ts'),
+  path.join(__dirname, 'pending-settings-edits.test.ts'),
 ];
 
 console.log('='.repeat(70));
