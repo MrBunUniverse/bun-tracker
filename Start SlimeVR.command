@@ -125,7 +125,7 @@ else
 fi
 
 # 2. USB dongle bridge (optional). SLIMEVR_DONGLE_PORT overrides detection; empty means none.
-DONGLE="${SLIMEVR_DONGLE_PORT-$(ls /dev/cu.usbserial* /dev/cu.usbmodem* 2>/dev/null | head -1)}"
+DONGLE="${SLIMEVR_DONGLE_PORT-$(ls /dev/cu.usbserial* /dev/cu.usbmodem* /dev/cu.wchusbserial* 2>/dev/null | head -1)}"
 PY=""
 if [ -n "$(owned_pids "$BRIDGE")" ]; then
 	echo "Dongle: bridge already running, leaving it as is."

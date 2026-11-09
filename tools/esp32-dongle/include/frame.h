@@ -11,7 +11,7 @@
 namespace frame {
 
 constexpr uint8_t END = 0xC0, ESC = 0xDB, ESC_END = 0xDC, ESC_ESC = 0xDD;
-constexpr uint8_t FROM_TRACKER = 1, TO_TRACKER = 2, STATUS = 3;
+constexpr uint8_t FROM_TRACKER = 1, TO_TRACKER = 2, STATUS = 3, CONTROL = 4; // CONTROL: bridge -> dongle, payload is a text command
 constexpr size_t HEADER = 7, MAX_PAYLOAD = 1472, MAX_RAW = HEADER + MAX_PAYLOAD + 2;
 constexpr size_t MAX_WIRE = 2 * MAX_RAW + 2;
 

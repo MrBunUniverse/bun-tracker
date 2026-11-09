@@ -8,6 +8,8 @@ Server replies on that socket go back down the serial link to the same tracker.
 
 Run:  python3 bridge.py [--port /dev/cu.usbserial-1110] [--baud 2000000]
 Test: python3 bridge.py --self-test
+Baud switch at runtime (falls back by itself): python3 bridge.py --ctl "baud 1000000"
+Flash mode (OTA for trackers, see README): python3 bridge.py --ctl "flash on" | "flash target <ip>" | "flash off" | status
 """
 import argparse
 import glob
@@ -25,11 +27,12 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 END, ESC, ESC_END, ESC_ESC = 0xC0, 0xDB, 0xDC, 0xDD
-FROM_TRACKER, TO_TRACKER, STATUS = 1, 2, 3
+FROM_TRACKER, TO_TRACKER, STATUS, CONTROL = 1, 2, 3, 4
 HEADER = 7
 # The ESP32 sends a status frame every 2 s, so this long without a single byte means it hung or
 # the USB link stalled. Reset it and reopen the port instead of sitting there silently.
 STALL_S = 6
+FLASH_STALL_S = 30
 
 
 def crc16(data):
@@ -81,7 +84,9 @@ def ping_id(payload):
     return None
 
 
-STATS_PORT = 6970
+STATS_PORT = 6970  # TCP: stats JSON for the GUI. The control channel below uses UDP on the same number.
+CTL_ADDR = ("127.0.0.1", 6970)
+WIFI_ENV = os.path.expanduser("~/.config/slimevr-dongle/wifi.env")
 HICCUP_MS = 750  # the server pings every 500 ms, so a tracker that is alive is never quiet this long
 SPIKE_MS = 100  # round trip above this is logged as a spike
 SNAPSHOT = {}  # latest stats, swapped whole by the bridge loop and served to the GUI
@@ -116,11 +121,64 @@ def parse_esp32(text):
     return out
 
 
+def read_wifi_env(path=WIFI_ENV):
+    """HOUSE_SSID / HOUSE_PASS from a KEY=VALUE file."""
+    out = {}
+    with open(path) as f:
+        for line in f:
+            k, sep, v = line.strip().partition("=")
+            if sep and not k.startswith("#"):
+                out[k.strip()] = v.strip().strip("\"'")
+    return out["HOUSE_SSID"], out["HOUSE_PASS"]
+
+
+def control_command(line):
+    """Control line -> CONTROL frame payload, or None for a line that is not a flash command.
+    'flash on' reads the house Wi-Fi credentials here, so they never travel through the ctl socket."""
+    words = line.split()
+    if words == ["flash", "on"]:
+        ssid, pw = read_wifi_env()
+        return f"flash on\n{ssid}\n{pw}".encode()
+    if words == ["flash", "off"]:
+        return b"flash off"
+    if len(words) == 3 and words[:2] == ["flash", "target"]:
+        socket.inet_aton(words[2])  # raises OSError for junk
+        if words[2].count(".") == 3:
+            return f"flash target {words[2]}".encode()
+    return None
+
+
+BAUD_RATES = (460800, 921600, 1000000, 1500000, 2000000)
+BAUD_WAIT_S = 4  # for the ack, then for the first valid frame at the new rate
+
+
+def baud_request(line):
+    """'baud <rate>' -> (rate, skip_confirm); None if not a baud command or the rate is not allowed.
+    'baud-noconfirm <rate>' is a hidden test hook that exercises the fallback."""
+    words = line.split()
+    if len(words) == 2 and words[0] in ("baud", "baud-noconfirm") and words[1].isdigit() and int(words[1]) in BAUD_RATES:
+        return int(words[1]), words[0] == "baud-noconfirm"
+    return None
+
+
+def ctl_client(line):
+    """Sends one command to the running bridge and prints its reply."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(3)
+    try:
+        sock.sendto(line.encode(), CTL_ADDR)
+        print(sock.recv(2048).decode())
+    except OSError as e:
+        sys.exit(f"no reply from the bridge on udp {CTL_ADDR[0]}:{CTL_ADDR[1]} ({e})")
+
+
 def run(port, baud, server):
     global SNAPSHOT
     import serial  # pyserial; only needed for the real bridge, not the self-test
 
     # Opening the port can reset the board, so it stays open for the whole session.
+    start_baud = baud  # the dongle boots at this rate, so every reset/reopen returns to it
+    bs = {"phase": None, "target": 0, "prev": baud, "deadline": 0, "skip": False, "result": "none"}
     ser = serial.Serial(port, baud, timeout=0)
     sel = selectors.DefaultSelector()
     sel.register(ser, selectors.EVENT_READ, None)
@@ -128,7 +186,8 @@ def run(port, baud, server):
 
     def reset_dongle():
         """Close, reopen and pulse EN (RTS) so the ESP32 reboots; waits if the cable is out."""
-        nonlocal ser, last_rx
+        nonlocal ser, last_rx, baud
+        baud, bs["phase"] = start_baud, None
         try:
             sel.unregister(ser)
         except (KeyError, ValueError):
@@ -139,7 +198,7 @@ def run(port, baud, server):
             pass
         while True:
             try:
-                ser = serial.Serial(port, baud, timeout=0)
+                ser = serial.Serial(port, start_baud, timeout=0)
                 ser.dtr, ser.rts = False, True  # boards with auto-reset wiring: RTS low holds EN down
                 time.sleep(0.1)
                 ser.rts = False
@@ -158,6 +217,14 @@ def run(port, baud, server):
     pings, rtts = {}, []  # (tracker, ping id) -> send time; round trips in ms since the last print
     per_tracker = {}  # tracker -> [round trips], packets up; printed every 10 s to spot one bad tracker
     last_print = last_detail = last_pub = time.monotonic()
+    ctl = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        ctl.bind(CTL_ADDR)
+        ctl.setblocking(False)
+        sel.register(ctl, selectors.EVENT_READ, "ctl")
+    except OSError as e:  # the bridge itself must keep working
+        print(f"bridge: control channel off ({e})", flush=True)
+    esp32_text = ""
     live, events, esp32, link_in = {}, [], {}, 0  # live: tracker -> stats for the GUI
     threading.Thread(target=serve_stats, daemon=True).start()
 
@@ -180,6 +247,20 @@ def run(port, baud, server):
                     last_rx = time.monotonic()
                 serial_in += len(chunk)
                 for kind, ip, tport, payload in dec.feed(chunk):
+                    if bs["phase"] == "wait" and not bs["skip"]:
+                        ser.write(encode(CONTROL, bytes(4), 0, b"baud confirm"))
+                        bs["phase"], bs["result"] = None, f"ok {baud}"
+                        print(f"bridge: baud {baud} confirmed", flush=True)
+                    if kind == STATUS and payload.startswith(b"baud-ack "):
+                        print(f"esp32: {payload.decode(errors='replace')}", flush=True)
+                        if bs["phase"] == "sent" and payload.split()[1] == str(bs["target"]).encode():
+                            bs["prev"], baud = baud, bs["target"]
+                            ser.baudrate = baud
+                            bs.update(phase="wait", deadline=time.monotonic() + BAUD_WAIT_S)
+                            last_rx = time.monotonic()
+                            dec.buf, dec.esc = bytearray(), False
+                            break  # the rest of this chunk was sent at the old rate
+                        continue
                     if kind == FROM_TRACKER:
                         sock = trackers.get((ip, tport))
                         if sock is None:
@@ -210,8 +291,40 @@ def run(port, baud, server):
                                 event((ip, tport), "spike", rtts[-1])
                     elif kind == STATUS:
                         text = payload.decode(errors="replace")
-                        esp32 = parse_esp32(text)
+                        esp32, esp32_text = parse_esp32(text), text
                         print(f"esp32: {text}", flush=True)
+            elif key.data == "ctl":
+                try:
+                    data, addr = ctl.recvfrom(256)
+                    line = data.decode(errors="replace").strip()
+                    if line == "status":
+                        reply = f"baud={baud} baud_result={bs['result']} | " + (esp32_text or "no status from the dongle yet")
+                    elif line.startswith("baud"):
+                        req = baud_request(line)
+                        if req is None:
+                            reply = "error: baud must be one of " + ", ".join(map(str, BAUD_RATES))
+                        elif bs["phase"] or req[0] == baud:
+                            reply = "error: baud switch already pending" if bs["phase"] else f"baud already {baud}"
+                        else:
+                            ser.write(encode(CONTROL, bytes(4), 0, f"baud {req[0]}".encode()))
+                            bs.update(phase="sent", target=req[0], skip=req[1], result=f"pending {req[0]}",
+                                      deadline=time.monotonic() + BAUD_WAIT_S)
+                            print(f"bridge: control: {line}", flush=True)
+                            reply = f"sent (poll stats baud / baud_result; falls back in {BAUD_WAIT_S}s on failure)"
+                    else:
+                        payload = control_command(line)
+                        if payload is None:
+                            reply = "error: use status, baud <rate>, flash on, flash target <ip>, or flash off"
+                        else:
+                            ser.write(encode(CONTROL, bytes(4), 0, payload))
+                            print(f"bridge: control: {line}", flush=True)
+                            reply = "sent"
+                except (OSError, KeyError, UnicodeError) as e:
+                    reply = f"error: {type(e).__name__}"  # never echo the exception: it may carry file contents
+                try:
+                    ctl.sendto(reply.encode(), addr)
+                except OSError:
+                    pass
             else:
                 ip, tport = key.data
                 try:
@@ -231,9 +344,20 @@ def run(port, baud, server):
                     continue
                 down += 1
 
-        if time.monotonic() - last_rx > STALL_S:
+        if bs["phase"] and time.monotonic() > bs["deadline"]:
+            print(f"bridge: baud {bs['target']} failed, back to {bs['prev'] if bs['phase'] == 'wait' else baud}", flush=True)
+            if bs["phase"] == "wait":
+                baud = bs["prev"]
+                ser.baudrate = baud
+                dec.buf, dec.esc = bytearray(), False
+                last_rx = time.monotonic()
+            bs.update(phase=None, result=f"failed {bs['target']}")
+
+        # A reset ends flash mode, so ride out the dongle's short stalls (seen when a tracker rejoins) there.
+        stall_s = FLASH_STALL_S if esp32.get("flash") in ("on", "joining") else STALL_S
+        if time.monotonic() - last_rx > stall_s:
             resets += 1
-            print(f"bridge: nothing from the ESP32 for {STALL_S}s, resetting it (reset #{resets})", flush=True)
+            print(f"bridge: nothing from the ESP32 for {stall_s}s, resetting it (reset #{resets})", flush=True)
             reset_dongle()
 
         if time.monotonic() - last_print >= 2:
@@ -259,7 +383,7 @@ def run(port, baud, server):
                     "rtt_max": round(max(rs)) if rs else None, "hiccups": lt["hiccups"], "spikes": lt["spikes"],
                 })
                 lt["n"], lt["gap"], lt["rtts"] = 0, 0, []
-            SNAPSHOT = {"time": time.time(), "port": port, "baud": baud, "up": up, "down": down,
+            SNAPSHOT = {"time": time.time(), "port": port, "baud": baud, "baud_result": bs["result"], "up": up, "down": down,
                                      "bad_frames": dec.bad_frames, "link_in": round(link_in), "esp32": esp32,
                                      "trackers": rows, "events": list(events)}
 
@@ -285,6 +409,23 @@ def self_test():
     assert frames == [(FROM_TRACKER, ip, port, payload)] * 2, frames
     assert dec.bad_frames == 2, dec.bad_frames  # the boot noise plus the corrupted frame
 
+    ctl_wire = encode(CONTROL, bytes(4), 0, b"flash on\nsome ssid\npass\xc0")
+    assert list(Decoder().feed(ctl_wire)) == [(CONTROL, bytes(4), 0, b"flash on\nsome ssid\npass\xc0")]
+    assert control_command("flash target 192.168.4.2") == b"flash target 192.168.4.2"
+    assert control_command("flash off") == b"flash off" and control_command("nonsense") is None
+    for bad in ("flash target 1.2.3", "flash target 192.168.4.2;x"):
+        try:
+            assert control_command(bad) is None
+        except OSError:
+            pass
+
+    assert baud_request("baud 1000000") == (1000000, False) and baud_request("baud-noconfirm 921600") == (921600, True)
+    for bad in ("baud 115200", "baud", "baud abc", "baud 2000000 x", "baudx 921600"):
+        assert baud_request(bad) is None, bad
+    assert control_command("baud 1000000") is None  # baud never goes through the flash parser
+    ack = encode(STATUS, bytes(4), 0, b"baud-ack 1000000")
+    assert list(Decoder().feed(ack)) == [(STATUS, bytes(4), 0, b"baud-ack 1000000")]
+
     ping = b"\x00\x00\x00\x0a" + bytes(8) + b"\x12\x34\x56\x78"
     assert ping_id(ping) == b"\x12\x34\x56\x78" and ping_id(b"\x00\x00\x00\x01" + bytes(12)) is None
 
@@ -297,20 +438,25 @@ def self_test():
         assert cpp_wire == wire.hex(), (cpp_wire, wire.hex())
         out = subprocess.run([exe, "decode", (wire + bytes(corrupt)).hex()], capture_output=True, text=True, check=True).stdout
         assert out == f"1 192.168.4.2 {port} {payload.hex()}\nbad=1\n", out
+        out = subprocess.run([exe, "decode", ctl_wire.hex()], capture_output=True, text=True, check=True).stdout
+        assert out.startswith("4 0.0.0.0 0 ") and out.endswith("\nbad=0\n"), out
     print("self-test ok")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--port", help="serial port (default: first /dev/cu.usbserial* or /dev/cu.usbmodem*)")
+    ap.add_argument("--port", help="serial port (default: first /dev/cu.usbserial*, /dev/cu.usbmodem* or /dev/cu.wchusbserial*)")
     ap.add_argument("--baud", type=int, default=2000000, help="must match DONGLE_BAUD in platformio.ini")
     ap.add_argument("--server", default="127.0.0.1:6969")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--ctl", metavar="CMD", help='send a command to the running bridge: status, "flash on", "flash target <ip>", "flash off"')
     args = ap.parse_args()
 
     if args.self_test:
         return self_test()
-    port = args.port or next(iter(sorted(glob.glob("/dev/cu.usbserial*") + glob.glob("/dev/cu.usbmodem*"))), None)
+    if args.ctl:
+        return ctl_client(args.ctl)
+    port = args.port or next(iter(sorted(glob.glob("/dev/cu.usbserial*") + glob.glob("/dev/cu.usbmodem*") + glob.glob("/dev/cu.wchusbserial*"))), None)
     if not port:
         sys.exit("No dongle found. Plug in the ESP32 or pass --port.")
     host, _, sport = args.server.rpartition(":")
