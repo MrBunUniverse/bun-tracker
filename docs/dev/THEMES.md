@@ -1,6 +1,8 @@
 # Adding a special theme
 
-Special themes live in `gui/app`. Bun, Fox and Dog are the PawPad ones. They share one layout: the Bun-scoped rules in `index.scss` use `:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])`, and components check `isPawTheme()` from `hooks/config.ts`.
+Special themes live in `gui/app`. Bun, Fox and Dog are the PawPad ones. They share one layout: the Bun-scoped rules in `index.scss` use `:root:is([data-theme='bun'], [data-theme='fox'], [data-theme='dog'])`, and components check `isPawTheme()` from `hooks/theme.ts`.
+
+There is no colour-palette picker and no Default option. A saved theme that is not in `PAW_THEMES` (older `claude`, `macos`, `slime-*`, `dark`, `trans`, `asexual`, `snep`, or none) loads as Bun through `normalizeTheme()`. The base `:root` tokens in `index.scss` stay as the pre-theme paint.
 
 ## Checklist
 
@@ -15,7 +17,7 @@ Special themes live in `gui/app`. Bun, Fox and Dog are the PawPad ones. They sha
 
    It exits 1 and lists every colour token still missing. Fix them all before testing.
 3. **Add the option** to `gui/app/src/components/settings/pages/SpecialThemesSettings.tsx`, with its strings in `gui/app/public/i18n/en/translation.ftl`.
-4. **Check the light/night toggle.** `ThemeModeToggle` is hidden for every PawPad theme. A new PawPad-style theme goes in `PAW_THEMES` (`hooks/config.ts`) and in the shared `:root:is(...)` selectors; any other special theme needs its own check in `ThemeModeToggle`.
+4. **Register it as a PawPad theme.** Add the name to `PAW_THEMES` (`hooks/theme.ts`) and to the shared `:root:is(...)` selectors in `index.scss`.
 5. **Check the pages that hardcode colours.** These don't follow any theme:
    - `components/settings/pages/Serial.tsx` (`bg-[#100E0B]`)
    - `components/remote/RemotePage.tsx` (`bg-[#1B1915]`, `bg-white`)

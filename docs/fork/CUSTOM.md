@@ -40,8 +40,6 @@ The frontend calls these, but the Tauri shell does not provide them yet. The fro
 
 | Capability | Contract member | Current behavior |
 | --- | --- | --- |
-| Quest streaming, Wi-Fi ADB, scrcpy install | `questCapture` | The Remote page says Quest streaming is unavailable and disables those controls. |
-| Quest audio | `questAudio` | Not available. |
 | Mac built-in dictation | `transcribeNativeSpeech`, `requestMicrophoneAccess` | Dictation says Mac speech is unavailable and points to Groq. |
 | Tray actions | `onTrayReset`, `onTrayElevationStep`, `onTrayElevationReset` | No tray yet. `tauri` is built without `tray-icon`. |
 | Discord presence | `setPresence` | No-op in the shim. |
@@ -54,17 +52,11 @@ Known gaps that are not contract members:
 - The udev rules file `gui/tauri/resources/69-slimevr-devices.rules` is not placed in the app's install directory, which is where `UdevRulesModal` reads it.
 - `flake.nix` still describes the Electron build (`pkgs.electron`, electron-builder, `ELECTRON_*`). It has not been validated against the Tauri app, so treat the Nix shell as unverified.
 
-### Quest restoration plan
+### Quest streaming
 
-This is separate behavior work and needs a real headset to accept. Restore it in this order, one capability per change:
+Quest capture lives in the separate Quest StreamCast app, not in this repository. The old in-app Quest capture settings page was removed; `/settings/quest-capture` redirects to Settings. The Remote page is a control panel for it; video, audio engines and advanced settings stay in that app, so nothing here starts `adb` or `scrcpy`.
 
-1. Bring back the process-owning pieces from commit `7ce72074` as Tauri commands in their own module under `gui/tauri/src/`: ADB detection and connection, then scrcpy, then audio.
-2. Add a shim entry only once a command works, so `questNative` stays false until the feature is real.
-3. Add the matching capabilities, and validate all input at the IPC boundary. Never start `adb` or `scrcpy` from a path the frontend supplies.
-4. Stop only the processes the app started, matched by exact path. Never stop ADB or scrcpy globally.
-5. Accept each step on a real Quest: connect, stream, audio, stop, and quit cleanup.
-
-Speech and tray follow the same steps.
+`gui/tauri/src/streamcast.rs` talks to the app over `~/Library/Application Support/QuestStreamCast/control/control.sock`, a per-user Unix socket with one JSON line each way. Commands are a closed list. The protocol number is `PROTOCOL` there, `SUPPORTED_PROTOCOL` in `RemotePage.tsx`, and `ControlBridge.version` in StreamCast; change them together. Leaving the page or quitting SlimeVR sends nothing, so a running stream continues.
 
 ## Removed from upstream
 

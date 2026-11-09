@@ -9,7 +9,7 @@ SlimeVR is a focused desktop control surface for live body tracking. It should f
 - Dark blue-gray surfaces with warm-gray text, navy depth, and one warm amber
   action color from the supplied palette.
 - Thin outlines, restrained shadows, and clear grouping.
-- Side navigation and a top toolbar inspired by macOS desktop apps.
+- Top navigation and a toolbar inspired by macOS desktop apps.
 - Compact cards, tabs, drawers, and mobile sheets.
 - Monochrome line icons with consistent visual weight.
 
@@ -34,8 +34,8 @@ SlimeVR is a focused desktop control surface for live body tracking. It should f
 - Rhythm: 3. Vary composition by task; avoid repeated dashboard cards.
 - Motion: 1. Short feedback transitions only. No perpetual decorative motion.
 
-The reference theme disables decorative contour loops; live-state motion and
-explicit interaction feedback remain available.
+Decorative contour loops stay off; live-state motion and explicit interaction
+feedback remain available.
 
 ## Palette direction
 
@@ -51,13 +51,14 @@ Use semantic tokens, not raw colors in components.
 - Status: explicit label plus icon and color. Red and green remain semantic
   exceptions where users need to recognize health quickly.
 
-The dark theme remains supported. Light reference colors must pass contrast checks before release.
+The only themes are Bun, Fox and Dog (`docs/dev/THEMES.md`); the colors above
+are a historical reference. Theme colors must pass contrast checks before release.
 
 ## Acceptance gates
 
 - Existing routes and deep links still resolve.
 - Tracker discovery, resets, calibration, WebSocket updates, and native actions remain behaviorally unchanged. Capabilities the Tauri shell does not provide stay reported as unavailable.
-- The side navigation is keyboard reachable, has visible focus, and does not cover scrollable content.
+- The top navigation is keyboard reachable, has visible focus, and does not cover scrollable content.
 - Primary yellow actions meet WCAG AA contrast; status never depends on color alone.
 - Reduced motion and reduced transparency still produce usable layouts.
 - No new UI dependency is introduced without a measured interaction or maintenance benefit.

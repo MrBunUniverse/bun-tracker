@@ -1,6 +1,6 @@
 # SlimeVR Server (SJ fork)
 
-Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, and the SolarXR protocol.
+Kotlin tracking server, Tauri/React GUI (Bun Tracker), Quest integration, and the SolarXR protocol.
 
 ## Priorities
 
@@ -11,7 +11,7 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 
 ## Current UI: edit only this copy
 
-- The live UI is the Tauri SlimeVR Spike. Frontend: `gui/app/src/` (styles in `src/index.scss`). Tauri shell: `gui/tauri/`. It runs from the main checkout on `main`; `Start SlimeVR.command` starts it with Vite on port 5173 and hot reload.
+- The live UI is Bun Tracker (the Tauri app). Frontend: `gui/app/src/` (styles in `src/index.scss`). Tauri shell: `gui/tauri/`. It runs from the main checkout on `main`; `Start SlimeVR.command` starts it with Vite on port 5173 and hot reload.
 - Edit only that copy. Do not edit the retired Electron GUI (recoverable from git history), the old `tauri-spike/` layout (recoverable from the `checkpoint/pre-restructure` tag), any archived copy, or a copy in another worktree.
 - From a session worktree, edits reach the running app only after they are committed on the session branch and fast-forwarded into `main` (`git -C <main checkout> merge --ff-only <branch>`). Check `git status` in a worktree before removing it.
 
@@ -27,7 +27,7 @@ Kotlin tracking server, Tauri/React GUI (the SlimeVR Spike), Quest integration, 
 | Desktop server | `server/desktop/` | Desktop entry point and packaged JAR |
 | Protocol | `solarxr-protocol/` | Git submodule; FlatBuffers and generated libraries |
 | OpenVR bindings | `bindings-provider/` | Includes the `openvr` submodule |
-| Launcher | `Start SlimeVR.command` (repo root) | Starts the server, dongle bridge, and Spike |
+| Launcher | `Start SlimeVR.command` (repo root) | Starts the server, dongle bridge, and Bun Tracker |
 | GUI tools | `tools/gui/` | Theme token check, resource measurement, icon source |
 | Fork notes | `docs/fork/` | `CUSTOM.md` feature inventory, `UPSTREAM.md` merge and rollback workflow |
 | Documentation | `docs/` | Start at `docs/README.md` |
@@ -45,7 +45,7 @@ Run from the repo root unless noted.
 | GUI lint | `cd gui/app && pnpm run lint` |
 | GUI tests | `cd gui/app && pnpm test` |
 | GUI build | `cd gui/app && pnpm run build` |
-| GUI dev and launch | `bash "Start SlimeVR.command"` (server, dongle bridge, and Spike; Vite on 5173) |
+| GUI dev and launch | `bash "Start SlimeVR.command"` (server, dongle bridge, and Bun Tracker; Vite on 5173) |
 | Server tests + jar | `./gradlew :server:core:test :server:desktop:shadowJar` |
 | Protocol build | `cd solarxr-protocol && pnpm run build` |
 | Theme token check | `python3 tools/gui/check-theme-tokens.py bun` |
