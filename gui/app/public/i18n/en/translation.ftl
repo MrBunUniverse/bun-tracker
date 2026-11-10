@@ -1847,7 +1847,9 @@ settings-user_agreement-help-title = If something goes wrong
 settings-user_agreement-help =
     Please don't take problems with Bun Tracker to the SlimeVR developers, their Discord, or their GitHub. Many of the changes in this version are mine, so an issue you run into may not exist in SlimeVR at all.
     Message me on Discord instead: <discord>jamevm</discord> (SirJame). You can also find me by searching "jamevm" in Discord's Add Friend.
+settings-user_agreement-ai-title = AI-assisted ("vibe coding")
+settings-user_agreement-ai = Much of Bun Tracker's own code and docs (the changes on top of SlimeVR) was written with help from AI coding assistants, a way of working often called "vibe coding". I direct the work, test it on my own setup and review what goes in, but I'm not a professional software developer, and the code hasn't been through a professional or SlimeVR review. So it may contain bugs, odd behavior or mistakes that a careful human review would have caught, and you should treat it as experimental. Please don't rely on it where a tracking error could hurt you or others, and play in a safe, clear space. The original SlimeVR code it builds on was written by the SlimeVR team, not by AI. AI involvement applies only to my changes, and SlimeVR's license and copyright notices still apply.
 settings-user_agreement-warranty-title = No guarantees
 settings-user_agreement-warranty = I look after Bun Tracker in my spare time and share it as-is, without any warranty. I'll do my best to help when something breaks, but please use it at your own risk.
 settings-user_agreement-agreement-title = In short
-settings-user_agreement-agreement = By using Bun Tracker, you agree to the points above and to treat the original SlimeVR developers with the respect their work deserves. Thank you for using it.
+settings-user_agreement-agreement = By using Bun Tracker, you agree to the points above, including that parts of it are AI-assisted and provided as-is, and to treat the original SlimeVR developers with the respect their work deserves. Thank you for using it.

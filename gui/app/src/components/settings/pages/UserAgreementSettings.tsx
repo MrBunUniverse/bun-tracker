@@ -9,7 +9,7 @@ import { FileIcon } from '@/components/commons/icon/FileIcon';
 
 const DISCORD_PROFILE_URL = 'https://discord.com/users/390812634481688576';
 
-const sections = ['about', 'credit', 'help', 'warranty', 'agreement'];
+const sections = ['about', 'credit', 'help', 'ai', 'warranty', 'agreement'];
 
 export function UserAgreementSettings() {
   const { l10n } = useLocalization();
