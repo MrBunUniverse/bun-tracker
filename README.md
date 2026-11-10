@@ -1,73 +1,70 @@
 # Bun Tracker
 
-A SlimeVR-compatible tracking server and desktop app, forked from the [SlimeVR server](https://github.com/SlimeVR/SlimeVR-Server) for full-body tracking. It has a redesigned desktop app, some tracker reliability changes, and tools for using a Meta Quest with VRChat.
+Bun Tracker is my personal version of [SlimeVR Server](https://github.com/SlimeVR/SlimeVR-Server), the open-source software that turns body trackers into full-body tracking for VR. I adapted it for my own setup and share it with friends and a few people I trust.
 
-**This is an early work in progress.** Things are unfinished and change often. It is only tested on macOS. It is not an official SlimeVR release and is not affiliated with the SlimeVR team.
+**This is an early work in progress.** Things are unfinished and change often. It is only tested on macOS. It is an unofficial project: it is not a SlimeVR release and is not affiliated with the SlimeVR team.
 
-## What's in the repo
+## What's different from SlimeVR
 
-| Folder | What it is |
-| :--- | :--- |
-| `server/` | The tracking server, written in Kotlin. It takes tracker data over UDP and sends out poses and OSC. |
-| `gui/` | The desktop app (Bun Tracker): the React and TypeScript interface in `gui/app/`, the Tauri shell in `gui/tauri/`, and the native API contract in `gui/shared/`. |
-| `solarxr-protocol/` | The message format between the server and the app. A submodule, from [SJ-SolarXR-Protocol](https://github.com/MrBunUniverse/SJ-SolarXR-Protocol). |
-| `bindings-provider/` | OpenVR bindings. |
-| `docs/` | Notes and guides. Start at [`docs/README.md`](docs/README.md). |
+### The desktop app
 
-## What's different from upstream
+- A redesigned interface, with a top navigation bar and a navy, gray and amber look.
+- Tracker cards in place of plain rows, which adapt to the window width.
+- Three themes: Bun, Fox and Dog.
+- A microphone picker for the voice features.
+- A built-in User Agreement page under Settings.
 
-- A new desktop interface.
-- Tracker reconnect handling and drift compensation.
-- Meta Quest and VRChat OSC tools.
-- More tests.
+### Tracking
 
-Still missing: Windows and Linux testing, installers, and more polish. See the [changelog](CHANGELOG.md) for details.
+- Drift compensation keeps trackers aligned over long sessions, with settings you can adjust. It can be switched on for all trackers at once.
+- Resets know about your posture, including a yaw reset for when you are lying down.
+- A tracker that drops out can rejoin more smoothly instead of snapping back.
+- An automatic full reset option.
+- A foot-slide clamp that reduces feet sliding across the floor.
+- A stability estimate for each tracker, and smoother handling of uneven network timing.
 
-## Setup
+### Hardware
 
-You need JDK 17 (the Gradle toolchain targets 17), Node.js 22 (see `.node-version`), [pnpm](https://pnpm.io), and a Rust toolchain for the Tauri shell.
+- Support for an ESP32 USB dongle as a tracker receiver.
+- Over-the-air tracker updates through the dongle, including a Wi-Fi flash mode, so trackers can be updated without opening them up.
 
-```bash
-git clone --recurse-submodules https://github.com/MrBunUniverse/SJ-SlimeVR-Server-Custom.git
-cd SJ-SlimeVR-Server-Custom
-pnpm install --frozen-lockfile
-```
+### VRChat and Meta Quest
 
-On macOS, build the server jar first, then start everything from the repo root:
+- VRChat chatbox tools: show what Apple Music is playing, a BPM readout, and voice dictation into the chatbox.
+- A remote page that controls the separate Quest StreamCast app.
 
-```bash
-./gradlew :server:desktop:shadowJar
-pnpm start                            # same as: bash "Start SlimeVR.command" (or double-click the file in Finder)
-```
+### Privacy
 
-The launcher starts the server, the USB dongle bridge if an ESP32 is plugged in, and Bun Tracker with hot reload, the default way to run the app. Bun Tracker loads its frontend from Vite on port 5173, so saved edits under `gui/app/src/` are picked up without a rebuild. To stop, press Ctrl+C in its Terminal window or close the window. It stops only what that window started; anything already running is left alone. The launcher finds a Python interpreter with pyserial for the optional dongle bridge; set `SLIMEVR_PYTHON` to choose one explicitly.
+- No error reporting or usage data is sent to SlimeVR, and there is no update check against upstream.
 
-The WebSocket API on port 21110 listens on loopback by default. To allow native clients on a trusted LAN, set `websocketApiAllowRemote: true` under the existing `server:` section of `vrconfig.yml`, then restart the server. Remote access has no authentication: any client that can reach this port can send RPC commands and change settings. Browser connections also require a local Origin; this setting does not enable a browser UI hosted at a LAN address.
+## Not done yet
 
-## Development
+- Windows and Linux are untested.
+- There are no installers.
+- Some native features are switched off for now: the system tray, Mac built-in dictation, and Discord presence. The app tells you when one is unavailable.
 
-Run these from the repo root:
+Developer notes are in [`docs/`](docs/README.md). The full list of changes is in the [changelog](CHANGELOG.md).
 
-```bash
-pnpm start                            # hot-reload launcher: server, dongle bridge, and Bun Tracker (Vite on 5173)
-pnpm build                            # build the Bun Tracker app bundle (Tauri; runs the Vite build first)
-pnpm lint                             # GUI type check, ESLint, and Prettier on src/
-pnpm test                             # GUI test suites (Node 22)
-pnpm verify                           # all quick checks; add --full for server, protocol, and the app
-./gradlew :server:desktop:shadowJar   # build the server jar the launcher runs
-./gradlew :server:core:test           # run server tests
-```
+## User Agreement
 
-The default Tauri build produces the native `.app` on macOS; it does not create a DMG installer.
+This is the same text as in the app under Settings > User Agreement.
 
-`pnpm --dir gui/app build` builds only the Vite frontend into `gui/app/dist/`, which is what the Tauri shell packages.
+**About Bun Tracker.** Bun Tracker is my personal version of SlimeVR Server, adapted for my own setup and shared with friends and a few people I trust. It's an unofficial project. SlimeVR and its developers didn't make it, don't support it, and aren't connected to it in any way.
 
-See the [contributing guide](docs/CONTRIBUTING.md) for more.
+**Credit where it's due.** SlimeVR Server is the work of the SlimeVR team and its many contributors, and nearly everything here is built on what they made. I don't claim their work as my own. All credit for the original project belongs to them, and its Apache 2.0 license and copyright notices still apply.
 
-## Credits and license
+**If something goes wrong.** Please don't take problems with Bun Tracker to the SlimeVR developers, their Discord, or their GitHub. Many of the changes in this version are mine, so an issue you run into may not exist in SlimeVR at all. Message me on Discord instead.
 
-Based on the work of the [SlimeVR](https://slimevr.dev) project and its contributors. SlimeVR is a trademark of its owners; see [docs/TRADEMARK.md](docs/TRADEMARK.md).
+**No guarantees.** I look after Bun Tracker in my spare time and share it as-is, without any warranty. I'll do my best to help when something breaks, but please use it at your own risk.
 
-This fork's changes to the upstream files are listed in [docs/fork/CUSTOM.md](docs/fork/CUSTOM.md) and in the git history.
+**In short.** By using Bun Tracker, you agree to the points above and to treat the original SlimeVR developers with the respect their work deserves. Thank you for using it.
+
+## Contact
+
+Discord: `jamevm` (SirJame). [Open my profile](https://discord.com/users/390812634481688576), or search "jamevm" in Discord's Add Friend.
+
+## License
+
+Based on the work of the [SlimeVR](https://slimevr.dev) project and its contributors ([SlimeVR-Server](https://github.com/SlimeVR/SlimeVR-Server)). SlimeVR is a trademark of its owners; see [docs/TRADEMARK.md](docs/TRADEMARK.md).
 
 The root [LICENSE](LICENSE) is Apache 2.0. Server code is MIT, and new contributions are licensed under both, as upstream does. Details are in [`docs/licenses/`](docs/licenses) and [`server/LICENSE.md`](server/LICENSE.md).

@@ -40,6 +40,15 @@ be at `server/desktop/build/libs/slimevr.jar` (you can ignore `server.jar`).
 - Install all JavaScript dependencies once, from the repository root, with `pnpm install --frozen-lockfile`.
 - Run `pnpm start` from the repository root for the server, optional dongle bridge, and Tauri app with hot reload.
 - Run `pnpm build` from the repository root to build the Tauri app. On macOS, the bundle is in `gui/tauri/target/release/bundle/macos/`.
+  - The launcher starts the server (build the jar first with `./gradlew :server:desktop:shadowJar`), the USB dongle bridge if an ESP32 is plugged in, and Bun Tracker. The app loads its frontend from Vite on port 5173, so saved edits under `gui/app/src/` appear without a rebuild. Press Ctrl+C in its Terminal window, or close the window, to stop; it stops only what that window started. `pnpm start` is the same as `bash "Start SlimeVR.command"`.
+  - The launcher looks for a Python with pyserial for the optional dongle bridge; set `SLIMEVR_PYTHON` to choose one.
+- The default Tauri build produces the native `.app` on macOS; it does not create a DMG installer. `pnpm --dir gui/app build` builds only the Vite frontend into `gui/app/dist/`, which the Tauri shell packages.
+- Other root commands: `pnpm lint` (type check, ESLint, Prettier), `pnpm test` (GUI suites), `pnpm verify` (all quick checks; add `--full` for server, protocol and the app), `./gradlew :server:core:test` (server tests).
+- Node.js 22 is pinned in `.node-version`. The Gradle toolchain targets Java 17.
+
+### WebSocket API access
+
+The WebSocket API on port 21110 listens on loopback by default. To allow native clients on a trusted LAN, set `websocketApiAllowRemote: true` under the existing `server:` section of `vrconfig.yml`, then restart the server. Remote access has no authentication: any client that can reach this port can send RPC commands and change settings. Browser connections also require a local Origin; this setting does not enable a browser UI hosted at a LAN address.
 
 ## Code style
 
