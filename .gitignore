@@ -53,3 +53,6 @@ vrconfig.yml.tmp
 /.claude/settings.json.pre-restructure
 /.claude/ui-map.md.pre-restructure
 /.claude/slimevr-dev-skill-pre-restructure.tgz
+
+# Full flash dumps hold Wi-Fi credentials; keep them local only.
+firmware_backups/**/*.bin
