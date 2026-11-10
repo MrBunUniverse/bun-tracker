@@ -1,50 +1,56 @@
-// One surface with hairline rows, in the theme's colours. Quiet at rest:
-// a moving tracker gets a thin motion bar on the left, not a glow.
+// Each row is a horizontal tracker card: the cards' surface, border and radius, a dimmed offline state and
+// the same top-lit motion rim.
 .tracker-list {
-  .tracker-list-body {
-    overflow: hidden;
-    border-radius: 12px;
-    background: rgb(var(--background-60));
-    box-shadow: inset 0 0 0 1px rgba(var(--background-10), 0.06);
-  }
-
   .tracker-list-row {
-    min-height: 52px;
+    position: relative;
+    min-height: 56px;
     cursor: pointer;
-    border-bottom: 1px solid rgba(var(--background-10), 0.06);
-    box-shadow: inset 3px 0 0 0 transparent;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--background-10), 0.16);
+    background: rgb(var(--background-60));
     transition:
-      background-color 150ms ease,
-      box-shadow 300ms ease;
+      border-color 300ms ease,
+      opacity 300ms ease,
+      filter 300ms ease;
 
     &:hover {
-      background: rgba(var(--background-10), 0.04);
+      border-color: rgba(var(--background-10), 0.3);
     }
 
     &:focus-visible {
       outline: 2px solid rgb(var(--accent-background-30));
-      outline-offset: -2px;
+      outline-offset: 2px;
     }
 
-    &.tracker-list-row-moving {
-      box-shadow: inset 3px 0 0 0 rgb(var(--motion));
+    &.tracker-list-row-offline {
+      opacity: 0.4;
+      filter: grayscale(1);
 
-      .tracker-list-icon {
-        color: rgb(var(--motion));
-        fill: rgb(var(--motion));
+      &:hover {
+        opacity: 0.75;
       }
     }
-  }
 
-  .tracker-list-body > div:last-child .tracker-list-row {
-    border-bottom: 0;
+    .tracker-motion-rim {
+      border-radius: inherit;
+    }
+
+    .pixel-icon {
+      filter: none;
+    }
+
+    &.tracker-card-moving .tracker-accent {
+      filter: drop-shadow(
+        0 0 calc(1px + var(--motion-level, 0) * 3px)
+          rgba(var(--motion), calc(0.2 + var(--motion-level, 0) * 0.45))
+      );
+    }
   }
 
   .tracker-list-icon {
-    width: 32px;
-    height: 32px;
-    color: rgb(var(--background-20));
-    fill: rgb(var(--background-20));
+    width: 36px;
+    height: 36px;
   }
 
   .tracker-list-name .glass-pill {

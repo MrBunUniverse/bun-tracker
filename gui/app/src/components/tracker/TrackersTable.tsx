@@ -1,15 +1,21 @@
 import classNames from 'classnames';
 import './TrackersTable.scss';
 import { IPv4 } from 'ip-num';
-import { ReactNode, useMemo } from 'react';
+import { CSSProperties, ReactNode, useMemo, useRef } from 'react';
 import { useConfig } from '@/hooks/config';
-import { useTracker } from '@/hooks/tracker';
+import { useElemSize } from '@/hooks/layout';
+import { fitColumns } from '@/utils/table-columns';
+import { useMotionGlow, useTracker } from '@/hooks/tracker';
 import { BodyPartIcon } from '@/components/commons/BodyPartIcon';
 import { Typography } from '@/components/commons/Typography';
 import { formatVector3 } from '@/utils/formatting';
-import { TrackerBattery } from './TrackerBattery';
 import { TrackerStatus } from './TrackerStatus';
-import { TrackerWifi } from './TrackerWifi';
+import {
+  BatteryBar,
+  SignalPing,
+  trackerProblems,
+} from '@/components/home/HomeEmptyState';
+import { batteryRedness } from '@/utils/battery-cells';
 import { FlatDeviceTracker, trackerDetailCountAtom } from '@/store/app-store';
 import { useFeedDemand } from '@/hooks/feed-demand';
 import { StayAlignedInfo } from '@/components/stay-aligned/StayAlignedInfo';
@@ -41,9 +47,13 @@ const getTrackerName = ({ tracker }: FlatDeviceTracker) =>
 export function TrackerNameCell({
   tracker,
   warning,
+  moving,
+  problems = [],
 }: {
   tracker: TrackerDataT;
   warning: TrackingChecklistStepT | boolean;
+  moving?: boolean;
+  problems?: { label: string; tone: string }[];
 }) {
   const { useName } = useTracker(tracker);
 
@@ -51,36 +61,49 @@ export function TrackerNameCell({
 
   return (
     <div className="tracker-list-name flex items-center gap-3 min-w-0">
-      <div className="tracker-list-icon flex shrink-0 justify-center items-center relative">
+      <div className="flex shrink-0 justify-center items-center relative">
         {warning && (
           <div className="absolute -left-2 -top-1 text-status-warning ">
             <WarningIcon width={16} />
           </div>
         )}
-        <div
+        <span
           className={classNames(
-            'border-[2px] border-opacity-80 rounded-md overflow-clip',
-            {
-              'border-status-warning': warning,
-              'border-transparent': !warning,
-            }
+            'tracker-accent tracker-list-icon flex items-center justify-center rounded-[6px] border-[2px]',
+            warning ? 'border-status-warning' : 'border-transparent',
+            moving
+              ? 'tracker-moving text-motion fill-motion'
+              : 'text-background-20 fill-background-20'
           )}
         >
           <BodyPartIcon bodyPart={tracker.info?.bodyPart} width={24} />
-        </div>
+        </span>
       </div>
       <div className="flex flex-col flex-grow min-w-0 gap-0.5">
         <span
-          className="truncate font-mono text-[13px] font-semibold leading-tight text-background-10"
+          className="truncate font-mono text-[14px] font-semibold leading-snug text-background-10"
           title={name.toString()}
         >
           {name}
         </span>
-        <TrackerStatus
-          status={tracker.status}
-          recovery={tracker.recovery}
-          bodyPart={tracker.info?.bodyPart}
-        />
+        <div className="flex flex-wrap items-center gap-1">
+          <TrackerStatus
+            status={tracker.status}
+            recovery={tracker.recovery}
+            bodyPart={tracker.info?.bodyPart}
+          />
+          {problems.map((problem) => (
+            <span
+              key={problem.label}
+              className={classNames(
+                'rounded-[3px] border px-1.5 py-px font-mono text-[10.5px] uppercase tracking-wide whitespace-nowrap',
+                problem.tone
+              )}
+            >
+              {problem.label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -170,6 +193,8 @@ function Row({
   gridTemplateColumns,
   showType,
   showTemp,
+  showTps,
+  showRot,
 }: {
   data: FlatDeviceTracker;
   highlightedTrackers: highlightedTrackers | undefined;
@@ -177,15 +202,20 @@ function Row({
   gridTemplateColumns: string;
   showType: boolean;
   showTemp: boolean;
+  showTps: boolean;
+  showRot: boolean;
 }) {
   const { config } = useConfig();
   const fontColor = config?.devSettings?.highContrast ? 'primary' : 'secondary';
   const moreInfo = config?.devSettings?.moreInfo;
 
   const { tracker, device } = data;
-  const { useIsMoving } = useTracker(tracker);
-  const moving = useIsMoving();
-  const isMoving = tracker.status !== TrackerStatusEnum.DISCONNECTED && moving;
+  const rowRef = useRef<HTMLDivElement>(null);
+  const isMoving = useMotionGlow(tracker, rowRef);
+  const isDisconnected = tracker.status === TrackerStatusEnum.DISCONNECTED;
+  const batteryPct = device?.hardwareStatus?.batteryPctEstimate;
+  const batteryVoltage = device?.hardwareStatus?.batteryVoltage;
+  const ping = device?.hardwareStatus?.ping;
 
   const warning =
     !!highlightedTrackers?.trackers.find(
@@ -216,9 +246,13 @@ function Row({
       >
         <>
           <div
-            className={classNames('tracker-list-row group grid items-center', {
-              'tracker-list-row-moving': isMoving,
-            })}
+            ref={rowRef}
+            className={classNames(
+              'tracker-list-row group grid items-center',
+              isMoving && 'tracker-card-moving',
+              isDisconnected && 'tracker-list-row-offline'
+            )}
+            title={isDisconnected ? 'Offline' : undefined}
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
@@ -232,47 +266,42 @@ function Row({
             onClick={() => clickedTracker(tracker)}
           >
             <Cell first>
-              <TrackerNameCell tracker={tracker} warning={warning} />
+              {isDisconnected && <span className="sr-only">Offline</span>}
+              <TrackerNameCell
+                tracker={tracker}
+                warning={warning}
+                moving={isMoving}
+                problems={trackerProblems({ isDisconnected, ping })}
+              />
             </Cell>
             <Cell show={showType}>
-              <Typography color={fontColor}>
+              <span className="truncate font-mono text-[12px] text-background-30">
                 {device?.hardwareInfo?.manufacturer || '--'}
-              </Typography>
+              </span>
             </Cell>
             <Cell>
-              {device?.hardwareStatus?.batteryPctEstimate != null && (
-                <TrackerBattery
-                  value={device.hardwareStatus.batteryPctEstimate / 100}
-                  voltage={device.hardwareStatus.batteryVoltage}
-                  runtime={device.hardwareStatus.batteryRuntimeEstimate}
-                  disabled={tracker.status === TrackerStatusEnum.DISCONNECTED}
-                  moreInfo={config?.devSettings.moreInfo}
-                  textColor={fontColor}
-                />
-              )}
+              <BatteryBar
+                pct={isDisconnected ? null : batteryPct}
+                voltage={
+                  batteryVoltage != null && batteryVoltage > 0
+                    ? `${batteryVoltage.toFixed(2)} V`
+                    : null
+                }
+              />
             </Cell>
             <Cell>
-              {(device?.hardwareStatus?.rssi != null ||
-                device?.hardwareStatus?.ping != null) && (
-                <TrackerWifi
-                  rssi={device?.hardwareStatus?.rssi}
-                  rssiShowNumeric
-                  ping={device?.hardwareStatus?.ping}
-                  disabled={tracker.status === TrackerStatusEnum.DISCONNECTED}
-                  textColor={fontColor}
-                  showPacketLoss
-                  packetLoss={device.hardwareStatus.packetLoss}
-                  packetsLost={device.hardwareStatus.packetsLost}
-                  packetsReceived={device.hardwareStatus.packetsReceived}
-                />
-              )}
+              <SignalPing
+                rssi={device?.hardwareStatus?.rssi}
+                ping={ping}
+                disconnected={isDisconnected}
+              />
             </Cell>
-            <Cell>
+            <Cell show={showTps}>
               {tracker.tps && (
                 <Typography color={fontColor}>{tracker.tps}</Typography>
               )}
             </Cell>
-            <Cell>
+            <Cell show={showRot}>
               <TrackerRotCell
                 tracker={tracker}
                 precise={config?.devSettings?.preciseRotation}
@@ -312,6 +341,14 @@ function Row({
                 ).toString()}
               </Typography>
             </Cell>
+            {/* Motion rim, as on the cards. */}
+            <span
+              aria-hidden="true"
+              className="tracker-motion-rim"
+              style={
+                { '--battery-low': batteryRedness(batteryPct) } as CSSProperties
+              }
+            />
           </div>
         </>
       </Tooltip>
@@ -348,22 +385,27 @@ export function TrackersTable({
   // The "more info" columns show stay-aligned data.
   useFeedDemand(trackerDetailCountAtom, !!moreInfo);
 
-  // Columns no tracker has data for (often Type and Temp) are left out.
-  const showType = filteredSortedTrackers.some(
-    ({ device }) => !!device?.hardwareInfo?.manufacturer
-  );
-  const showTemp = filteredSortedTrackers.some(
-    ({ tracker }) => !!tracker.temp?.temp
-  );
+  // Columns no tracker has data for (often Type and Temp) are left out. When the list is narrow (the live skeleton
+  // is open), the detail columns drop out as well, like the cards reflowing, instead of being cut off.
+  const { ref: listRef, width } = useElemSize<HTMLDivElement>();
+  const preciseRotation = !!config?.devSettings?.preciseRotation;
+  const fit = fitColumns(moreInfo ? 0 : width, {
+    type: filteredSortedTrackers.some(
+      ({ device }) => !!device?.hardwareInfo?.manufacturer
+    ),
+    temp: filteredSortedTrackers.some(({ tracker }) => !!tracker.temp?.temp),
+    preciseRotation,
+  });
+  const { type: showType, temp: showTemp, tps: showTps, rot: showRot } = fit;
 
   const gridTemplateColumns = useMemo(() => {
     const cols = [
-      'minmax(11rem, 1.6fr)', // Name
+      'minmax(12rem, 1.6fr)', // Name
       ...(showType ? ['6rem'] : []), // Type
-      '6.5rem', // Battery
-      '7.5rem', // Ping and signal
-      '3.5rem', // TPS
-      config?.devSettings?.preciseRotation ? '9rem' : '7rem', // Rotation
+      '7.5rem', // Battery
+      '6.5rem', // Ping and signal
+      ...(showTps ? ['3.5rem'] : []), // TPS
+      ...(showRot ? [preciseRotation ? '9rem' : '7rem'] : []), // Rotation
       ...(showTemp ? ['4.5rem'] : []), // Temp
     ];
 
@@ -375,10 +417,10 @@ export function TrackersTable({
     }
 
     return cols.join(' ');
-  }, [config?.devSettings?.preciseRotation, moreInfo, showType, showTemp]);
+  }, [preciseRotation, moreInfo, showType, showTemp, showTps, showRot]);
 
   return (
-    <div className="tracker-list w-full overflow-x-auto p-2">
+    <div ref={listRef} className="tracker-list w-full overflow-x-auto p-2">
       <div className="min-w-fit">
         <div
           className="tracker-list-header grid items-center mb-2"
@@ -388,8 +430,8 @@ export function TrackersTable({
           <Header name={'tracker-table-column-type'} show={showType} />
           <Header name={'tracker-table-column-battery'} />
           <Header name={'tracker-table-column-ping'} />
-          <Header name={'tracker-table-column-tps'} />
-          <Header name={'tracker-table-column-rotation'} />
+          <Header name={'tracker-table-column-tps'} show={showTps} />
+          <Header name={'tracker-table-column-rotation'} show={showRot} />
           <Header
             name={'tracker-table-column-temperature'}
             last={!moreInfo}
@@ -407,7 +449,7 @@ export function TrackersTable({
             last={moreInfo}
           />
         </div>
-        <div className="tracker-list-body flex flex-col">
+        <div className="tracker-list-body flex flex-col gap-2">
           {filteredSortedTrackers.map((data, index) => (
             <div
               key={`${data.device?.id?.id ?? 'dev'}_${data.tracker.trackerId?.trackerNum ?? index}_${index}`}
@@ -426,6 +468,8 @@ export function TrackersTable({
                 gridTemplateColumns={gridTemplateColumns}
                 showType={showType}
                 showTemp={showTemp}
+                showTps={showTps}
+                showRot={showRot}
               />
             </div>
           ))}

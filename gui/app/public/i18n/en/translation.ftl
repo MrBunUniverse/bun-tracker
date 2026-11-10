@@ -568,7 +568,7 @@ settings-general-tracker_mechanics-drift_compensation-description =
     Compensates for IMU yaw drift by applying an inverse rotation.
     Change the amount of compensation and the number of resets taken into account.
     This should only be used if you need to reset very often!
-settings-general-tracker_mechanics-drift_compensation-help = Learns how fast each tracker's heading drifts from your resets and cancels it out. Works best after several full resets. Recommended for IMUs without a magnetometer, like the MPU6050.
+settings-general-tracker_mechanics-drift_compensation-help = Learns how fast each tracker's heading drifts from your resets and cancels it out. Works best after several full resets. Recommended for IMUs without a magnetometer, like the MPU6050. Turning it on enables it for all trackers; you can still turn it off for a single tracker in its settings.
 settings-general-tracker_mechanics-drift_compensation-enabled-label = Drift compensation
 settings-general-tracker_mechanics-drift_compensation-prediction = Drift compensation prediction
 # This cares about multilines

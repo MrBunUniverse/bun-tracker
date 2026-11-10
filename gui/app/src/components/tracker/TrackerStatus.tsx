@@ -86,23 +86,29 @@ export function TrackerStatus({
   };
 
   return (
-    <div className="flex items-center gap-1.5 glass-pill px-2 py-0.5 text-ui-2xs font-medium">
-      <div
-        className={classNames('w-1.5 h-1.5 rounded-full shrink-0', statusClass)}
-      />
-      <Typography
-        whitespace="whitespace-nowrap"
-        className="text-ui-2xs leading-tight"
-      >
-        {l10n.getString(statusLabel)}
-        {recovery?.state === TrackerRecoveryState.WAITING_FOR_STILLNESS &&
-          ` ${Math.round(recovery.progress * 100)}%`}
-      </Typography>
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 glass-pill px-2 py-0.5 text-ui-2xs font-medium">
+      {/* The dot stays with its label when the Reset button wraps; a long label truncates instead. */}
+      <span className="flex min-w-0 items-center gap-1.5">
+        <span
+          className={classNames(
+            'w-1.5 h-1.5 rounded-full shrink-0',
+            statusClass
+          )}
+        />
+        <Typography
+          whitespace="whitespace-nowrap"
+          className="truncate text-ui-2xs leading-tight"
+        >
+          {l10n.getString(statusLabel)}
+          {recovery?.state === TrackerRecoveryState.WAITING_FOR_STILLNESS &&
+            ` ${Math.round(recovery.progress * 100)}%`}
+        </Typography>
+      </span>
       {recovery?.state === TrackerRecoveryState.NEEDS_RESET &&
         bodyPart != null && (
           <button
             type="button"
-            className="ml-1 underline underline-offset-2"
+            className="ml-1 shrink-0 whitespace-nowrap rounded-[5px] border border-background-10/[0.16] px-1.5 py-px text-ui-2xs leading-tight hover:border-background-10/[0.3] hover:bg-background-10/[0.06]"
             onClick={(event) => {
               event.stopPropagation();
               resetTracker();

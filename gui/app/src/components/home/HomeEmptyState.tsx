@@ -219,27 +219,7 @@ export function ClaudeTrackerWindowCard({
           >
             {trackerName}
           </h3>
-          <div className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] leading-none tnum">
-            <SignalBars rssi={isDisconnected ? null : rssi} />
-            <span
-              title="Ping"
-              className={classNames(
-                'min-w-[4ch] text-right',
-                ping != null && ping > HIGH_PING_MS
-                  ? 'text-status-warning'
-                  : 'text-background-20'
-              )}
-            >
-              {ping != null && ping > 0 ? (
-                <>
-                  {ping}
-                  <span className="card-ping-unit">ms</span>
-                </>
-              ) : (
-                '--'
-              )}
-            </span>
-          </div>
+          <SignalPing rssi={rssi} ping={ping} disconnected={isDisconnected} />
         </div>
         <BatteryBar
           pct={isDisconnected ? null : batteryPct}
@@ -336,12 +316,47 @@ export function BatteryBar({
   );
 }
 
+/** Signal bars plus the ping number ("--" when unknown); a high ping turns warning-coloured. */
+export function SignalPing({
+  rssi,
+  ping,
+  disconnected,
+}: {
+  rssi?: number | null;
+  ping?: number | null;
+  disconnected?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 whitespace-nowrap font-mono text-[12px] leading-none tnum">
+      <SignalBars rssi={disconnected ? null : rssi} />
+      <span
+        title="Ping"
+        className={classNames(
+          'min-w-[4ch] text-right',
+          ping != null && ping > HIGH_PING_MS
+            ? 'text-status-warning'
+            : 'text-background-20'
+        )}
+      >
+        {ping != null && ping > 0 ? (
+          <>
+            {ping}
+            <span className="card-ping-unit">ms</span>
+          </>
+        ) : (
+          '--'
+        )}
+      </span>
+    </div>
+  );
+}
+
 const LOW_BATTERY_PCT = 15;
 const HIGH_PING_MS = 50;
 
 /** Chips appear only for something the user should act on. Low battery shows in the battery bar instead, and
     offline as a dimmed card. */
-function trackerProblems({
+export function trackerProblems({
   isDisconnected,
   ping,
 }: {
