@@ -56,3 +56,8 @@ vrconfig.yml.tmp
 
 # Full flash dumps hold Wi-Fi credentials; keep them local only.
 firmware_backups/**/*.bin
+
+# Private working notes; kept local
+/reports/
+/research_notes/
+/docs/audits/

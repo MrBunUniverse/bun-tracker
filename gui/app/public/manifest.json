@@ -1,7 +1,7 @@
 {
-  "name": "SlimeVR GUI",
-  "short_name": "SlimeVR GUI",
-  "description": "A web interface for controlling the SlimeVR Server software",
+  "name": "Bun Tracker",
+  "short_name": "Bun Tracker",
+  "description": "Desktop app for Bun Tracker, an unofficial SlimeVR-compatible tracking server",
   "display": "standalone",
   "theme_color": "#663499",
   "background_color": "#663499",

@@ -19,11 +19,8 @@ Use this page as the index for project documentation. Runtime source belongs in 
 
 Dated records, kept as evidence. They describe the project as it was and are not maintained.
 
-- [Repair audit — 2026-09-11](audits/repair-2026-09-11.md)
 - [PawPad style plan — 2026-10-11](dev/PLAN-pawpad-style.md)
 - [Performance baseline — 2026-10-11](dev/PERFORMANCE_BASELINE.md)
-- [Mac headset tracking report](../reports/Mac%20SlimeVR%20headset%20tracking.md)
-- Mac headset tracking research notes: [local tracking](../research_notes/Mac%20SlimeVR%20headset%20tracking/local_tracking.md), [Mac and SteamVR](../research_notes/Mac%20SlimeVR%20headset%20tracking/mac_steamvr.md), [Quest pose](../research_notes/Mac%20SlimeVR%20headset%20tracking/quest_pose.md)
 
 ## Legal
 

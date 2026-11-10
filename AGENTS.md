@@ -5,7 +5,7 @@ Kotlin tracking server, Tauri/React GUI (Bun Tracker), Quest integration, and th
 ## Priorities
 
 1. Follow the current request and preserve its scope.
-2. Preserve existing work. The worktree is often intentionally dirty (`firmware_backups/`, `.context-shears/`, `docs/audits/*.patch`); never reset, stash, clean, or rewrite unrelated changes.
+2. Preserve existing work. The worktree is often intentionally dirty (`firmware_backups/`, `.context-shears/`); never reset, stash, clean, or rewrite unrelated changes.
 3. Fix the root cause with the smallest maintainable change.
 4. Verify in proportion to the files changed and report results as actually run. Never assume or hard-code a test count.
 

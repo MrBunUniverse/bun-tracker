@@ -6,8 +6,9 @@ This fork keeps upstream's top-level shape: Kotlin server in `server/`, protocol
 
 | Remote | Use |
 | --- | --- |
-| `origin` | `MrBunUniverse/SJ-SlimeVR-Server` |
-| `custom-private` | `MrBunUniverse/SJ-SlimeVR-Server-Custom` |
+| `public` | `MrBunUniverse/bun-tracker`, the public repo |
+| `custom-private` | the private working copy |
+| `origin` | an older private copy |
 | `upstream` | `SlimeVR/SlimeVR-Server`, fetch only. Its push URL is `DISABLED`, and tags are not fetched so they cannot clash with fork tags. Both repos have a `v0.1.0`, at different commits. |
 
 `git rerere` is on for this clone, so repeated conflicts reuse their earlier resolutions.
