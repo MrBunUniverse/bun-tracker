@@ -1,49 +1,49 @@
 # Bun Tracker
 
-Bun Tracker is my personal version of [SlimeVR Server](https://github.com/SlimeVR/SlimeVR-Server), the open-source software that turns body trackers into full-body tracking for VR. I adapted it for my own setup and share it with friends and a few people I trust.
+Bun Tracker is my own take on [SlimeVR Server](https://github.com/SlimeVR/SlimeVR-Server), the open-source software that turns body trackers into full-body tracking for VR. I play VRChat with trackers on a Mac and wanted the software to fit my setup, so I started changing things. I share it with friends and a few people I trust.
 
-**This is an early work in progress.** Things are unfinished and change often. It is only tested on macOS. It is an unofficial project: it is not a SlimeVR release and is not affiliated with the SlimeVR team.
+**Heads up: this is an early work in progress.** Stuff is unfinished and changes often, and I've only tested it on macOS. It's an unofficial fork. It is not a SlimeVR release, and it is not affiliated with the SlimeVR team.
 
 ## What's different from SlimeVR
 
 ### The desktop app
 
-- A redesigned interface, with a top navigation bar and a navy, gray and amber look.
-- Tracker cards in place of plain rows, which adapt to the window width.
-- Three themes: Bun, Fox and Dog.
+- A redesigned interface with a top navigation bar, in navy, gray and amber.
+- Tracker cards instead of plain rows. They adapt to the window width.
+- Three themes: Bun, Fox and Dog. Pick your animal.
 - A microphone picker for the voice features.
-- A built-in User Agreement page under Settings.
+- A User Agreement page built in, under Settings.
 
 ### Tracking
 
-- Drift compensation keeps trackers aligned over long sessions, with settings you can adjust. It can be switched on for all trackers at once.
-- Resets know about your posture, including a yaw reset for when you are lying down.
+- Drift compensation keeps trackers aligned through long sessions. The settings are adjustable, and you can switch it on for all trackers at once.
+- Resets know about your posture. There's even a yaw reset for when you're lying down.
 - A tracker that drops out can rejoin more smoothly instead of snapping back.
 - An automatic full reset option.
-- A foot-slide clamp that reduces feet sliding across the floor.
-- A stability estimate for each tracker, and smoother handling of uneven network timing.
+- A foot-slide clamp, so your feet slide across the floor less.
+- A stability estimate for each tracker, plus smoother handling of uneven network timing.
 
 ### Hardware
 
-- Support for an ESP32 USB dongle as a tracker receiver.
-- Over-the-air tracker updates through the dongle, including a Wi-Fi flash mode, so trackers can be updated without opening them up.
+- An ESP32 USB dongle works as a tracker receiver.
+- Trackers can be updated over the air through the dongle, including a Wi-Fi flash mode. No need to open them up.
 
 ### VRChat and Meta Quest
 
-- VRChat chatbox tools: show what Apple Music is playing, a BPM readout, and voice dictation into the chatbox.
+- VRChat chatbox tools: show what's playing in Apple Music, a BPM readout, and voice dictation straight into the chatbox.
 - A remote page that controls the separate Quest StreamCast app.
 
 ### Privacy
 
-- No error reporting or usage data is sent to SlimeVR, and there is no update check against upstream.
+- No error reports or usage data go to SlimeVR, and the app doesn't check upstream for updates.
 
 ## Not done yet
 
-- Windows and Linux are untested.
-- There are no installers.
-- Some native features are switched off for now: the system tray, Mac built-in dictation, and Discord presence. The app tells you when one is unavailable.
+- Windows and Linux are untested. They might work. They might not.
+- No installers yet.
+- A few native features are switched off for now: the system tray, Mac built-in dictation, and Discord presence. The app tells you when one is unavailable.
 
-Developer notes are in [`docs/`](docs/README.md). The full list of changes is in the [changelog](CHANGELOG.md).
+Developer notes live in [`docs/`](docs/README.md). Every change is listed in the [changelog](CHANGELOG.md).
 
 ## User Agreement
 
@@ -63,7 +63,7 @@ This is the same text as in the app under Settings > User Agreement.
 
 ## Contact
 
-Discord: `jamevm` (SirJame). [Open my profile](https://discord.com/users/390812634481688576), or search "jamevm" in Discord's Add Friend.
+Got a problem or a question? Find me on Discord: `jamevm` (SirJame). [Open my profile](https://discord.com/users/390812634481688576), or search "jamevm" in Discord's Add Friend.
 
 ## License
 
