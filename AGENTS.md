@@ -79,4 +79,5 @@ Shared instructions live in `.agents/`. Read them directly; do not assume a tool
 - Submodules (`solarxr-protocol/`, `bindings-provider/openvr/`), lockfiles, and generated assets: do not modify unless the task requires it. Never edit generated output when a source file or build command exists.
 - Validate external input at IPC, network, file, and process boundaries.
 - Preserve user data and configuration; prefer recoverable operations over recursive deletion or unverified migrations.
+- Never commit or push sensitive information: API keys, tokens, passwords, Wi-Fi credentials, `.env` secrets, personal documents, or full firmware flash dumps (they hold saved Wi-Fi credentials; `firmware_backups/**/*.bin` is git-ignored for this reason). Check staged files and diffs before every commit. If you are unsure whether something is sensitive, stop and ask the owner before committing or pushing.
 - Finish with a concise summary: changed files, behavior, verification actually run, remaining limitations.
