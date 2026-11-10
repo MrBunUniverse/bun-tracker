@@ -1,6 +1,7 @@
 package dev.slimevr.config
 
 import dev.slimevr.VRServer
+import dev.slimevr.tracking.trackers.Tracker
 
 class DriftCompensationConfig {
 
@@ -20,6 +21,15 @@ class DriftCompensationConfig {
 	fun sanitize() {
 		amount = if (amount.isFinite()) amount.coerceIn(MIN_AMOUNT, MAX_AMOUNT) else DEFAULT_AMOUNT
 		maxResets = maxResets.coerceIn(MIN_MAX_RESETS, MAX_MAX_RESETS)
+	}
+
+	/** Opts every IMU tracker in (runtime and saved config); tracking thread only. */
+	fun enableForAllTrackers(trackers: Iterable<Tracker> = VRServer.instance.allTrackers) {
+		for (t in trackers) {
+			if (!t.isImu()) continue
+			t.resetsHandler.allowDriftCompensation = true
+			t.config.allowDriftCompensation = true
+		}
 	}
 
 	fun updateTrackersDriftCompensation() {

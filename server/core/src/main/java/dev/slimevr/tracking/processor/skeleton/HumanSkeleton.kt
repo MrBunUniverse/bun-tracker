@@ -11,8 +11,11 @@ import dev.slimevr.tracking.processor.HumanPoseManager
 import dev.slimevr.tracking.processor.config.SkeletonConfigToggles
 import dev.slimevr.tracking.processor.config.SkeletonConfigValues
 import dev.slimevr.tracking.processor.stayaligned.StayAligned
+import dev.slimevr.tracking.processor.stayaligned.trackers.RestDetector
 import dev.slimevr.tracking.processor.stayaligned.trackers.TrackerSkeleton
 import dev.slimevr.tracking.trackers.AdaptiveDriftCompensation
+import dev.slimevr.tracking.trackers.ResetPosture
+import dev.slimevr.tracking.trackers.ResetPostureClassifier
 import dev.slimevr.tracking.trackers.Tracker
 import dev.slimevr.tracking.trackers.TrackerPosition
 import dev.slimevr.tracking.trackers.TrackerRole
@@ -1565,8 +1568,20 @@ class HumanSkeleton(
 			rightLittleDistalTracker,
 		)
 
+	/** Rotation rest signal for reset posture checks (Stay Aligned's 2° / 1 s detector); replaceable in tests. */
+	internal var isTrackerStill: (Tracker) -> Boolean = { it.stayAligned.restDetector.state == RestDetector.State.AT_REST }
+
+	private val postureTorsoTrackers: List<Tracker>
+		get() = listOfNotNull(upperChestTracker, chestTracker, waistTracker, hipTracker)
+
 	@JvmOverloads
 	fun resetTrackersFull(resetSourceName: String?, bodyParts: List<Int> = ArrayList()) {
+		// A full reset treats the current tilt as neutral; lying down it would corrupt
+		// calibration, so reject before anything (guards, HMD pitch, floor) changes.
+		ResetPostureClassifier.fullResetBlockReason(headTracker, postureTorsoTrackers)?.let {
+			LogManager.warning("[HumanSkeleton] Reset: full ($resetSourceName) rejected, not upright: $it")
+			return
+		}
 		humanPoseManager.server?.serverGuards?.onFullReset()
 
 		var referenceRotation = IDENTITY
@@ -1600,6 +1615,21 @@ class HumanSkeleton(
 	@VRServerThread
 	@JvmOverloads
 	fun resetTrackersYaw(resetSourceName: String?, bodyParts: List<Int> = TrackerUtils.allBodyPartsButFingers) {
+		val selected = trackersToReset.filterNotNull()
+			.filter { it.allowReset && (bodyParts.isEmpty() || bodyParts.contains(it.trackerPosition?.bodyPart)) }
+		// One posture decision for the whole reset, taken before anything changes.
+		val posture = ResetPostureClassifier.classify(
+			headTracker,
+			postureTorsoTrackers,
+			selected.filter { it.trackerPosition in ResetPostureClassifier.legPositions },
+			isTrackerStill,
+		)
+		if (posture.posture == ResetPosture.UNSAFE) {
+			// Nothing was realigned, so keep accumulated correction; just don't learn across this.
+			for (tracker in selected) tracker.resetsHandler.invalidateDriftInterval()
+			LogManager.warning("[HumanSkeleton] Reset: yaw ($resetSourceName) skipped, unsafe posture: ${posture.reason}")
+			return
+		}
 		// Resets the yaw of the trackers with the head as reference.
 		var referenceRotation = IDENTITY
 		headTracker?.let {
@@ -1611,14 +1641,20 @@ class HumanSkeleton(
 			}
 			referenceRotation = it.getRotation()
 		}
-		for (tracker in trackersToReset) {
-			// Only reset if tracker allowReset
-			if (tracker != null && tracker.allowReset && (bodyParts.isEmpty() || bodyParts.contains(tracker.trackerPosition?.bodyPart))) {
-				tracker.resetsHandler.resetYaw(referenceRotation)
+		for (tracker in selected) {
+			if (posture.posture.isLying &&
+				tracker.trackerPosition !in ResetPostureClassifier.torsoPositions &&
+				tracker.trackerPosition !in ResetPostureClassifier.legPositions
+			) {
+				// Feet, arms, etc. have no known lying heading; leave their yaw alone.
+				tracker.resetsHandler.invalidateDriftInterval()
+				continue
 			}
+			tracker.resetsHandler.resetYaw(referenceRotation, posture)
 		}
 		legTweaks.resetBuffer()
-		LogManager.info("[HumanSkeleton] Reset: yaw ($resetSourceName)")
+		val learn = if (posture.confident) "" else ", not confident enough to learn drift"
+		LogManager.info("[HumanSkeleton] Reset: yaw ($resetSourceName, ${posture.posture}$learn)")
 	}
 
 	/**

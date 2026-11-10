@@ -97,12 +97,18 @@ class RPCSettingsHandler(var rpcHandler: RPCHandler, var api: ProtocolAPI) {
 			val driftCompensationConfig = api.server.configManager
 				.vrConfig
 				.driftCompensation
+			val turnedOn = drift.enabled() && !driftCompensationConfig.enabled
 			driftCompensationConfig.enabled = drift.enabled()
 			driftCompensationConfig.prediction = drift.prediction()
 			driftCompensationConfig.amount = drift.amount()
 			driftCompensationConfig.maxResets = drift.maxResets()
 			// Reset handlers' drift state belongs to the tracking thread.
-			api.server.queueTask { driftCompensationConfig.updateTrackersDriftCompensation() }
+			api.server.queueTask {
+				// Turning the feature on opts all trackers in; per-tracker toggles stay an opt-out.
+				if (turnedOn) driftCompensationConfig.enableForAllTrackers()
+				driftCompensationConfig.updateTrackersDriftCompensation()
+				if (turnedOn) api.server.configManager.saveConfig()
+			}
 		}
 
 		if (req.oscRouter() != null) {

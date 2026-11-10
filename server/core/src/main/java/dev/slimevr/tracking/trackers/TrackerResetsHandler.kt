@@ -8,6 +8,7 @@ import dev.slimevr.config.ResetsConfig
 import dev.slimevr.config.TrackerConfig
 import dev.slimevr.config.config
 import dev.slimevr.tracking.trackers.udp.TrackerDataType
+import io.eiren.util.logging.LogManager
 import io.github.axisangles.ktmath.EulerAngles
 import io.github.axisangles.ktmath.EulerOrder
 import io.github.axisangles.ktmath.Quaternion
@@ -30,6 +31,18 @@ class TrackerResetsHandler(val tracker: Tracker) {
 
 	/** Monotonic milliseconds for drift timing; replaceable in tests. */
 	internal var monotonicMs: () -> Long = { System.nanoTime() / 1_000_000L }
+
+	/** Test seam: forces the drift gate without a running VRServer/HMD. */
+	internal var driftGateOverride: Boolean? = null
+
+	/** Persistent (cross-session) learner fed with SENSOR drift (the inverse of the correction). */
+	internal var persistentDriftSink: (sensorDriftYawRad: Float, elapsedMs: Long) -> Unit =
+		{ yaw, ms -> learnDriftObservation(yaw, ms, 1f) }
+
+	/** Posture of the last reset the drift model trusted; a different posture re-baselines. */
+	private var lastTrustedPosture: ResetPosture? = null
+
+	internal val driftObservationCount: Int get() = driftModel.size
 	var compensateDrift = false
 	private var driftPrediction = false
 	private var driftCompensationEnabled = false
@@ -430,13 +443,15 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	 */
 	fun refreshDriftCompensationEnabled() {
 		val wasEnabled = driftCompensationEnabled
-		driftCompensationEnabled = compensateDrift &&
-			allowDriftCompensation &&
-			VRServer.instanceInitialized &&
-			TrackerUtils.getNonInternalNonImuTrackerForBodyPosition(
-				VRServer.instance.allTrackers,
-				TrackerPosition.HEAD,
-			) != null
+		driftCompensationEnabled = driftGateOverride ?: (
+			compensateDrift &&
+				allowDriftCompensation &&
+				VRServer.instanceInitialized &&
+				TrackerUtils.getNonInternalNonImuTrackerForBodyPosition(
+					VRServer.instance.allTrackers,
+					TrackerPosition.HEAD,
+				) != null
+			)
 		// Coming back (HMD reconnect, setting toggled) must not apply the time
 		// spent disabled at once, nor record that interval as drift.
 		if (driftCompensationEnabled && !wasEnabled) driftModel.rebase(monotonicMs())
@@ -632,7 +647,7 @@ class TrackerResetsHandler(val tracker: Tracker) {
 			tracker.yawResetSmoothing.reset()
 		}
 
-		calculateDrift(oldRot)
+		calculateDrift(oldRot, ResetPostureSnapshot.UPRIGHT)
 
 		// Reset Stay Aligned (before resetting filtering, which depends on the
 		// tracker's rotation)
@@ -654,8 +669,12 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	 * Yaw. This allows the tracker to have yaw independent of the HMD. Tracker
 	 * should still report yaw as if it was mounted facing HMD, mounting
 	 * position should be corrected in the source.
+	 *
+	 * Lying ([ResetPosture.isLying]): instead of the HMD yaw, the tracker's headward
+	 * axis is turned onto [ResetPostureSnapshot.heading] (the HMD crown on the floor),
+	 * composed into the existing yaw fix so mounting and attachment stay intact.
 	 */
-	fun resetYaw(reference: Quaternion) {
+	fun resetYaw(reference: Quaternion, posture: ResetPostureSnapshot = ResetPostureSnapshot.UPRIGHT) {
 		if (tracker.recovery.state == TrackerRecoveryState.NEEDS_RESET) return
 		clearRecovery()
 		rebaseAdaptiveCorrectionForReset()
@@ -675,12 +694,16 @@ class TrackerResetsHandler(val tracker: Tracker) {
 		lastResetQuaternion = oldRot
 
 		val yawFixOld = yawFix
-		yawFix = fixYaw(tracker.getRawRotation() * mountingOrientation, reference)
+		yawFix = if (posture.posture.isLying) {
+			lyingYawFix(oldRot, posture.heading)
+		} else {
+			fixYaw(tracker.getRawRotation() * mountingOrientation, reference)
+		}
 		tracker.yawResetSmoothing.reset()
 
 		makeIdentityAdjustmentQuatsYaw()
 
-		calculateDrift(oldRot)
+		calculateDrift(oldRot, posture)
 
 		// Start at yaw before reset if smoothing enabled
 		if (yawResetSmoothTime > 0.0f) {
@@ -786,6 +809,17 @@ class TrackerResetsHandler(val tracker: Tracker) {
 		invalidateDriftInterval()
 	}
 
+	/**
+	 * Turns [adjusted]'s headward axis onto [heading] about world Y. [adjusted] is
+	 * `yawFix * inner` here (recovery and constraint fixes were just cleared), so a
+	 * world yaw on the left of [yawFix] moves exactly that axis.
+	 */
+	private fun lyingYawFix(adjusted: Quaternion, heading: Float): Quaternion {
+		val current = ResetPostureClassifier.heading(adjusted.sandwichUnitY()) ?: return yawFix
+		val delta = ResetPostureClassifier.wrap(heading - current)
+		return (Quaternion.rotationAroundYAxis(delta) * yawFix).unit()
+	}
+
 	private fun fixGyroscope(sensorRotation: Quaternion): Quaternion = getYawQuaternion(sensorRotation).inv()
 
 	private fun fixAttachment(sensorRotation: Quaternion): Quaternion = (gyroFix * sensorRotation).inv()
@@ -844,45 +878,41 @@ class TrackerResetsHandler(val tracker: Tracker) {
 	/**
 	 * Records the yaw correction this reset applied since the previous one as a
 	 * drift observation, and starts the next interval.
+	 *
+	 * One gate feeds both learners: the posture must be trusted ([posture] confident,
+	 * not UNSAFE), the delta a pure yaw, the interval valid, and the posture the same
+	 * as the previous trusted reset (upright, supine and prone don't share a
+	 * baseline). Anything else only re-baselines. The persistent learner gets only
+	 * new model observations (never cooldown merges) and stores sensor drift, the
+	 * inverse of the correction.
 	 */
-	private fun calculateDrift(beforeQuat: Quaternion) {
-		val rotQuat = adjustToReference(tracker.getRawRotation())
+	private fun calculateDrift(beforeQuat: Quaternion, posture: ResetPostureSnapshot) {
 		val now = monotonicMs()
-		val deltaQuat = getYawQuaternion(rotQuat) / getYawQuaternion(beforeQuat)
-		// Signed shortest yaw in [-pi, pi]
-		val deltaYaw = deltaQuat.toEulerAngles(EulerOrder.YZX).y
-
-		// Auto-learn persistent drift rate across sessions if interval is valid (>30s)
-		val driftSince = driftModel.intervalStart
-		if (tracker.isImu() && driftSince != null) {
-			val elapsedMs = now - driftSince
-			val elapsedMin = elapsedMs / 60000.0f
-
-			if (tracker.config.autoLearnDrift && elapsedMin >= 0.5f) {
-				var deltaYawDeg = Math.toDegrees(deltaYaw.toDouble()).toFloat()
-				while (deltaYawDeg > 180f) deltaYawDeg -= 360f
-				while (deltaYawDeg < -180f) deltaYawDeg += 360f
-
-				val observedRate = deltaYawDeg / elapsedMin
-				// Filter out extreme resets (> 20 deg/min, likely posture re-calibration or manual turns)
-				if (abs(observedRate) <= 20.0f) {
-					val currentLearned = tracker.config.learnedDriftRateDegPerMin
-					val obsCount = tracker.config.totalDriftObservations
-					val alpha = if (obsCount < 3) 0.5f else 0.2f
-					val newLearned = (1f - alpha) * currentLearned + alpha * observedRate
-					tracker.config.learnedDriftRateDegPerMin = newLearned
-					tracker.config.totalDriftObservations = obsCount + 1
-					tracker.config.adaptiveDriftModelVersion = 1
-					tracker.config.adaptiveDriftLastAcceptedAt = System.currentTimeMillis()
-					markAdaptiveConfigDirty()
-				}
-			}
-		}
-
-		if (driftCompensationEnabled) {
-			driftModel.onReset(deltaYaw, now)
-		} else {
+		val deltaYaw = pureYawDelta(adjustToReference(tracker.getRawRotation()), beforeQuat)
+		val trusted = posture.confident && posture.posture != ResetPosture.UNSAFE && deltaYaw != null
+		if (!driftCompensationEnabled || !trusted) {
 			driftModel.rebase(now)
+			if (driftCompensationEnabled) LogManager.info("[TrackerResetsHandler] ${tracker.name}: reset not learnable (${posture.posture}), drift re-baselined")
+			return
 		}
+		if (lastTrustedPosture != null && lastTrustedPosture != posture.posture) driftModel.invalidateInterval()
+		lastTrustedPosture = posture.posture
+		val start = driftModel.intervalStart
+		val outcome = driftModel.onReset(deltaYaw, now)
+		if (outcome == YawDriftModel.Outcome.ADDED && start != null) {
+			persistentDriftSink(-deltaYaw, now - start)
+		}
+	}
+
+	/** Signed shortest yaw of `after / before`, or null when the change is not (close to) a pure world yaw. */
+	private fun pureYawDelta(after: Quaternion, before: Quaternion): Float? {
+		val d = (after / before).unit().twinNearest(Quaternion.IDENTITY)
+		if (!d.w.isFinite() || !d.y.isFinite() || hypot(d.x, d.z) > PURE_YAW_MAX_TILT_HALF_SIN) return null
+		return 2f * atan2(d.y, d.w)
+	}
+
+	companion object {
+		/** sin(1°): tolerates < 2° of tilt change (full resets re-level, so they rarely qualify). */
+		private val PURE_YAW_MAX_TILT_HALF_SIN = sin(Math.toRadians(1.0)).toFloat()
 	}
 }

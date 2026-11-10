@@ -2,6 +2,8 @@ package dev.slimevr.unit
 
 import dev.slimevr.VRServer.Companion.getNextLocalTrackerId
 import dev.slimevr.config.DriftCompensationConfig
+import dev.slimevr.config.TrackerConfig
+import dev.slimevr.config.config
 import dev.slimevr.tracking.trackers.Tracker
 import dev.slimevr.tracking.trackers.YawDriftModel
 import dev.slimevr.tracking.trackers.YawDriftModel.Outcome
@@ -178,5 +180,40 @@ class GlobalDriftCompensationTests {
 			repeat(3) { tracker.resetsHandler.resetFull(Quaternion.IDENTITY) }
 		}
 		assertTrue(tracker.getRotation().w.isFinite())
+	}
+
+	private fun imuTracker(name: String) = Tracker(
+		null,
+		getNextLocalTrackerId(),
+		name,
+		name,
+		null,
+		hasRotation = true,
+		imuType = IMUType.MPU6050,
+		allowReset = true,
+		allowMounting = true,
+		trackRotDirection = false,
+	)
+
+	@Test
+	fun enablingGloballyOptsInAllImuTrackersOnly() {
+		val optedOut = imuTracker("gdc-a").also {
+			it.resetsHandler.allowDriftCompensation = false
+			it.config.allowDriftCompensation = false
+		}
+		val fresh = imuTracker("gdc-b")
+		val nonImu = Tracker(null, getNextLocalTrackerId(), "gdc-c", "gdc-c", null, hasRotation = true)
+		DriftCompensationConfig().enableForAllTrackers(listOf(optedOut, fresh, nonImu))
+		for (t in listOf(optedOut, fresh)) {
+			assertTrue(t.resetsHandler.allowDriftCompensation)
+			assertTrue(t.config.allowDriftCompensation == true)
+		}
+		assertFalse(nonImu.config.allowDriftCompensation == true)
+	}
+
+	@Test
+	fun newImuTrackerDefaultsToAllowed() {
+		assertTrue(imuTracker("gdc-d").resetsHandler.allowDriftCompensation)
+		assertTrue(TrackerConfig(imuTracker("gdc-e")).allowDriftCompensation == true)
 	}
 }
